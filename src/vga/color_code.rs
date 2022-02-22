@@ -1,6 +1,6 @@
 use super::color::Color;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy,PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ColorCode(pub u8);
 
