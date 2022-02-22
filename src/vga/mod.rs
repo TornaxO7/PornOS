@@ -100,6 +100,7 @@ impl VGA {
         } else {
             self.row_index += 1;
         }
+        self.column_index = 0;
     }
 
     fn reached_last_line(&self) -> bool {
