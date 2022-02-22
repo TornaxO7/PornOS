@@ -11,3 +11,10 @@ and `B` are two different persons):
 > A: Hey! I use Arch btw. as my daily driver, what's about you?
 >
 > B: Yeah, I'm using PornOS 24/7
+
+# Other infos
+Whenever you're referring to this project, please add a little link to this
+repository ^^
+
+Also this project is inspired by [the OS-Blog](https://os.phil-opp.com/), you
+should definitely check it out!
