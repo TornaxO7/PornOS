@@ -30,15 +30,6 @@ impl VGA {
     const BUFFER_WIDTH: usize = 80;
     const VGA_BUFFER_ADDR: usize = 0xb8000;
 
-    pub fn new() -> Self {
-        Self {
-            row_index: 0,
-            column_index: 0,
-            color: ColorCode::default(),
-            buffer: Volatile::new(unsafe{core::slice::from_raw_parts_mut(Self::VGA_BUFFER_ADDR as * mut _, Self::BUFFER_WIDTH * Self::BUFFER_HEIGHT)}),
-        }
-    }
-
     pub fn puts(&mut self, string: &str) {
         string.bytes()
             .for_each(|c| self.putc(c));
