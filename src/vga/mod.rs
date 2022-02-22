@@ -45,12 +45,7 @@ impl VGA {
                 self.next_line();
             }
 
-            self.buffer[0][0].write(VGAChar {
-                ascii_char: 'a',
-                color_code: ColorCode(0xb),
-            });
-            // self.buffer[self.row_index][self.column_index] = char;
-            // self.column_index += 1;
+            self.putc_at(char, self.row, self.column);
         }
     }
 
