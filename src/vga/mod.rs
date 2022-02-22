@@ -7,7 +7,6 @@ use color_code::ColorCode;
 
 use volatile::Volatile;
 
-#[derive(Debug)]
 pub struct VGA {
     row_index: usize,
     column_index: usize,
