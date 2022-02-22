@@ -45,7 +45,7 @@ impl VGA {
                 self.next_line();
             }
 
-            self.putc_at(char, self.row, self.column);
+            self.putc_at(char, self.row_index, self.column_index);
         }
     }
 
