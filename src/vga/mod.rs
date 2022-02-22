@@ -1,10 +1,22 @@
 pub mod color;
 pub mod color_code;
 pub mod vga_char;
+pub mod utils;
 
 use vga_char::VGAChar;
 use color_code::ColorCode;
 use volatile::Volatile;
+use core::fmt;
+use spin::Mutex;
+
+lazy_static::lazy_static! {
+    pub static ref VGA_WRITER: Mutex<VGA> = Mutex::new(VGA {
+        row_index: 0,
+        column_index: 0,
+        color: ColorCode::default(),
+        buffer: Volatile::new(unsafe{core::slice::from_raw_parts_mut(VGA::VGA_BUFFER_ADDR as * mut _, VGA::BUFFER_WIDTH * VGA::BUFFER_HEIGHT)})
+    });
+}
 
 pub struct VGA {
     row_index: usize,
@@ -92,5 +104,12 @@ impl VGA {
 
     fn reached_last_line(&self) -> bool {
         self.row_index >= Self::BUFFER_HEIGHT - 1
+    }
+}
+
+impl fmt::Write for VGA {
+    fn write_str(&mut self, string: &str) -> fmt::Result {
+        self.puts(string);
+        Ok(())
     }
 }
