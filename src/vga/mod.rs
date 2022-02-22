@@ -10,7 +10,7 @@ use volatile::Volatile;
 pub struct VGA {
     row_index: usize,
     column_index: usize,
-    buffer: &'static mut [[Volatile<VGAChar>; Self::BUFFER_WIDTH]; Self::BUFFER_HEIGHT],
+    buffer: Volatile<&'static mut [VGAChar; Self::BUFFER_WIDTH * Self::BUFFER_HEIGHT]>,
 }
 
 impl VGA {
@@ -22,7 +22,7 @@ impl VGA {
         Self {
             row_index: 0,
             column_index: 0,
-            buffer: unsafe {&mut *(Self::VGA_BUFFER_ADDR as * mut _)},
+            buffer: Volatile::new(unsafe{&mut *(Self::VGA_BUFFER_ADDR as * mut _)}),
         }
     }
 
@@ -54,7 +54,8 @@ impl VGA {
         } else if column >= Self::BUFFER_WIDTH {
             panic!("Column '{}' can't be accessed in tha VGA-Buffer!", row);
         }
-        self.buffer[row][column].write(char);
+        self.buffer.as_slice()
+            .index(row * Self::BUFFER_WIDTH + column).write(char.clone());
     }
 
     pub fn clear_line(&mut self, row: usize) {
@@ -67,7 +68,11 @@ impl VGA {
     fn move_lines_up(&mut self) {
         for row_index in 1..Self::BUFFER_HEIGHT {
             for column_index in 0..Self::BUFFER_WIDTH {
-                self.buffer[row_index - 1][column_index] = self.buffer[row_index][column_index].clone()
+                let new_char = self.buffer
+                    .index(row_index * Self::BUFFER_WIDTH + column_index)
+                    .read();
+
+                self.putc_at(new_char, row_index - 1, column_index);
             }
         }
     }
