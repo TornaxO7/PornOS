@@ -1,12 +1,12 @@
 #[macro_export]
 macro_rules! println {
-    () => (print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!(format_args!($($arg)*)));
 }
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => ($crate::vga::utils::_vga_print!("{}\n", format_args!($($arg)*)));
+    ($($arg:tt)*) => ($crate::vga::utils::_vga_print(format_args!($($arg)*)));
 }
 
 #[doc(hidden)]

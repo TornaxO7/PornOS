@@ -10,6 +10,6 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello dude!");
+    pornos::println!("Hello dude! {}", "h");
     loop {}
 }
