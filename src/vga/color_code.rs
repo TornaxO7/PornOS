@@ -2,7 +2,7 @@ use super::color::Color;
 
 #[derive(Debug, Clone, Copy,PartialEq, Eq)]
 #[repr(transparent)]
-pub struct ColorCode(pub u8);
+pub struct ColorCode(u8);
 
 impl ColorCode {
     pub fn new(fg: Color, bg: Color, blink: bool) -> Self {

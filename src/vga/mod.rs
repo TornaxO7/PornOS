@@ -4,12 +4,12 @@ pub mod vga_char;
 
 use vga_char::VGAChar;
 use color_code::ColorCode;
-
 use volatile::Volatile;
 
 pub struct VGA {
     row_index: usize,
     column_index: usize,
+    color: ColorCode,
     buffer: Volatile<&'static mut [VGAChar]>,
 }
 
@@ -22,6 +22,7 @@ impl VGA {
         Self {
             row_index: 0,
             column_index: 0,
+            color: ColorCode::default(),
             buffer: Volatile::new(unsafe{core::slice::from_raw_parts_mut(Self::VGA_BUFFER_ADDR as * mut _, Self::BUFFER_WIDTH * Self::BUFFER_HEIGHT)}),
         }
     }
@@ -32,7 +33,7 @@ impl VGA {
     }
 
     pub fn putc(&mut self, c: u8) {
-        self.put_vga_char(VGAChar::new_char(c));
+        self.put_vga_char(VGAChar::new(c, self.color));
     }
 
     fn put_vga_char(&mut self, char: VGAChar) {
@@ -45,6 +46,7 @@ impl VGA {
             }
 
             self.putc_at(char, self.row_index, self.column_index);
+            self.column_index += 1;
         }
     }
 
@@ -61,7 +63,7 @@ impl VGA {
     }
 
     pub fn clear_line(&mut self, row: usize) {
-        let white_space_char = VGAChar::new_char(b' ');
+        let white_space_char = VGAChar::new(b' ', self.color);
         for column_index in 0..Self::BUFFER_WIDTH {
             self.putc_at(white_space_char.clone(), row, column_index);
         }
