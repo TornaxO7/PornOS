@@ -10,7 +10,9 @@ and `B` are two different persons):
 
 > A: Hey! I use Arch btw. as my daily driver, what's about you?
 >
-> B: Yeah, I'm using PornOS 24/7
+> B: Cool! I'm using PornOS 24/7
+>
+> A: Oh cool, I haven't hea-... wait a minute... ***what did you just say?!***
 
 # Other infos
 Whenever you're referring to this project, please add a little link to this
