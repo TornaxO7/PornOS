@@ -7,7 +7,7 @@
 use pornos::println;
 
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
+pub extern "C" fn kernel_main() -> ! {
     println!("Startig up PornOS...");
 
     // #[cfg(test)]

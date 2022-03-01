@@ -11,5 +11,11 @@
     "linker": "rust-lld",
     "panic-strategy": "abort",
     "disable-redzone": true,
-    "features": "-mmx,-sse,+soft-float"
+    "features": "-mmx,-sse,+soft-float",
+    "pre-link-args": {
+        "ld.lld": [
+            "-Tbuild_utils/linker.ld",
+            "build_utils/boot.o"
+        ]
+    }
 }

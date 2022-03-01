@@ -1,12 +1,23 @@
-use std::{env, fs, io, path::PathBuf};
-
-const LINKER_SCRIPT_PATH: &str = "../grub/linker.ld";
+use std::{process::Command, io};
 
 fn main() -> io::Result<()> {
-    let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
-    fs::copy(LINKER_SCRIPT_PATH, out_dir.join("linking_stuff.ld"))?;
+    // paths
+    let built_utils_dir: &str = "../build_utils";
+    let linker_script = format!("{}/linker.ld", built_utils_dir);
 
-    println!("cargo:rustc-link-search={}", out_dir.display());
-    println!("cargo:rerun-if-changed={}", LINKER_SCRIPT_PATH);
+    let boot_asm = format!("{}/multiboot.as", built_utils_dir);
+    let boot_asm_out = format!("{}/boot.o", built_utils_dir);
+
+    // assemble multiboot
+    println!("cargo:rustc-if-changed={}", boot_asm);
+    Command::new("as")
+        .args(["-o", &boot_asm_out])
+        .arg(&boot_asm)
+        .spawn()
+        .expect(&format!("Couldn't assemble {}", &boot_asm));
+
+    // linking script
+    println!("cargo:rustc-link-search={}", built_utils_dir);
+    println!("cargo:rerun-if-changed={}", linker_script);
     Ok(())
 }
