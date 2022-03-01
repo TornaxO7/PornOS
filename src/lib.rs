@@ -1,5 +1,5 @@
 #![no_std]
-#![cfg_attr(test, no_main)]
+#![no_main]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_starter)]
 #![reexport_test_harness_main = "test_main"]

@@ -10,8 +10,8 @@ use pornos::println;
 pub extern "C" fn _start() -> ! {
     println!("Startig up PornOS...");
 
-    #[cfg(test)]
-    test_main();
-
+    // #[cfg(test)]
+    // test_main();
+    //
     loop {}
 }
