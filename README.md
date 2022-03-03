@@ -8,7 +8,7 @@ which is created for educational reasons. So you won't find any p\*rn here...
 Well, because it's dumb and funny. Imagine a discussion between two people (`A`
 and `B` are two different persons):
 
-> A: Hey! I use Arch btw. as my daily driver, what's about you?
+> A: Hey! I use Arch btw. as my daily driver, what about you?
 >
 > B: Cool! I'm using PornOS 24/7
 >
