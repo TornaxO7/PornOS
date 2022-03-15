@@ -1,23 +1,22 @@
-use std::{process::Command, io};
+use std::{io, process::Command};
 
 fn main() -> io::Result<()> {
     // paths
-    let built_utils_dir: &str = "../build_utils";
-    let linker_script = format!("{}/linker.ld", built_utils_dir);
+    let build_utils_dir = "build_utils";
 
-    let boot_asm = format!("{}/multiboot.as", built_utils_dir);
-    let boot_asm_out = format!("{}/boot.o", built_utils_dir);
+    let linker_file_path = format!("{}/linker.ld", &build_utils_dir);
+    let multiboot_as_path = format!("{}/multiboot.as", &build_utils_dir);
 
     // assemble multiboot
-    println!("cargo:rustc-if-changed={}", boot_asm);
+    println!("cargo:rustc-if-changed={}", &multiboot_as_path);
     Command::new("as")
-        .args(["-o", &boot_asm_out])
-        .arg(&boot_asm)
+        .args(["-o", "build_utils/boot.o"])
+        .arg(&multiboot_as_path)
         .spawn()
-        .expect(&format!("Couldn't assemble {}", &boot_asm));
+        .expect(&format!("Couldn't assemble {}", &multiboot_as_path));
 
     // linking script
-    println!("cargo:rustc-link-search={}", built_utils_dir);
-    println!("cargo:rerun-if-changed={}", linker_script);
+    println!("cargo:rustc-link-search={}", &build_utils_dir);
+    println!("cargo:rerun-if-changed={}", &linker_file_path);
     Ok(())
 }

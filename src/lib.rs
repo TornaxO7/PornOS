@@ -20,4 +20,3 @@ pub fn test_starter(tests: &[&dyn Fn()]) {
 }
 
 pub mod vga;
-
