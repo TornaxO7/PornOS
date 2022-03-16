@@ -11,4 +11,4 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 pub mod vga;
-mod stivale;
+mod boot;
