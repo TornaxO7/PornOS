@@ -26,9 +26,9 @@ pub struct VGA {
 }
 
 impl VGA {
-    const BUFFER_HEIGHT: usize = 25;
-    const BUFFER_WIDTH: usize = 80;
-    const VGA_BUFFER_ADDR: usize = 0xb8000;
+    pub const BUFFER_HEIGHT: usize = 25;
+    pub const BUFFER_WIDTH: usize = 80;
+    pub const VGA_BUFFER_ADDR: usize = 0xb8000;
 
     pub fn puts(&mut self, string: &str) {
         string.bytes()

@@ -1,17 +1,12 @@
 #![no_std]
 #![no_main]
-#![feature(custom_test_frameworks)]
-#![test_runner(pornos::test_starter)]
-#![reexport_test_harness_main = "test_main"]
 
 use pornos::println;
+use stivale_boot::v2::StivaleStruct;
 
 #[no_mangle]
-pub extern "C" fn kernel_main() -> ! {
+pub extern "C" fn pornos_entry(_stivale_struct: &'static StivaleStruct) -> ! {
     println!("Startig up PornOS...");
 
-    // #[cfg(test)]
-    // test_main();
-    //
     loop {}
 }

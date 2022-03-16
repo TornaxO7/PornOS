@@ -14,8 +14,7 @@
     "features": "-mmx,-sse,+soft-float",
     "pre-link-args": {
         "ld.lld": [
-            "-Tbuild_utils/linker.ld",
-            "build_utils/boot.o"
+            "-Tbuild_utils/linker.ld"
         ]
     }
 }

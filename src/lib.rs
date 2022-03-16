@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(custom_test_frameworks)]
-#![test_runner(crate::test_starter)]
-#![reexport_test_harness_main = "test_main"]
+#![feature(const_ptr_offset)]
 
 use core::panic::PanicInfo;
 
@@ -12,11 +10,5 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-pub fn test_starter(tests: &[&dyn Fn()]) {
-    println!("Running {} tests", tests.len());
-    for test in tests {
-        test();
-    }
-}
-
 pub mod vga;
+mod stivale;
