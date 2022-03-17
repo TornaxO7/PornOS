@@ -10,7 +10,7 @@ pub static PORNOS_STACK: [u8; PORNOS_STACK_SIZE] = [0; PORNOS_STACK_SIZE];
 
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
-    println!("Starting OS...");
+    println!("Starting your PornOS...");
     loop {}
 }
 
