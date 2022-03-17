@@ -1,18 +1,27 @@
 #![no_std]
 #![no_main]
 #![feature(const_ptr_offset)]
+#![reexport_test_harness_main = "test_main"]
+#![feature(custom_test_frameworks)]
+#![test_runner(pornos::test_runner)]
 
+use pornos;
 use pornos::println;
 use stivale_boot::v2::{StivaleAnyVideoTag, StivaleHeader};
 
-pub const PORNOS_STACK_SIZE: usize = 8_192;
-pub static PORNOS_STACK: [u8; PORNOS_STACK_SIZE] = [0; PORNOS_STACK_SIZE];
 
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
     println!("Starting your PornOS...");
+
+    #[cfg(test)]
+    test_main();
+
     loop {}
 }
+
+pub const PORNOS_STACK_SIZE: usize = 8_192;
+pub static PORNOS_STACK: [u8; PORNOS_STACK_SIZE] = [0; PORNOS_STACK_SIZE];
 
 #[used]
 #[no_mangle]

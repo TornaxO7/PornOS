@@ -6,3 +6,4 @@ xorriso -as mkisofs -b limine-cd.bin \
         --efi-boot limine-eltorito-efi.bin \
         -efi-boot-part --efi-boot-image --protective-msdos-label \
         isodir -o pornos.iso
+qemu-system-x86_64 -m 2G -cdrom pornos.iso
