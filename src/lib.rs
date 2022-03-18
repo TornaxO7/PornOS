@@ -2,11 +2,13 @@
 #![no_main]
 #![feature(const_ptr_offset)]
 #![feature(custom_test_frameworks)]
-#![test_runner(crate::porno_test)]
-
-use core::panic::PanicInfo;
+#![test_runner(crate::test_runner)]
 
 pub mod vga;
+pub mod qemu;
+
+use core::panic::PanicInfo;
+use qemu::{Qemu, QemuExitCode};
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -14,14 +16,13 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-pub fn porno_test(_test: &[&dyn Fn()]) {
-    println!("Running tests...");
-    loop {}
+pub fn test_runner(tests: &[&dyn Fn()]) {
+    println!("Running {} tests", tests.len());
+
+    for test in tests {
+        test();
+    }
+
+    Qemu::exit_qemu(QemuExitCode::Success);
 }
 
-#[test_case]
-fn trivial_assertion() {
-    print!("Installing arch... ");
-    assert_eq!(1, 1);
-    println!("Ok");
-}

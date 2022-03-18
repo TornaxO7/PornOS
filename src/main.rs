@@ -2,21 +2,21 @@
 #![no_main]
 #![feature(const_ptr_offset)]
 #![feature(custom_test_frameworks)]
-#![test_runner(pornos::porno_test)]
+#![test_runner(pornos::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 use pornos;
-use pornos::println;
+use pornos::{println, print};
 use stivale_boot::v2::{StivaleAnyVideoTag, StivaleHeader};
 
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
-    println!("Starting the OS...");
+    println!("Starting PornOS...");
 
     #[cfg(test)]
     test_main();
 
-    println!("Entering loop...");
+    println!("Hallo Stuuu");
     loop {}
 }
 
@@ -32,3 +32,10 @@ pub static STIVALE_HEADER: StivaleHeader = StivaleHeader::new()
     .tags(&ANY_VIDEO_HEADER_TAG as *const StivaleAnyVideoTag as *const ());
 
 pub static ANY_VIDEO_HEADER_TAG: StivaleAnyVideoTag = StivaleAnyVideoTag::new().preference(1);
+
+#[test_case]
+fn trivial_assertion() {
+    print!("Yeetus deletus start!");
+    assert_eq!(1, 1);
+    println!("Ok");
+}
