@@ -2,8 +2,7 @@
 #![no_main]
 #![feature(const_ptr_offset)]
 #![feature(custom_test_frameworks)]
-#![test_runner(test_runner)]
-#![reexport_test_harness_main = "test_main"]
+#![test_runner(crate::porno_test)]
 
 use core::panic::PanicInfo;
 
@@ -15,7 +14,14 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-pub fn test_runner(_test: &[&i32]) {
+pub fn porno_test(_test: &[&dyn Fn()]) {
     println!("Running tests...");
     loop {}
+}
+
+#[test_case]
+fn trivial_assertion() {
+    print!("Installing arch... ");
+    assert_eq!(1, 1);
+    println!("Ok");
 }

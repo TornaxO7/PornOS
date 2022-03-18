@@ -1,22 +1,22 @@
 #![no_std]
 #![no_main]
 #![feature(const_ptr_offset)]
-#![reexport_test_harness_main = "test_main"]
 #![feature(custom_test_frameworks)]
-#![test_runner(pornos::test_runner)]
+#![test_runner(pornos::porno_test)]
+#![reexport_test_harness_main = "test_main"]
 
 use pornos;
 use pornos::println;
 use stivale_boot::v2::{StivaleAnyVideoTag, StivaleHeader};
 
-
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
-    println!("Starting your PornOS...");
+    println!("Starting the OS...");
 
     #[cfg(test)]
     test_main();
 
+    println!("Entering loop...");
     loop {}
 }
 
