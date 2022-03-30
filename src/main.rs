@@ -19,4 +19,3 @@ pub extern "C" fn pornos_entry() -> ! {
     println!("Stopping OS by entering an infinite loop...");
     loop {}
 }
-
