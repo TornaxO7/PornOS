@@ -20,9 +20,3 @@ pub extern "C" fn pornos_entry() -> ! {
     loop {}
 }
 
-#[test_case]
-fn trivial_assertion() {
-    pornos::serial_print!("Running test... ");
-    assert_eq!(1, 1);
-    pornos::serial_println!("Ok");
-}
