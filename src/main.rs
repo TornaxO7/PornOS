@@ -6,7 +6,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 use pornos;
-use pornos::{println, print};
+use pornos::println;
 use stivale_boot::v2::{StivaleAnyVideoTag, StivaleHeader};
 
 #[no_mangle]
@@ -16,7 +16,7 @@ pub extern "C" fn pornos_entry() -> ! {
     #[cfg(test)]
     test_main();
 
-    println!("Hallo Stuuu");
+    println!("Stopping OS by entering an infinite loop...");
     loop {}
 }
 
@@ -35,7 +35,7 @@ pub static ANY_VIDEO_HEADER_TAG: StivaleAnyVideoTag = StivaleAnyVideoTag::new().
 
 #[test_case]
 fn trivial_assertion() {
-    print!("Yeetus deletus start!");
+    pornos::serial_print!("Running test... ");
     assert_eq!(1, 1);
-    println!("Ok");
+    pornos::serial_println!("Ok");
 }

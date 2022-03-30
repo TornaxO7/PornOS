@@ -4,7 +4,7 @@ use x86_64::instructions::port::Port;
 #[repr(u32)]
 pub enum QemuExitCode {
     Success = 0x10,
-    Failed = 0x11,
+    Failure = 0x11,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -4,10 +4,10 @@ use lazy_static::lazy_static;
 
 use core::fmt::Write;
 
-const SERIAL_PORT_ADDRESS: i32 = 0x3F8;
+const SERIAL_PORT_ADDRESS: u16 = 0x3F8;
 
 lazy_static! {
-    pub static ref SERIAL1: Mute<SerialPort> = {
+    pub static ref SERIAL1: Mutex<SerialPort> = {
         let mut serial_port = unsafe { SerialPort::new(SERIAL_PORT_ADDRESS) };
         serial_port.init();
         Mutex::new(serial_port)
@@ -26,8 +26,9 @@ macro_rules! serial_print {
     };
 }
 
-// #[macro_export]
-// macro_rules! serial_println {
-//     () => ($crate::serial_print!("\n"));
-//     ($fmt:expr) => ($crate::serial
-// }
+#[macro_export]
+macro_rules! serial_println {
+    () => ($crate::serial_print!("\n"));
+    ($fmt:expr) => ($crate::serial_print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => ($crate::serial_print!(concat!($fmt, "\n"), $($arg)*));
+}
