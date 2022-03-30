@@ -1,0 +1,3 @@
+[toolchain]
+channel = "nighty-2022-03-29"
+components = ["rust-src"]
