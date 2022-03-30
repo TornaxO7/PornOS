@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-#![feature(const_ptr_offset)]
 #![feature(custom_test_frameworks)]
 #![test_runner(pornos::test_runner)]
 #![reexport_test_harness_main = "test_main"]
