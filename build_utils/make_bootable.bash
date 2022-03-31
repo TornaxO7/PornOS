@@ -12,7 +12,8 @@ xorriso -as mkisofs -b limine-cd.bin \
         -efi-boot-part --efi-boot-image --protective-msdos-label \
         isodir -o pornos.iso
 
-qemu-system-x86_64 -m 2G -cdrom pornos.iso -device isa-debug-exit,iobase=0xf4,iosize=0x04 -serial stdio
+# qemu-system-x86_64 -m 2G -cdrom pornos.iso -device isa-debug-exit,iobase=0xf4,iosize=0x04 -serial stdio
+qemu-system-x86_64 -m 2G -cdrom pornos.iso
 
 if [[ $? == 33 ]] || [[ $? == 0 ]] || [[ $? == 1 ]]; then
     exit 0

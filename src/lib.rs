@@ -1,8 +1,10 @@
 #![no_std]
+#![feature(abi_x86_interrupt)]
 
 pub mod vga;
 pub mod qemu;
 pub mod serial;
+pub mod interrupts;
 
 use core::panic::PanicInfo;
 
