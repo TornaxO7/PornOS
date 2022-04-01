@@ -26,11 +26,16 @@ SECTIONS {
         *(.rodata .rodata.*)
     } :rodata
 
+    .porno_stack ALIGN(0x10) : {
+        KEEP(*(.porno_stack))
+    } :rodata
+
     . += CONSTANT(MAXPAGESIZE);
 
     .data : {
         *(.data .data.*)
     } :data
+
 
     .bss : {
         *(COMMON)
