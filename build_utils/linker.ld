@@ -8,6 +8,8 @@ PHDRS {
     rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
     data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
 }
+
+PAGE_SIZE = 4096;
  
 SECTIONS {
     . = 0xffffffff80000000;
@@ -16,7 +18,7 @@ SECTIONS {
         *(.text .text.*)
     } :text
 
-    . = ALIGN(MAXPAGESIZE);
+    . = ALIGN(PAGE_SIZE);
 
     .stivale2hdr : {
         KEEP(*(.stivale2hdr))
@@ -26,13 +28,13 @@ SECTIONS {
         *(.rodata .rodata.*)
     } :rodata
 
-    . = ALIGN(MAXPAGESIZE);
+    . = ALIGN(PAGE_SIZE);
 
     .porno_stack ALIGN(0x10) : {
         KEEP(*(.porno_stack))
     } :rodata
 
-    . = ALIGN(MAXPAGESIZE);
+    . = ALIGN(PAGE_SIZE);
 
     .data : {
         *(.data .data.*)

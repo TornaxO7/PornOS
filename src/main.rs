@@ -12,7 +12,7 @@ pub extern "C" fn pornos_entry() -> ! {
 
     pornos::interrupts::init_itd();
 
-    // x86_64::instructions::interrupts::int3();
+    x86_64::instructions::interrupts::int3();
 
     println!("Stopping OS by entering an infinite loop...");
     loop {}
