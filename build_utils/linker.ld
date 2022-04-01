@@ -16,7 +16,7 @@ SECTIONS {
         *(.text .text.*)
     } :text
 
-    . += CONSTANT(MAXPAGESIZE);
+    . = ALIGN(MAXPAGESIZE);
 
     .stivale2hdr : {
         KEEP(*(.stivale2hdr))
@@ -26,11 +26,13 @@ SECTIONS {
         *(.rodata .rodata.*)
     } :rodata
 
+    . = ALIGN(MAXPAGESIZE);
+
     .porno_stack ALIGN(0x10) : {
         KEEP(*(.porno_stack))
     } :rodata
 
-    . += CONSTANT(MAXPAGESIZE);
+    . = ALIGN(MAXPAGESIZE);
 
     .data : {
         *(.data .data.*)
