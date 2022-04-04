@@ -4,7 +4,8 @@
 pub mod vga;
 pub mod qemu;
 pub mod serial;
-pub mod interrupts;
+pub mod cpu_exception;
+pub mod idt;
 
 use core::panic::PanicInfo;
 

@@ -10,10 +10,6 @@ use pornos::println;
 pub extern "C" fn pornos_entry() -> ! {
     println!("Starting PornOS...");
 
-    pornos::interrupts::init_itd();
-
-    x86_64::instructions::interrupts::int3();
-
     println!("Stopping OS by entering an infinite loop...");
     loop {}
 }

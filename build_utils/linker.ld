@@ -34,7 +34,7 @@ SECTIONS {
         KEEP(*(.porno_stack))
     } :rodata
 
-    . = ALIGN(PAGE_SIZE);
+    . = ALIGN(2 * PAGE_SIZE);
 
     .data : {
         *(.data .data.*)
