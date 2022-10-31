@@ -4,8 +4,7 @@
 pub mod vga;
 pub mod qemu;
 pub mod serial;
-pub mod cpu_exception;
-pub mod idt;
+pub mod interrupts;
 
 use core::panic::PanicInfo;
 
@@ -13,4 +12,8 @@ use core::panic::PanicInfo;
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
     loop {}
+}
+
+pub fn init() {
+    interrupts::init_idt();
 }
