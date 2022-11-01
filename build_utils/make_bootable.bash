@@ -13,7 +13,7 @@ xorriso -as mkisofs -b limine-cd.bin \
         isodir -o pornos.iso
 
 # qemu-system-x86_64 -m 2G -cdrom pornos.iso -device isa-debug-exit,iobase=0xf4,iosize=0x04 -serial stdio
-qemu-system-x86_64 -m 2G -cdrom pornos.iso
+qemu-system-x86_64 -m 2G -cdrom pornos.iso -D porno_history.txt -d int
 
 if [[ $? == 33 ]] || [[ $? == 0 ]] || [[ $? == 1 ]]; then
     exit 0
