@@ -1,48 +1,49 @@
-OUTPUT_FORMAT(elf64-x86-64)
-OUTPUT_ARCH(i386:x86-64)
 ENTRY(pornos_entry)
+OUTPUT_FORMAT(elf64-x86-64) 
 
-PHDRS {
-    null    PT_NULL    FLAGS(0) ;                   /* Null segment */
-    text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
-    rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
-    data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
-}
+/* We want to be placed in the higher half, 2MiB above 0x00 in physical memory */
+KERNEL_OFFSET = 0xFFFFFFFF80200000;
 
-PAGE_SIZE = 4096;
- 
-SECTIONS {
-    . = 0xffffffff80000000;
+SECTIONS 
+{
+    . = KERNEL_OFFSET;
 
-    .text : {
-        *(.text .text.*)
-    } :text
+    __kernel_start = .;
 
-    . = ALIGN(PAGE_SIZE);
-
-    .stivale2hdr : {
+    .stivale2hdr : ALIGN(4K) {
         KEEP(*(.stivale2hdr))
-    } :rodata
+    }
 
+    /* Then place all of the other traditional executable sections afterwards... */
+    . = ALIGN(4K);
+    .text : {
+        __text_start = .;
+        *(.text .text.*)
+        . = ALIGN(4096);
+        __text_end = .;
+    }
+
+    . = ALIGN(4K);
     .rodata : {
-        *(.rodata .rodata.*)
-    } :rodata
+        __rodata_start = .;
+        *(.rodata*)
+        . = ALIGN(4096);
+        __rodata_end = .;
+    }
 
-    . = ALIGN(PAGE_SIZE);
-
-    .porno_stack ALIGN(0x10) : {
-        KEEP(*(.porno_stack))
-    } :rodata
-
-    . = ALIGN(2 * PAGE_SIZE);
-
+    . = ALIGN(4K);
     .data : {
+        __data_start = .;
         *(.data .data.*)
-    } :data
+        . = ALIGN(4096);
+        __data_end = .;
+    }
 
-
+    . = ALIGN(4K);
     .bss : {
-        *(COMMON)
+        __bss_start = .;
         *(.bss .bss.*)
-    } :data
+        . = ALIGN(4096);
+        __bss_end = .;
+    }
 }
