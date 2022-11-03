@@ -1,5 +1,5 @@
 [package]
-name = "PornOS"
+name = "pornos"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 limine = "0.1.9"
 spin = "0.9"
+x86_64 = "0.14.10"
+lazy_static = {version = "1.4.0", features = ["spin_no_std"]}
