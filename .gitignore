@@ -17,3 +17,10 @@ Cargo.lock
 # Custom stuff
 isodir/pornos
 pornos.iso
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
