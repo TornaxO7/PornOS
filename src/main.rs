@@ -6,6 +6,7 @@
 
 mod io;
 mod interrupt;
+pub mod gdt;
 
 use limine::LimineBootInfoRequest;
 
@@ -28,6 +29,7 @@ pub extern "C" fn _start() -> ! {
         );
 
         interrupt::init();
+        gdt::init();
     }
 
     hcf();
