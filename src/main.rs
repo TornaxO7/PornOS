@@ -1,7 +1,9 @@
 #![no_std]
 #![no_main]
+#[allow(non_snake_case)]
 
 mod io;
+mod interrupt;
 
 use limine::LimineBootInfoRequest;
 
@@ -22,6 +24,8 @@ pub extern "C" fn _start() -> ! {
             bootinfo.name.to_str().unwrap().to_str().unwrap(),
             bootinfo.version.to_str().unwrap().to_str().unwrap(),
         );
+
+        interrupt::init();
     }
 
     hcf();
