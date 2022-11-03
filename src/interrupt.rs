@@ -8,6 +8,7 @@ lazy_static!{
         let mut idt = InterruptDescriptorTable::new();
 
         set_general_handler!(&mut idt, general_handler);
+
         idt
     };
 }
