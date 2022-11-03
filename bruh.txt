@@ -1,0 +1,960 @@
+   Compiling lock_api v0.4.9
+   Compiling scopeguard v1.1.0
+   Compiling limine v0.1.9
+   Compiling PornOS v0.1.0 (/home/tornax/Programming/Projects/PornOS)
+error[E0463]: can't find crate for `core`
+  |
+  = note: the `x86_64-unknown-none` target may not be installed
+  = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+  = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `compiler_builtins`
+
+error[E0463]: can't find crate for `core`
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:192:1
+    |
+192 | extern crate core as std;
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
+    |
+    = note: the `x86_64-unknown-none` target may not be installed
+    = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+    = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error: cannot find macro `stringify` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:470:24
+    |
+470 |         f.debug_struct(stringify!(ScopeGuard))
+    |                        ^^^^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:212:3
+    |
+212 | #[derive(Debug)]
+    |   ^^^^^^
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:12:5
+   |
+12 | use core::cell::UnsafeCell;
+   |     ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:13:5
+   |
+13 | use core::ffi::{c_char, CStr};
+   |     ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:14:5
+   |
+14 | use core::fmt::Debug;
+   |     ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:15:5
+   |
+15 | use core::marker::PhantomData;
+   |     ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:16:5
+   |
+16 | use core::ops::{Deref, DerefMut};
+   |     ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:17:5
+   |
+17 | use core::ptr::NonNull;
+   |     ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error: cannot find attribute `derive` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:19:3
+   |
+19 | #[derive(Debug)]
+   |   ^^^^^^
+
+error: cannot find macro `format_args` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:61:21
+   |
+61 |             .field(&format_args!("{:#x?}", value))
+   |                     ^^^^^^^^^^^
+
+error: cannot find macro `format_args` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:135:21
+    |
+135 |             .field(&format_args!("{:#x?}", self.get()))
+    |                     ^^^^^^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:214:3
+    |
+214 | #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:242:3
+    |
+242 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:276:3
+    |
+276 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+285 | / make_struct!(
+286 | |     struct LimineBootInfoRequest: [0xf55038d8e2a1202f, 0x279426fcf5f59740] => LimineBootInfoResponse {};
+287 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:291:3
+    |
+291 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+296 | / make_struct!(
+297 | |     struct LimineStackSizeRequest: [0x224ef0460a8e8926, 0xe1cb0fc25f46ea3d] => LimineStackSizeResponse {
+298 | |         /// The requested stack size (also used for SMP processors).
+299 | |         stack_size: u64 = 0
+300 | |     };
+301 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:305:3
+    |
+305 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+312 | / make_struct!(
+313 | |     struct LimineHhdmRequest: [0x48dcf1cb8ad2b852, 0x63984e959a98244b] => LimineHhdmResponse {};
+314 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:318:3
+    |
+318 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:345:3
+    |
+345 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+361 | / make_struct!(
+362 | |     struct LimineFramebufferRequest: [0x9d5827dcd881dd75, 0xa3148604f6fab11b] => LimineFramebufferResponse {};
+363 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:367:3
+    |
+367 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:381:3
+    |
+381 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+411 | / make_struct!(
+412 | |     /// Omitting this request will cause the bootloader to not initialise the terminal service.
+413 | |     struct LimineTerminalRequest: [0xc8ac59310c2b0844, 0xa68d0c7265d38878] => LimineTerminalResponse {
+414 | |         callback: LiminePtr<()> = LiminePtr::DEFAULT
+415 | |     };
+416 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:420:3
+    |
+420 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+425 | / make_struct!(
+426 | |     /// The presence of this request will prompt the bootloader to turn on x86_64 5-level paging. It will not be
+427 | |     /// turned on if this request is not present. If the response pointer is unchanged, 5-level paging is engaged.
+428 | |     struct Limine5LevelPagingRequest: [0x94469551da9b3192, 0xebe5e86db7382888] => Limine5LevelPagingResponse {};
+429 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:433:3
+    |
+433 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:452:3
+    |
+452 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+484 | / make_struct!(
+485 | |     /// The presence of this request will prompt the bootloader to bootstrap the
+486 | |     /// secondary processors. This will not be done if this request is not present.
+487 | |     struct LimineSmpRequest: [0x95a67b819a1b857e, 0xa0b61b723b6a73e0] => LimineSmpResponse {
+...   |
+490 | |     };
+491 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:495:3
+    |
+495 | #[derive(Clone, Copy, Debug, PartialEq)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:516:3
+    |
+516 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:524:3
+    |
+524 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+543 | / make_struct!(
+544 | |     struct LimineMemmapRequest: [0x67cf3d9d378a806f, 0xe304acdfc50c3c62] => LimineMemmapResponse {};
+545 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:549:3
+    |
+549 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+554 | / make_struct!(
+555 | |     struct LimineEntryPointRequest: [0x13d86c035a1cd3e1, 0x2b0caa89d8f3026a] => LimineEntryPointResponse {
+556 | |         /// The requested entry point.
+557 | |         entry: LiminePtr<LimineEntryPoint> = LiminePtr::DEFAULT
+558 | |     };
+559 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:563:3
+    |
+563 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+570 | / make_struct!(
+571 | |     struct LimineKernelFileRequest: [0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69] => LimineKernelFileResponse {};
+572 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:576:3
+    |
+576 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+591 | / make_struct!(
+592 | |     struct LimineModuleRequest: [0x3e7e279702be32af, 0xca1c4f3bd1280cee] => LimineModuleResponse {};
+593 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:597:3
+    |
+597 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+604 | / make_struct!(
+605 | |     struct LimineRsdpRequest: [0xc5e77b6b397e7b43, 0x27637845accdcf3c] => LimineRsdpResponse {};
+606 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:610:3
+    |
+610 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+619 | / make_struct!(
+620 | |     struct LimineSmbiosRequest: [0x9e9046f11e095391, 0xaa4a520fefbde5ee] => LimineSmbiosResponse {};
+621 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:625:3
+    |
+625 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+632 | / make_struct!(
+633 | |     struct LimineEfiSystemTableRequest: [0x5ceba5163eaaf6d6, 0x0a6981610cf65fcc] => LimineEfiSystemTableResponse {};
+634 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:638:3
+    |
+638 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+645 | / make_struct!(
+646 | |     struct LimineBootTimeRequest: [0x502746e184c088aa, 0xfbc5ec83e6327893] => LimineBootTimeResponse {};
+647 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:651:3
+    |
+651 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+660 | / make_struct!(
+661 | |     struct LimineKernelAddressRequest: [0x71ba76863cc55f63, 0xb2644a48c516a487] => LimineKernelAddressResponse {};
+662 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:671:3
+    |
+671 | #[derive(Debug)]
+    |   ^^^^^^
+
+error: cannot find attribute `derive` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:166:11
+    |
+166 |           #[derive(Debug)]
+    |             ^^^^^^
+...
+678 | / make_struct!(
+679 | |     struct LimineDtbRequest: [0xb40ddb48fb54bac7, 0x545081493f81ffb7] => LimineDtbResponse {};
+680 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:57:27
+   |
+57 |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+   |                           ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:57:56
+   |
+57 |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+   |                                                        ^^^^ can't find crate
+   |
+   = note: the `x86_64-unknown-none` target may not be installed
+   = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+   = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:133:27
+    |
+133 |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    |                           ^^^^ can't find crate
+    |
+    = note: the `x86_64-unknown-none` target may not be installed
+    = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+    = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:133:56
+    |
+133 |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    |                                                        ^^^^ can't find crate
+    |
+    = note: the `x86_64-unknown-none` target may not be installed
+    = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+    = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:147:18
+    |
+147 |         unsafe { core::slice::from_raw_parts(self.as_ptr(), len) }
+    |                  ^^^^ can't find crate
+    |
+    = note: the `x86_64-unknown-none` target may not be installed
+    = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+    = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:152:18
+    |
+152 |         unsafe { core::slice::from_raw_parts_mut(self.as_ptr(), len) }
+    |                  ^^^^ can't find crate
+    |
+    = note: the `x86_64-unknown-none` target may not be installed
+    = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+    = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0463]: can't find crate for `core`
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:197:26
+    |
+197 |                 unsafe { core::ptr::read_volatile(self.response.get()) }
+    |                          ^^^^ can't find crate
+    |
+    = note: the `x86_64-unknown-none` target may not be installed
+    = help: consider downloading the target with `rustup target add x86_64-unknown-none`
+    = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error[E0412]: cannot find type `Option` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:68:10
+   |
+68 |     ptr: Option<NonNull<T>>,
+   |          ^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `None` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:78:14
+   |
+78 |         ptr: None,
+   |              ^^^^ not found in this scope
+
+error[E0412]: cannot find type `Option` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:83:29
+   |
+83 |     pub fn as_ptr(&self) -> Option<*mut T> {
+   |                             ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Option` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:88:30
+   |
+88 |     pub fn get<'a>(&self) -> Option<&'a T> {
+   |                              ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Option` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:103:38
+    |
+103 |     pub fn get_mut<'a>(&mut self) -> Option<&'a mut T> {
+    |                                      ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Option` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:112:29
+    |
+112 |     pub fn to_str(&self) -> Option<&CStr> {
+    |                             ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:140:22
+    |
+140 | unsafe impl<T: Sync> Sync for LiminePtr<T> {}
+    |                      ^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:140:16
+    |
+140 | unsafe impl<T: Sync> Sync for LiminePtr<T> {}
+    |                ^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+285 | / make_struct!(
+286 | |     struct LimineBootInfoRequest: [0xf55038d8e2a1202f, 0x279426fcf5f59740] => LimineBootInfoResponse {};
+287 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+296 | / make_struct!(
+297 | |     struct LimineStackSizeRequest: [0x224ef0460a8e8926, 0xe1cb0fc25f46ea3d] => LimineStackSizeResponse {
+298 | |         /// The requested stack size (also used for SMP processors).
+299 | |         stack_size: u64 = 0
+300 | |     };
+301 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+312 | / make_struct!(
+313 | |     struct LimineHhdmRequest: [0x48dcf1cb8ad2b852, 0x63984e959a98244b] => LimineHhdmResponse {};
+314 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+361 | / make_struct!(
+362 | |     struct LimineFramebufferRequest: [0x9d5827dcd881dd75, 0xa3148604f6fab11b] => LimineFramebufferResponse {};
+363 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0412]: cannot find type `Option` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:378:5
+    |
+378 |     Option<unsafe extern "C" fn(terminal: *const LimineTerminal, string: *const u8, length: u64)>;
+    |     ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Option` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:402:28
+    |
+402 |     pub fn write(&self) -> Option<impl Fn(&LimineTerminal, &str)> {
+    |                            ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Fn` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:402:40
+    |
+402 |     pub fn write(&self) -> Option<impl Fn(&LimineTerminal, &str)> {
+    |                                        ^^ not found in this scope
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+411 | / make_struct!(
+412 | |     /// Omitting this request will cause the bootloader to not initialise the terminal service.
+413 | |     struct LimineTerminalRequest: [0xc8ac59310c2b0844, 0xa68d0c7265d38878] => LimineTerminalResponse {
+414 | |         callback: LiminePtr<()> = LiminePtr::DEFAULT
+415 | |     };
+416 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+425 | / make_struct!(
+426 | |     /// The presence of this request will prompt the bootloader to turn on x86_64 5-level paging. It will not be
+427 | |     /// turned on if this request is not present. If the response pointer is unchanged, 5-level paging is engaged.
+428 | |     struct Limine5LevelPagingRequest: [0x94469551da9b3192, 0xebe5e86db7382888] => Limine5LevelPagingResponse {};
+429 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+484 | / make_struct!(
+485 | |     /// The presence of this request will prompt the bootloader to bootstrap the
+486 | |     /// secondary processors. This will not be done if this request is not present.
+487 | |     struct LimineSmpRequest: [0x95a67b819a1b857e, 0xa0b61b723b6a73e0] => LimineSmpResponse {
+...   |
+490 | |     };
+491 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+543 | / make_struct!(
+544 | |     struct LimineMemmapRequest: [0x67cf3d9d378a806f, 0xe304acdfc50c3c62] => LimineMemmapResponse {};
+545 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+554 | / make_struct!(
+555 | |     struct LimineEntryPointRequest: [0x13d86c035a1cd3e1, 0x2b0caa89d8f3026a] => LimineEntryPointResponse {
+556 | |         /// The requested entry point.
+557 | |         entry: LiminePtr<LimineEntryPoint> = LiminePtr::DEFAULT
+558 | |     };
+559 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+570 | / make_struct!(
+571 | |     struct LimineKernelFileRequest: [0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69] => LimineKernelFileResponse {};
+572 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+591 | / make_struct!(
+592 | |     struct LimineModuleRequest: [0x3e7e279702be32af, 0xca1c4f3bd1280cee] => LimineModuleResponse {};
+593 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+604 | / make_struct!(
+605 | |     struct LimineRsdpRequest: [0xc5e77b6b397e7b43, 0x27637845accdcf3c] => LimineRsdpResponse {};
+606 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+619 | / make_struct!(
+620 | |     struct LimineSmbiosRequest: [0x9e9046f11e095391, 0xaa4a520fefbde5ee] => LimineSmbiosResponse {};
+621 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+632 | / make_struct!(
+633 | |     struct LimineEfiSystemTableRequest: [0x5ceba5163eaaf6d6, 0x0a6981610cf65fcc] => LimineEfiSystemTableResponse {};
+634 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+645 | / make_struct!(
+646 | |     struct LimineBootTimeRequest: [0x502746e184c088aa, 0xfbc5ec83e6327893] => LimineBootTimeResponse {};
+647 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+660 | / make_struct!(
+661 | |     struct LimineKernelAddressRequest: [0x71ba76863cc55f63, 0xb2644a48c516a487] => LimineKernelAddressResponse {};
+662 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:208:21
+    |
+208 |           unsafe impl Sync for $name {}
+    |                       ^^^^ not found in this scope
+...
+678 | / make_struct!(
+679 | |     struct LimineDtbRequest: [0xb40ddb48fb54bac7, 0x545081493f81ffb7] => LimineDtbResponse {};
+680 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `make_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0635]: unknown feature `const_nonnull_new`
+ --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:7:12
+  |
+7 | #![feature(const_nonnull_new)]
+  |            ^^^^^^^^^^^^^^^^^
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+  --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:84:9
+   |
+84 |         Some(self.ptr?.as_ptr())
+   |         ^^^^ not found in this scope
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:118:18
+    |
+118 |         unsafe { Some(CStr::from_ptr(self.as_ptr()?)) }
+    |                  ^^^^ not found in this scope
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/limine-0.1.9/src/lib.rs:405:9
+    |
+405 |         Some(move |terminal: &LimineTerminal, txt: &str| unsafe {
+    |         ^^^^ not found in this scope
+
+Some errors have detailed explanations: E0405, E0412, E0425, E0463, E0635.
+For more information about an error, try `rustc --explain E0405`.
+error: could not compile `limine` due to 91 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:299:14
+    |
+299 |     where F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:309:14
+    |
+309 |     where F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:368:14
+    |
+368 |     where F: FnOnce(T)
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:422:22
+    |
+422 | unsafe impl<T, F, S> Sync for ScopeGuard<T, F, S>
+    |                      ^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Sync` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:423:14
+    |
+423 |     where T: Sync,
+    |              ^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:424:14
+    |
+424 |           F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:429:14
+    |
+429 |     where F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:440:14
+    |
+440 |     where F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `Drop` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:448:15
+    |
+448 | impl<T, F, S> Drop for ScopeGuard<T, F, S>
+    |               ^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:449:14
+    |
+449 |     where F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+error[E0405]: cannot find trait `FnOnce` in this scope
+   --> /home/tornax/.cargo/registry/src/github.com-1ecc6299db9ec823/scopeguard-1.1.0/src/lib.rs:466:14
+    |
+466 |           F: FnOnce(T),
+    |              ^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0405, E0463.
+error: could not compile `scopeguard` due to 16 previous errors
