@@ -7,7 +7,8 @@ pub mod gdt;
 mod interrupt;
 pub mod io;
 
-pub fn entry() {
+pub fn init() {
+    x86_64::instructions::interrupts::disable();
     gdt::init();
     interrupt::init();
 }

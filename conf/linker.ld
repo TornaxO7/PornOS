@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(pornos_entry)
 OUTPUT_ARCH(i386:x86-64)
 OUTPUT_FORMAT(elf64-x86-64)
 

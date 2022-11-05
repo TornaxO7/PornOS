@@ -13,7 +13,7 @@ static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 /// Unless the [`Entry Point`](limine::LimineEntryPointRequest) feature is requested,
 /// the bootloader will transfer control to this function.
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
+pub extern "C" fn pornos_entry() -> ! {
     if let Some(bootinfo) = BOOTLOADER_INFO.get_response().get() {
         println!(
             "booted by {} v{}",
@@ -22,7 +22,7 @@ pub extern "C" fn _start() -> ! {
         );
     }
 
-    pornos::entry();
+    pornos::init();
 
     hcf();
 }
