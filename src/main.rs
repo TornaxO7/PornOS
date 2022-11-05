@@ -24,18 +24,17 @@ pub extern "C" fn pornos_entry() -> ! {
 
     pornos::init();
 
-    hcf();
+    hlt_loop();
 }
 
 #[panic_handler]
 fn rust_panic(info: &core::panic::PanicInfo) -> ! {
     println!("{}", info);
-    hcf();
+    hlt_loop();
 }
 
-/// Die, spectacularly.
-pub fn hcf() -> ! {
+pub fn hlt_loop() -> ! {
     loop {
-        core::hint::spin_loop();
+        x86_64::instructions::hlt();
     }
 }
