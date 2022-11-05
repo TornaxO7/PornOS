@@ -8,6 +8,6 @@ mod interrupt;
 pub mod io;
 
 pub fn entry() {
-    interrupt::init();
     gdt::init();
+    interrupt::init();
 }
