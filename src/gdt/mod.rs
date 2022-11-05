@@ -1,7 +1,7 @@
 pub mod tss;
 
 use lazy_static::lazy_static;
-use crate::println;
+use crate::{println, print};
 use x86_64::{structures::gdt::{GlobalDescriptorTable, Descriptor, SegmentSelector}, registers::segmentation::{CS, Segment}, instructions::tables::load_tss};
 
 lazy_static! {
@@ -25,7 +25,7 @@ impl Selectors {
 }
 
 pub fn init() {
-    println!("Loading GDT...");
+    print!("GDT... ");
     GDT.0.load();
 
     unsafe {
@@ -33,5 +33,5 @@ pub fn init() {
         load_tss(GDT.1.tss_selector);
     }
 
-    println!("Finished loading GDT...");
+    println!("OK");
 }
