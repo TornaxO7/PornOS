@@ -2,12 +2,7 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
-#[allow(non_snake_case)]
-
-mod io;
-mod interrupt;
-pub mod gdt;
-
+use pornos::println;
 use limine::LimineBootInfoRequest;
 
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
@@ -27,9 +22,6 @@ pub extern "C" fn _start() -> ! {
             bootinfo.name.to_str().unwrap().to_str().unwrap(),
             bootinfo.version.to_str().unwrap().to_str().unwrap(),
         );
-
-        interrupt::init();
-        gdt::init();
     }
 
     hcf();
