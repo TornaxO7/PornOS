@@ -7,7 +7,7 @@ pub mod gdt;
 mod interrupt;
 pub mod io;
 
-pub fn entry() {
+pub fn init() {
     gdt::init();
     interrupt::init();
 }
