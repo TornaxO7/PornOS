@@ -38,10 +38,10 @@ lazy_static!{
         idt.bound_range_exceeded.set_handler_fn(bound_range_exceeded::handler);
         idt.invalid_opcode.set_handler_fn(invalid_opcode::handler);
         idt.device_not_available.set_handler_fn(device_not_available::handler);
-        unsafe {
-            idt.double_fault.set_handler_fn(double_fault::handler)
-                .set_stack_index(super::gdt::tss::DOUBLE_FAULT_IST_INDEX);
-        }
+        // unsafe {
+        idt.double_fault.set_handler_fn(double_fault::handler);
+        //         .set_stack_index(super::gdt::tss::DOUBLE_FAULT_IST_INDEX);
+        // }
         idt.invalid_tss.set_handler_fn(invalid_tss::handler);
         idt.segment_not_present.set_handler_fn(segment_not_present::handler);
         idt.stack_segment_fault.set_handler_fn(stack_segment_fault::handler);
@@ -62,7 +62,7 @@ pub fn init() {
 
     IDT.load();
 
-    println!("OK");
+    println!(" OK");
 }
 
 fn general_handler(stack_frame: InterruptStackFrame, index: u8, error_code: Option<u64>) {
