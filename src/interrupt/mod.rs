@@ -22,6 +22,8 @@ mod security_exception;
 use lazy_static::lazy_static;
 use x86_64::{structures::idt::{InterruptDescriptorTable, InterruptStackFrame}, set_general_handler};
 
+use crate::{print, println};
+
 lazy_static!{
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
@@ -56,11 +58,11 @@ lazy_static!{
 }
 
 pub fn init() {
-    // print!("IDT ...");
+    print!("IDT ...");
 
     IDT.load();
 
-    // println!(" OK");
+    println!(" OK");
 }
 
 fn general_handler(_stack_frame: InterruptStackFrame, _index: u8, _error_code: Option<u64>) {
