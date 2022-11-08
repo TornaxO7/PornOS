@@ -3,17 +3,47 @@ pub mod tss;
 use crate::{print, println};
 use lazy_static::lazy_static;
 use x86_64::{
-    registers::segmentation::{Segment, CS, DS, SS, GS, FS, ES},
-    structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
+    registers::segmentation::{Segment, CS, DS, ES, FS, GS, SS},
+    structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector, DescriptorFlags},
 };
 
 lazy_static! {
     static ref GDT: (GlobalDescriptorTable, Selectors) = {
         let mut gdt = GlobalDescriptorTable::new();
-        let kcode_seg = gdt.add_entry(Descriptor::kernel_code_segment());
-        let kdata_seg = gdt.add_entry(Descriptor::kernel_data_segment());
-        // gdt.add_entry(Descriptor::tss_segment(&tss::TSS));
-        (gdt, Selectors {kcode_seg, kdata_seg})
+
+        let code_16bit = (DescriptorFlags::USER_SEGMENT
+                          | DescriptorFlags::PRESENT
+                          | DescriptorFlags::LIMIT_0_15
+                          | DescriptorFlags::ACCESSED
+                          | DescriptorFlags::EXECUTABLE).bits();
+        gdt.add_entry(Descriptor::UserSegment(code_16bit));
+
+        let data_16bit = (DescriptorFlags::USER_SEGMENT
+                          | DescriptorFlags::PRESENT
+                          | DescriptorFlags::LIMIT_0_15
+                          | DescriptorFlags::ACCESSED
+                          | DescriptorFlags::WRITABLE).bits();
+        gdt.add_entry(Descriptor::UserSegment(data_16bit));
+
+        let code_32bit = DescriptorFlags::KERNEL_CODE32.bits();
+        gdt.add_entry(Descriptor::UserSegment(code_32bit));
+
+        let data_32bit = DescriptorFlags::KERNEL_DATA.bits();
+        gdt.add_entry(Descriptor::UserSegment(data_32bit));
+
+        let code_64bit = DescriptorFlags::KERNEL_CODE64.bits();
+        let kcode_seg = gdt.add_entry(Descriptor::UserSegment(code_64bit));
+
+        let data_64bit = DescriptorFlags::KERNEL_DATA.bits();
+        let kdata_seg = gdt.add_entry(Descriptor::UserSegment(data_64bit));
+
+        (
+            gdt,
+            Selectors {
+                kcode_seg,
+                kdata_seg,
+            },
+        )
     };
 }
 
@@ -37,5 +67,5 @@ pub fn init() {
         SS::set_reg(GDT.1.kdata_seg);
     }
 
-    // println!("OK");
+    println!("OK");
 }

@@ -40,4 +40,4 @@ qemu-system-x86_64 \
     -machine q35 -cpu qemu64 -M smm=off \
     -D target/log.txt -d int,guest_errors -no-reboot -no-shutdown\
     -serial stdio \
-    $KERNEL.iso -s -S
+    $KERNEL.iso
