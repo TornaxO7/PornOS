@@ -63,4 +63,12 @@ pub fn init() {
         GS::set_reg(GDT.1.kdata_seg);
         SS::set_reg(GDT.1.kdata_seg);
     }
+<<<<<<< HEAD
+
+    println!("OK");
+||||||| 698f3ae
+
+    // println!("OK");
+=======
+>>>>>>> 75cec1fa7f7802569001fcecfc1c8f52851ee2bd
 }

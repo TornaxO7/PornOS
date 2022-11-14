@@ -2,11 +2,6 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
-use pornos::println;
-use limine::LimineBootInfoRequest;
-
-static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
-
 /// Kernel Entry Point
 ///
 /// `_start` is defined in the linker script as the entry point for the ELF file.
@@ -14,22 +9,13 @@ static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 /// the bootloader will transfer control to this function.
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
-    if let Some(bootinfo) = BOOTLOADER_INFO.get_response().get() {
-        println!(
-            "booted by {} v{}",
-            bootinfo.name.to_str().unwrap().to_str().unwrap(),
-            bootinfo.version.to_str().unwrap().to_str().unwrap(),
-        );
-    }
-
     pornos::init();
 
     hlt_loop();
 }
 
 #[panic_handler]
-fn rust_panic(info: &core::panic::PanicInfo) -> ! {
-    println!("{}", info);
+fn rust_panic(_info: &core::panic::PanicInfo) -> ! {
     hlt_loop();
 }
 

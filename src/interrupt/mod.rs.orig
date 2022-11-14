@@ -58,7 +58,23 @@ lazy_static!{
 }
 
 pub fn init() {
+<<<<<<< HEAD
+    print!("IDT ...");
+
+||||||| 698f3ae
+    // print!("IDT ...");
+
+=======
+>>>>>>> 75cec1fa7f7802569001fcecfc1c8f52851ee2bd
     IDT.load();
+<<<<<<< HEAD
+
+    println!(" OK");
+||||||| 698f3ae
+
+    // println!(" OK");
+=======
+>>>>>>> 75cec1fa7f7802569001fcecfc1c8f52851ee2bd
 }
 
 fn general_handler(_stack_frame: InterruptStackFrame, _index: u8, _error_code: Option<u64>) {
