@@ -1,6 +1,5 @@
 pub mod tss;
 
-use crate::{print, println};
 use lazy_static::lazy_static;
 use x86_64::{
     registers::segmentation::{Segment, CS, DS, SS, GS, FS, ES},
@@ -23,8 +22,6 @@ struct Selectors {
 }
 
 pub fn init() {
-    print!("GDT ... ");
-
     x86_64::instructions::interrupts::disable();
 
     GDT.0.load();
@@ -36,6 +33,4 @@ pub fn init() {
         GS::set_reg(GDT.1.kdata_seg);
         SS::set_reg(GDT.1.kdata_seg);
     }
-
-    // println!("OK");
 }

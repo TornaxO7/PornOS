@@ -5,7 +5,7 @@
 
 pub mod gdt;
 mod interrupt;
-pub mod io;
+pub mod memory;
 
 pub fn init() {
     gdt::init();
