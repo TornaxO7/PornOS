@@ -2,6 +2,8 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
+use pornos::println;
+
 /// Kernel Entry Point
 ///
 /// `_start` is defined in the linker script as the entry point for the ELF file.
@@ -15,7 +17,9 @@ pub extern "C" fn pornos_entry() -> ! {
 }
 
 #[panic_handler]
-fn rust_panic(_info: &core::panic::PanicInfo) -> ! {
+fn rust_panic(info: &core::panic::PanicInfo) -> ! {
+    println!("==== KERNEL PANIC ====");
+    println!("{}", info);
     hlt_loop();
 }
 

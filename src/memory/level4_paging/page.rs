@@ -12,12 +12,9 @@ pub struct PageEntry(u8);
 #[repr(C)]
 pub struct Page(u64);
 
-impl Page {
-}
-
-impl TryFrom<u64> for Page {
-    type Error = PageError;
-
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-    }
-}
+// impl TryFrom<u64> for Page {
+//     type Error = PageError;
+//
+//     fn try_from(value: u64) -> Result<Self, Self::Error> {
+//     }
+// }

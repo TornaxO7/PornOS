@@ -58,7 +58,9 @@ lazy_static!{
 }
 
 pub fn init() {
+    print!("IDT ... ");
     IDT.load();
+    println!("OK");
 }
 
 fn general_handler(_stack_frame: InterruptStackFrame, _index: u8, _error_code: Option<u64>) {

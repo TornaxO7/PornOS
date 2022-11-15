@@ -6,8 +6,10 @@
 pub mod gdt;
 mod interrupt;
 pub mod memory;
+pub mod io;
 
 pub fn init() {
     gdt::init();
     interrupt::init();
+    memory::level4_paging::init();
 }

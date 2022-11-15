@@ -6,6 +6,8 @@ use x86_64::{
     structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector, DescriptorFlags},
 };
 
+use crate::{println, print};
+
 lazy_static! {
     static ref GDT: (GlobalDescriptorTable, Selectors) = {
         let mut gdt = GlobalDescriptorTable::new();
@@ -54,6 +56,7 @@ struct Selectors {
 pub fn init() {
     x86_64::instructions::interrupts::disable();
 
+    print!("GDT ... ");
     GDT.0.load();
     unsafe {
         CS::set_reg(GDT.1.kcode_seg);
@@ -63,4 +66,6 @@ pub fn init() {
         GS::set_reg(GDT.1.kdata_seg);
         SS::set_reg(GDT.1.kdata_seg);
     }
+
+    println!("OK");
 }
