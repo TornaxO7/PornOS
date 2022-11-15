@@ -1,4 +1,6 @@
-use limine::{LimineMemmapRequest, LimineMemmapEntry, LimineMemoryMapEntryType};
+use limine::{LimineMemmapEntry, LimineMemmapRequest, LimineMemoryMapEntryType};
+
+use crate::memory::Bytes;
 
 use super::memmap::Memmap;
 
@@ -12,7 +14,6 @@ pub struct Memmaps {
 }
 
 impl Memmaps {
-
     /// The maximal amount of valid entries in this struct.
     pub const AMOUNT_ENTRIES: usize = 10;
 
@@ -35,15 +36,23 @@ impl Memmaps {
         }
     }
 
+    /// Returns the useable memory in bytes for the OS.
+    pub fn useable_mem(&self) -> Bytes {
+        let mut size: Bytes = 0;
+        for index in 0..self.len {
+            size = size.saturating_add(self.entries[index].len);
+        }
+
+        size
+    }
+
     /// Collect all useable memory chunks which are collected by limine.
     fn collect_entries(&mut self) {
         let response = MEMMAP_REQUEST.get_response().get().unwrap();
         for index in 0..response.entry_count {
             let entry: &LimineMemmapEntry = &response.memmap()[index as usize];
-            if LimineMemoryMapEntryType::Usable == entry.typ {
-                if !self.add(entry) {
-                    break;
-                }
+            if LimineMemoryMapEntryType::Usable == entry.typ && !self.add(entry) {
+                break;
             }
         }
     }
@@ -71,8 +80,6 @@ impl Default for Memmaps {
         Self {
             entries: [Memmap::default(); Self::AMOUNT_ENTRIES],
             len: 0,
-
         }
     }
 }
-

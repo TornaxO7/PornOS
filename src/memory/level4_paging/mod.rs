@@ -12,15 +12,8 @@ lazy_static::lazy_static! {
     static ref MEMMAPS: Memmaps = Memmaps::new();
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct VirtAddr(u64);
-
 pub fn init() {
     print!("Memory ... ");
-
-    for index in 0..MEMMAPS.len {
-        println!("{:?}", MEMMAPS.get(index).unwrap());
-    }
 
     println!("OK");
 }

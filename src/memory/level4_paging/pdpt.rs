@@ -17,17 +17,17 @@ bitflags::bitflags! {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-pub struct PDPT {
+pub struct Pdpt {
     entries: [PDPTEntry; AMOUNT_ENTRIES],
 }
 
-impl PDPT {
+impl Pdpt {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl Default for PDPT {
+impl Default for Pdpt {
     fn default() -> Self {
         Self {
             entries: [PDPTEntry::empty(); AMOUNT_ENTRIES],
