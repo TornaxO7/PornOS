@@ -13,4 +13,4 @@ between two people like this:
 >
 > A: Oh cool, never heard of i- wait a minute. ***What did you just say?***
 
-[kernel]: https://github.com/rust-osdev/x86_64/issues/389#issuecomment-1307420662
+[kernel]: https://en.wikipedia.org/wiki/Kernel_(operating_system)
