@@ -2,13 +2,13 @@ use limine::{LimineMemmapEntry, LimineMemmapRequest, LimineMemoryMapEntryType};
 
 use crate::memory::Bytes;
 
-use super::memmap::Memmap;
+use super::memmap_entry::MemmapEntry;
 
 static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Memmaps {
-    entries: [Memmap; Self::AMOUNT_ENTRIES],
+    entries: [MemmapEntry; Self::AMOUNT_ENTRIES],
     /// The amount of valid entries.
     pub len: usize,
 }
@@ -28,7 +28,7 @@ impl Memmaps {
     /// # Returns
     /// `Some(...)`: If the given index is valid
     /// `None`: If `index > self.len`.
-    pub fn get(&self, index: usize) -> Option<&Memmap> {
+    pub fn get(&self, index: usize) -> Option<&MemmapEntry> {
         if index < self.len {
             Some(&self.entries[index])
         } else {
@@ -65,7 +65,7 @@ impl Memmaps {
     #[must_use]
     fn add(&mut self, limine_entry: &LimineMemmapEntry) -> bool {
         if self.len < Self::AMOUNT_ENTRIES {
-            self.entries[self.len] = Memmap::from(limine_entry);
+            self.entries[self.len] = MemmapEntry::from(limine_entry);
             self.len += 1;
 
             true
@@ -78,7 +78,7 @@ impl Memmaps {
 impl Default for Memmaps {
     fn default() -> Self {
         Self {
-            entries: [Memmap::default(); Self::AMOUNT_ENTRIES],
+            entries: [MemmapEntry::default(); Self::AMOUNT_ENTRIES],
             len: 0,
         }
     }
