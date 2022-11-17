@@ -3,27 +3,29 @@ pub mod tss;
 use lazy_static::lazy_static;
 use x86_64::{
     registers::segmentation::{Segment, CS, DS, ES, FS, GS, SS},
-    structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector, DescriptorFlags},
+    structures::gdt::{Descriptor, DescriptorFlags, GlobalDescriptorTable, SegmentSelector},
 };
 
-use crate::{println, print};
+use crate::{print, println};
 
 lazy_static! {
     static ref GDT: (GlobalDescriptorTable, Selectors) = {
         let mut gdt = GlobalDescriptorTable::new();
 
         let code_16bit = (DescriptorFlags::USER_SEGMENT
-                          | DescriptorFlags::PRESENT
-                          | DescriptorFlags::LIMIT_0_15
-                          | DescriptorFlags::ACCESSED
-                          | DescriptorFlags::EXECUTABLE).bits();
+            | DescriptorFlags::PRESENT
+            | DescriptorFlags::LIMIT_0_15
+            | DescriptorFlags::ACCESSED
+            | DescriptorFlags::EXECUTABLE)
+            .bits();
         gdt.add_entry(Descriptor::UserSegment(code_16bit));
 
         let data_16bit = (DescriptorFlags::USER_SEGMENT
-                          | DescriptorFlags::PRESENT
-                          | DescriptorFlags::LIMIT_0_15
-                          | DescriptorFlags::ACCESSED
-                          | DescriptorFlags::WRITABLE).bits();
+            | DescriptorFlags::PRESENT
+            | DescriptorFlags::LIMIT_0_15
+            | DescriptorFlags::ACCESSED
+            | DescriptorFlags::WRITABLE)
+            .bits();
         gdt.add_entry(Descriptor::UserSegment(data_16bit));
 
         let code_32bit = DescriptorFlags::KERNEL_CODE32.bits();

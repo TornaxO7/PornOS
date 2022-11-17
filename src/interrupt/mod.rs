@@ -1,30 +1,33 @@
-mod divide_error;
-mod debug;
-mod non_maskable_interrupt;
-mod breakpoint;
-mod overflow;
-mod bound_range_exceeded;
-mod invalid_opcode;
-mod device_not_available;
-mod double_fault;
-mod invalid_tss;
-mod segment_not_present;
-mod stack_segment_fault;
-mod general_protection_fault;
-mod page_fault;
-mod x87_floating_point;
 mod alignment_check;
+mod bound_range_exceeded;
+mod breakpoint;
+mod debug;
+mod device_not_available;
+mod divide_error;
+mod double_fault;
+mod general_protection_fault;
+mod invalid_opcode;
+mod invalid_tss;
 mod machine_check;
-mod simd_floating_point;
-mod vmm_communication_exception;
+mod non_maskable_interrupt;
+mod overflow;
+mod page_fault;
 mod security_exception;
+mod segment_not_present;
+mod simd_floating_point;
+mod stack_segment_fault;
+mod vmm_communication_exception;
+mod x87_floating_point;
 
 use lazy_static::lazy_static;
-use x86_64::{structures::idt::{InterruptDescriptorTable, InterruptStackFrame}, set_general_handler};
+use x86_64::{
+    set_general_handler,
+    structures::idt::{InterruptDescriptorTable, InterruptStackFrame},
+};
 
 use crate::{print, println};
 
-lazy_static!{
+lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
 
