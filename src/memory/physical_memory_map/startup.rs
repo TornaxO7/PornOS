@@ -4,7 +4,7 @@ use crate::memory::Bytes;
 
 use super::{mem_chunk::MemChunk, PhysMemMapper};
 
-pub static STARTUP_MMAP: StartupMmap = StartupMmap {
+pub static mut STARTUP_MMAP: StartupMmap = StartupMmap {
     entries: [MemChunk::new(); StartupMmap::AMOUNT_ENTRIES],
     len: 0,
 };

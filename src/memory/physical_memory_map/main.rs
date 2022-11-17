@@ -13,6 +13,5 @@ impl PhysMemMapper for MainMemmap {
     }
 
     fn init(&mut self) {
-        todo!()
     }
 }

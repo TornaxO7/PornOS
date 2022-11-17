@@ -1,3 +1,5 @@
+use core::ops::DerefMut;
+
 use limine::LimineMemmapRequest;
 use spin::mutex::SpinMutex;
 
@@ -14,10 +16,10 @@ pub type LinearAddrMemmap = u64;
 static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 
 lazy_static::lazy_static! {
-    pub static ref PHYS_MEMMAP: SpinMutex<&'static dyn PhysMemMapper> = SpinMutex::new(&STARTUP_MMAP);
+    pub static ref PHYS_MEMMAP: SpinMutex<&'static mut dyn PhysMemMapper> = SpinMutex::new(unsafe {&mut STARTUP_MMAP});
 }
 
-pub trait PhysMemMapper: Sync {
+pub trait PhysMemMapper: Sync + Send {
     /// Returns the useable memory in bytes for the OS.
     fn useable_mem(&self) -> Bytes;
 
@@ -27,6 +29,8 @@ pub trait PhysMemMapper: Sync {
 
 pub fn init() {
     print!("\tStartup Physical-MMAP ... ");
+
+    PHYS_MEMMAP.lock().init();
 
     println!("OK");
 }
