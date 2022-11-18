@@ -1,4 +1,4 @@
-use crate::memory::addr::PhysAddr;
+use crate::memory::PhysAddr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]

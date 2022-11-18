@@ -1,5 +1,3 @@
-use super::KernelPage;
-
 pub const AMOUNT_ENTRIES: usize = 512;
 
 bitflags::bitflags! {
@@ -26,12 +24,6 @@ pub struct PMLE4 {
 impl PMLE4 {
     pub fn new() -> Self {
         Self::default()
-    }
-}
-
-impl KernelPage for PMLE4 {
-    fn for_kernel() -> Self {
-        Self::new()
     }
 }
 

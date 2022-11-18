@@ -2,10 +2,12 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
+
 #![allow(non_snake_case)]
 
 extern crate alloc;
 
+pub mod util;
 pub mod gdt;
 mod interrupt;
 pub mod io;
