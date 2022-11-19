@@ -2,12 +2,12 @@ use core::ops::{Add, AddAssign};
 
 use x86_64::{align_down, align_up};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct PhysLinearAddr(u64);
 
 impl PhysLinearAddr {
-    pub fn new(value: u64) -> Self {
+    pub const fn new(value: u64) -> Self {
         Self(value)
     }
 
@@ -15,11 +15,11 @@ impl PhysLinearAddr {
         self.0
     }
 
-    pub fn align_up<U: Into<u64>>(&mut self, align: U) -> Self {
+    pub fn align_up<U: Into<u64>>(&self, align: U) -> Self {
         Self(align_up(self.0, align.into()))
     }
 
-    pub fn align_down<D: Into<u64>>(&mut self, align: D) -> Self {
+    pub fn align_down<D: Into<u64>>(&self, align: D) -> Self {
         Self(align_down(self.0, align.into()))
     }
 }

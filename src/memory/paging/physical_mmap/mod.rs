@@ -1,7 +1,5 @@
 mod phys_linear_addr;
 
-use core::ops::{Add, AddAssign};
-
 use limine::{
     LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
     NonNullPtr,

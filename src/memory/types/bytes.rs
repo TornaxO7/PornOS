@@ -8,7 +8,7 @@ use core::{borrow::{BorrowMut, Borrow}, ops::{DerefMut, Deref, Add, Mul, Sub}};
 /// let bytes = Bytes::new(10);
 /// ```
 /// just means that `bytes` reprents the amount of 10 bytes.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Bytes(u64);
 

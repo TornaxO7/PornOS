@@ -2,7 +2,7 @@ mod frame_array;
 mod frame_index;
 mod frame_stack;
 
-use crate::memory::{paging::{PhysLinearAddr, PhysMemMap, PageSize}};
+use crate::memory::paging::{PhysLinearAddr, PhysMemMap, PageSize};
 
 use self::{frame_array::FrameArray, frame_stack::FrameStack};
 
@@ -30,9 +30,10 @@ impl FrameManager for ArrayStack {
         let stack = FrameStack::new(Self::START, phys_mmap, page_size);
         let stack_capacity = stack.get_capacity();
 
+        let array_phys_start = PhysLinearAddr::new(stack_capacity.as_u64() + 1);
         Self {
             stack,
-            array: FrameArray::new(stack_capacity + 1, phys_mmap),
+            array: FrameArray::new(array_phys_start, phys_mmap, page_size),
         }
     }
 
