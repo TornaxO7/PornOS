@@ -1,26 +1,15 @@
 mod frame_array;
+mod frame_index;
 mod frame_stack;
 
-use crate::memory::{Bytes, PhysAddr, HHDM, physical_memory_mapper::IntoBytes};
+use crate::memory::{paging::{PhysLinearAddr, PhysMemMap, PageSize}};
 
 use self::{frame_array::FrameArray, frame_stack::FrameStack};
 
 use super::FrameManager;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[repr(C)]
-struct FrameIndex(pub u64);
-
-impl FrameIndex {
-    pub const SIZE: Bytes = core::mem::size_of::<Self>() as Bytes;
-}
-
-impl IntoBytes for FrameIndex {
-    fn into_bytes(&self) -> &[crate::memory::Byte] {
-        // [self.0 >> ]
-        todo!()
-    }
-}
+pub use frame_index::{FrameIndex, FrameIndexByteIterator};
+use x86_64::PhysAddr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayStack {
@@ -30,13 +19,20 @@ pub struct ArrayStack {
     array: FrameArray,
 }
 
+impl ArrayStack {
+    /// The starting address in the physical linear address space where its components should be
+    /// stored.
+    const START: PhysLinearAddr = PhysLinearAddr::new(0);
+}
+
 impl FrameManager for ArrayStack {
-    fn new(amount_page_frames: u64) -> Self {
-        let stack = FrameStack::new(*HHDM, amount_page_frames);
-        let stack_len = stack.len;
+    fn new(phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
+        let stack = FrameStack::new(Self::START, phys_mmap, page_size);
+        let stack_capacity = stack.get_capacity();
+
         Self {
             stack,
-            array: FrameArray::new(*HHDM + stack_len, amount_page_frames),
+            array: FrameArray::new(stack_capacity + 1, phys_mmap),
         }
     }
 

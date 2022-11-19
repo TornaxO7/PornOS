@@ -1,4 +1,4 @@
-use crate::memory::Bytes;
+use crate::memory::types::Bytes;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PageSize {
@@ -8,7 +8,7 @@ pub enum PageSize {
 impl PageSize {
     pub fn size(&self) -> Bytes {
         match self {
-            PageSize::Page4KB => 4096,
+            PageSize::Page4KB => Bytes::new(4096),
         }
     }
 }

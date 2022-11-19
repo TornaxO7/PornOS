@@ -1,21 +1,18 @@
 use limine::LimineHhdmRequest;
+use x86_64::VirtAddr;
 
 use crate::{print, println};
 
 pub mod paging;
-pub mod physical_memory_mapper;
-
-pub type VirtAddr = u64;
-pub type PhysAddr = u64;
-pub type Bytes = u64;
-pub type Byte = u8;
+pub mod types;
+pub mod util;
 
 lazy_static::lazy_static! {
-    pub static ref HHDM: VirtAddr = LimineHhdmRequest::new(0)
+    pub static ref HHDM: VirtAddr = VirtAddr::new(LimineHhdmRequest::new(0)
         .get_response()
         .get()
         .unwrap()
-        .offset;
+        .offset);
 }
 
 pub fn init() {
