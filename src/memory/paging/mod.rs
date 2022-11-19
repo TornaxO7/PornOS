@@ -1,3 +1,4 @@
+//! Includes the different paging implementation.
 mod frame_allocator;
 pub mod level4_paging;
 mod page_size;

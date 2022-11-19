@@ -1,3 +1,4 @@
+//! Includes some type-safety implementation when working with memory.
 mod byte;
 mod bytes;
 

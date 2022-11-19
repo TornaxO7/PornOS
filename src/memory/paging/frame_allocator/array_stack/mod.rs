@@ -1,3 +1,15 @@
+//! This module uses an array and a stack in order to manage the available frames.
+//! It has the following memory structure:
+//! ```
+//! HHDM
+//! |
+//! |----------------------------------------|
+//! |         |         |                    |
+//! |  Stack  |  Array  |    Other stuff     |
+//! |         |         |                    |
+//! |----------------------------------------|
+//! ```
+//! For more information how the stack and array works, take a look into the respective files.
 mod frame_array;
 mod frame_index;
 mod frame_stack;
@@ -8,7 +20,7 @@ use self::{frame_array::FrameArray, frame_stack::FrameStack};
 
 use super::FrameManager;
 
-pub use frame_index::{FrameIndex, FrameIndexByteIterator};
+pub use frame_index::{FrameArrayIndex, FrameIndexByteIterator};
 use x86_64::PhysAddr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

@@ -1,15 +1,28 @@
-use alloc::vec::IntoIter;
-
+//! Contains the implementation of the frame array.
+//! In memory in looks as follows:
+//! ```
+//! |-----------------------------------------|
+//! |u8|u8|u8|...                             |
+//! |-----------------------------------------|
+//! ```
+//! You need to imagine the array as a bit-array rather than a `u8`-array.
+//! Each bitflag marks the frame as used or not.
+//! 
+//! # Example
+//! If the `8th` bit is 1 then the `8th` frame is already used.
 use crate::memory::{
     paging::{PageSize, PhysLinearAddr, PhysMemMap},
     types::{Bytes, Byte},
     VirtAddr,
 };
 
+/// Holds the implementation of the frame array.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FrameArray {
-    pub start: VirtAddr,
-    pub len: Bytes,
+    /// Holds the starting virtual address of the array.
+    start: VirtAddr,
+    /// Holds the length (in bytes) of the array.
+    len: Bytes,
 }
 
 impl Default for FrameArray {
@@ -22,6 +35,7 @@ impl Default for FrameArray {
 }
 
 impl FrameArray {
+    /// Creates a new frame array with the given arguments
     pub fn new(start: PhysLinearAddr, phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
         let start = start.align_up(FrameArrayEntry::SIZE.as_u64());
         let amount_page_frames = phys_mmap.get_amount_page_frames(page_size);
