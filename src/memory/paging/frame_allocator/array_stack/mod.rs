@@ -21,7 +21,7 @@ use self::{frame_array::FrameArray, frame_stack::FrameStack};
 use super::FrameManager;
 
 pub use frame_index::{FrameArrayIndex, FrameIndexByteIterator};
-use x86_64::PhysAddr;
+use x86_64::VirtAddr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayStack {
@@ -35,10 +35,8 @@ impl ArrayStack {
     /// The starting address in the physical linear address space where its components should be
     /// stored.
     const START: PhysLinearAddr = PhysLinearAddr::new(0);
-}
 
-impl FrameManager for ArrayStack {
-    fn new(phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
+    pub fn new(phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
         let stack = FrameStack::new(Self::START, phys_mmap, page_size);
         let stack_capacity = stack.get_capacity();
 
@@ -48,12 +46,19 @@ impl FrameManager for ArrayStack {
             array: FrameArray::new(array_phys_start, phys_mmap, page_size),
         }
     }
+}
 
-    fn get_free_frame(&mut self) -> PhysAddr {
+impl FrameManager for ArrayStack {
+
+    fn get_free_frame(&mut self) -> VirtAddr {
         todo!()
     }
 
-    fn free_frame(&mut self, _addr: PhysAddr) {
+    fn free_frame(&mut self, _addr: VirtAddr) {
+        todo!()
+    }
+
+    fn mark_used_frames(&mut self, physical_mmap: &PhysMemMap) {
         todo!()
     }
 }

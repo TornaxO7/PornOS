@@ -1,4 +1,4 @@
-use core::{borrow::{BorrowMut, Borrow}, ops::{DerefMut, Deref, Add, Mul, Sub}};
+use core::{borrow::{BorrowMut, Borrow}, ops::{DerefMut, Deref, Add, Mul, Sub, AddAssign}};
 
 /// Just a simple type-safety struct which should represent
 /// the amount of bytes.
@@ -57,6 +57,12 @@ impl Add for Bytes {
 
     fn add(self, rhs: Self) -> Self::Output {
         Self(self.0 + rhs.0)
+    }
+}
+
+impl AddAssign for Bytes {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0;
     }
 }
 

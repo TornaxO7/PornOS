@@ -6,11 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["frame-allocator-array-stack"]
+default = ["frame-allocator-stack"]
 
 # frame allocators
 frame-allocator-array-stack = []
 frame-allocator-bitflag = []
+frame-allocator-stack = []
 
 [dependencies]
 limine = "0.1.9"
