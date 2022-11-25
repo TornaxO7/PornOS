@@ -9,10 +9,12 @@ mod bitflag;
 #[cfg(feature = "frame-allocator-stack")]
 mod stack;
 
+pub mod frame;
+
 use spin::Once;
 use x86_64::VirtAddr;
 
-use self::stack::Stack;
+use self::{stack::Stack, frame::Frame};
 use super::{page_size::PageSize, PhysMemMap, PhysLinearAddr};
 
 pub static FRAME_ALLOCATOR: Once<FrameAllocator> = Once::new();
@@ -25,7 +27,7 @@ pub fn init(phys_mmap: &PhysMemMap) {
 /// Each frame manager needs to implement those functions.
 pub trait FrameManager: Send + Sync + core::fmt::Debug {
     /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> VirtAddr;
+    fn get_free_frame(&mut self) -> Option<Frame>;
 
     /// Marks the given starting address of a frame as free.
     fn free_frame(&mut self, addr: VirtAddr);
@@ -42,8 +44,8 @@ pub struct FrameAllocator {
 
 impl FrameManager for FrameAllocator {
     /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> VirtAddr {
-        todo!()
+    fn get_free_frame(&mut self) -> Option<Frame> {
+        todo!();
     }
 
     fn free_frame(&mut self, _frame_addr: VirtAddr) {
