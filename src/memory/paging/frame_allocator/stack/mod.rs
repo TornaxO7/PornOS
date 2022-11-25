@@ -41,8 +41,21 @@ impl Default for Stack {
 impl Stack {
     /// Creates a new frame-stack with the given arguments.
     pub fn new(start: PhysLinearAddr, phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
-        print!("Using Frame-Allocator-Stack ... ");
+        let mut stack = Self::init(start, phys_mmap, page_size);
+        stack.reserve_self(page_size);
+        stack
+    }
 
+    /// fills the stack with entries:
+    ///
+    /// -------------------
+    /// | ... | 3 | 2 | 1 |
+    /// -------------------
+    ///                   ^
+    ///                top of stack
+    ///
+    fn init(start: PhysLinearAddr, phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
+        print!("Using Frame-Allocator-Stack ... ");
         let start = start.align_up(FrameIndex::SIZE.as_u64());
         let amount_page_frames = phys_mmap.get_amount_page_frames(page_size);
         let mut frame_index = FrameIndex(amount_page_frames);
@@ -65,6 +78,18 @@ impl Stack {
             len: capacity,
             capacity,
         }
+    }
+
+    /// This will pop the first entries as reserved for the stack.
+    fn reserve_self(&mut self, page_size: PageSize) {
+        let amount_used_frames = (self.get_used_bytes().as_u64() % page_size.size().as_u64()) + 1;
+        for _ in 0..amount_used_frames {
+            self.pop().unwrap();
+        }
+    }
+
+    fn get_used_bytes(&self) -> Bytes {
+        FrameIndex::SIZE * self.len.as_u64()
     }
 
     /// # Returns
