@@ -1,4 +1,5 @@
 mod phys_linear_addr;
+mod test;
 
 use limine::{
     LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
@@ -6,16 +7,20 @@ use limine::{
 };
 use x86_64::VirtAddr;
 
-use crate::memory::{
-    paging::PageSize,
-    types::{Byte, Bytes},
-    HHDM,
+use crate::{
+    memory::{
+        paging::PageSize,
+        types::{Byte, Bytes},
+        HHDM,
+    },
+    println,
 };
 
 pub use phys_linear_addr::PhysLinearAddr;
 
+/// A little helper type to show that the given value can be used as an index to get the appropriate
+/// memory chunk.
 pub type MemChunkIndex = usize;
-pub type Offset = Bytes;
 
 static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 
@@ -43,7 +48,9 @@ impl PhysMemMap {
     pub fn convert_to_virt(&self, phys_linear_addr: &PhysLinearAddr) -> Option<VirtAddr> {
         if let Some((mem_chunk_index, offset)) = self.get_matching_mem_chunk(phys_linear_addr) {
             let mmaps = Self::get_mmaps();
-            Some(VirtAddr::new(HHDM.as_u64() + mmaps[mem_chunk_index].base + offset.as_u64()))
+            Some(VirtAddr::new(
+                HHDM.as_u64() + mmaps[mem_chunk_index].base + offset.as_u64(),
+            ))
         } else {
             None
         }
@@ -62,6 +69,11 @@ impl PhysMemMap {
         }
 
         page_frame_counter
+    }
+
+    /// Returns the total amount of free useable ram in bytes.
+    pub fn get_amount_useable_ram(&self, page_size: PageSize) -> Bytes {
+        page_size.size() * self.get_amount_page_frames(page_size)
     }
 
     /// Writes the given consecutive bytes, given by the iterator to the consecutive bytes in the
@@ -111,7 +123,7 @@ impl PhysMemMap {
         todo!()
     }
 
-    /// Returns the index of the matching memory chunk, where `start_addr` points
+    /// Returns the index of the matching useable memory chunk, where `start_addr` points
     /// and the offset in this memory chunk.
     #[must_use]
     fn get_matching_mem_chunk(&self, addr: &PhysLinearAddr) -> Option<(MemChunkIndex, Bytes)> {
@@ -121,12 +133,15 @@ impl PhysMemMap {
         for mem_chunk_index in 0..self.entry_count as usize {
             let mem_chunk_index: usize = mem_chunk_index;
 
-            let found_memory_chunk = addr.as_u64() < (read_bytes.as_u64() + mmaps[mem_chunk_index].len);
-            if found_memory_chunk {
-                return Some((mem_chunk_index, Bytes::new(addr.as_u64()) - read_bytes));
-            }
+            if mmaps[mem_chunk_index].typ == LimineMemoryMapEntryType::Usable {
+                let found_memory_chunk =
+                    addr.as_u64() < (read_bytes.as_u64() + mmaps[mem_chunk_index].len);
+                if found_memory_chunk {
+                    return Some((mem_chunk_index, Bytes::new(addr.as_u64()) - read_bytes));
+                }
 
-            *read_bytes += mmaps[mem_chunk_index].len;
+                *read_bytes += mmaps[mem_chunk_index].len;
+            }
         }
 
         None
