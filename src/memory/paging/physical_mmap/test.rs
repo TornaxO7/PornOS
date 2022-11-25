@@ -25,7 +25,7 @@ impl PhysMemMap {
 
     /// simulates as if you would try to write into the next memory chunk
     fn write_into_next_mem_chunk(&self) {
-        let mut addr = PhysLinearAddr::new(4096);
+        let mut addr = PhysLinearAddr::new(0x5afff);
 
         for c in "Hello2".chars() {
             let ascii_byte = Byte::new(c as u8);
