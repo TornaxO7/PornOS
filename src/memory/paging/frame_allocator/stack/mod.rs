@@ -15,9 +15,11 @@ use x86_64::VirtAddr;
 use crate::{memory::{
     paging::{PageSize, PhysLinearAddr, PhysMemMap},
     types::Bytes,
-}, println};
+}, println, print};
 
 use self::frame_index::FrameIndex;
+
+use super::FrameManager;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Stack {
@@ -39,6 +41,8 @@ impl Default for Stack {
 impl Stack {
     /// Creates a new frame-stack with the given arguments.
     pub fn new(start: PhysLinearAddr, phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
+        print!("Using Frame-Allocator-Stack ... ");
+
         let start = start.align_up(FrameIndex::SIZE.as_u64());
         let amount_page_frames = phys_mmap.get_amount_page_frames(page_size);
         let mut frame_index = FrameIndex(amount_page_frames);
@@ -53,6 +57,8 @@ impl Stack {
         }
 
         let capacity = page_size.size() * amount_page_frames;
+
+        println!("OK");
 
         Self {
             start: phys_mmap.convert_to_virt(&start).unwrap(),
@@ -111,5 +117,15 @@ impl Stack {
     /// Returns the capacity in bytes of the stack.
     pub fn get_capacity(&self) -> Bytes {
         self.capacity
+    }
+}
+
+impl FrameManager for Stack {
+    fn get_free_frame(&mut self) -> VirtAddr {
+        todo!()
+    }
+
+    fn free_frame(&mut self, addr: VirtAddr) {
+        todo!()
     }
 }

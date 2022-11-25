@@ -12,20 +12,14 @@ mod stack;
 use spin::Once;
 use x86_64::VirtAddr;
 
-use crate::{print, println};
-
 use self::stack::Stack;
 use super::{page_size::PageSize, PhysMemMap, PhysLinearAddr};
 
-static FRAME_ALLOCATOR: Once<FrameAllocator> = Once::new();
+pub static FRAME_ALLOCATOR: Once<FrameAllocator> = Once::new();
 
 /// Sets up the frame allocator
 pub fn init(phys_mmap: &PhysMemMap) {
-    print!("Frame allocator ... ");
-
     setup_frame_allocator(phys_mmap);
-
-    println!("OK");
 }
 
 /// Each frame manager needs to implement those functions.

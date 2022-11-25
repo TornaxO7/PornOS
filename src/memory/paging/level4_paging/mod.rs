@@ -6,6 +6,8 @@ use crate::{print, println, memory::types::Bytes};
 
 use self::pmle4::PMLE4;
 
+use super::frame_allocator::FrameAllocator;
+
 mod page;
 mod page_table;
 mod pdpt;
@@ -20,7 +22,7 @@ lazy_static::lazy_static! {
 /// 3: Three levels need to be in memory. Level 1 (PMLE4) is already in the binary
 const PMLE4_MAP_SIZE: Bytes = Bytes::new((8 * 512) * 3);
 
-pub fn init() {
+pub fn init(frame_allocator: &FrameAllocator) {
     print!("\n\tInit Level 4 Paging ... ");
 
     // if PHYS_MEMMAP.lock().useable_mem() < PMLE4_MAP_SIZE {
@@ -28,6 +30,9 @@ pub fn init() {
     // }
 
     println!("OK");
+}
+
+pub fn load() {
 }
 
 pub trait PagingIndex {

@@ -94,7 +94,8 @@ impl PhysMemMap {
         let mmaps = Self::get_mmaps();
 
         if let Some((mem_chunk_index, offset)) = self.get_matching_mem_chunk(&addr) {
-            let dest_addr = (HHDM.as_u64() + mmaps[mem_chunk_index].base + offset.as_u64()) as *mut Byte;
+            let mem_chunk_base = mmaps[mem_chunk_index].base;
+            let dest_addr = (HHDM.as_u64() + mem_chunk_base + offset.as_u64()) as *mut Byte;
 
             unsafe {
                 *dest_addr = byte;
