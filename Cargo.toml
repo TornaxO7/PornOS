@@ -13,6 +13,10 @@ frame-allocator-array-stack = []
 frame-allocator-bitflag = []
 frame-allocator-stack = []
 
+# since `cargo test` doesn't work (*sad pika noises*) I will add tests as a
+# feature
+test = []
+
 [dependencies]
 limine = "0.1.9"
 spin = "0.9.4"
@@ -20,10 +24,3 @@ x86_64 = "0.14.10"
 lazy_static = {version = "1.4.0", features = ["spin_no_std"]}
 bitflags = "1.3.2"
 linked_list_allocator = "0.10.4"
-
-[features]
-default = []
-
-# since `cargo test` doesn't work (*sad pika noises*) I will add tests as a
-# feature
-test = []

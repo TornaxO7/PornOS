@@ -23,3 +23,8 @@ pub fn init() {
     println!("Init Memory ...");
     paging::init();
 }
+
+#[cfg(feature = "test")]
+pub fn tests() {
+    paging::tests();
+}

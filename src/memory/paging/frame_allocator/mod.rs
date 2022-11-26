@@ -27,6 +27,11 @@ pub fn init(phys_mmap: &PhysMemMap) {
     setup_frame_allocator(phys_mmap);
 }
 
+#[cfg(feature = "test")]
+pub fn tests(phys_mmap: &PhysMemMap) {
+    stack::tests(phys_mmap);
+}
+
 /// Each frame manager needs to implement those functions.
 pub trait FrameManager: Send + Sync + core::fmt::Debug {
     /// Returns the starting address of a free frame.

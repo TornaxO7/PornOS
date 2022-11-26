@@ -20,3 +20,9 @@ pub fn init() {
     //
     // level4_paging::load();
 }
+
+#[cfg(feature = "test")]
+pub fn tests() {
+    let phys_mmap = PhysMemMap::new();
+    frame_allocator::tests(&phys_mmap);
+}

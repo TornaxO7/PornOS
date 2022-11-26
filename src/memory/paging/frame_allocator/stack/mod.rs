@@ -9,6 +9,10 @@
 //! So if you need a new frame is the equal operation of a pop from the stack
 //! and register a freed frame is basically a push.
 mod init;
+#[cfg(feature = "test")]
+mod test;
+#[cfg(feature = "test")]
+pub use test::tests;
 
 use x86_64::{PhysAddr, VirtAddr};
 

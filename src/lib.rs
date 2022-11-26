@@ -22,4 +22,5 @@ pub fn init() {
 
 #[cfg(feature = "test")]
 pub fn tests() {
+    memory::tests();
 }
