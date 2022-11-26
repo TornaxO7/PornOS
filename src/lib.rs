@@ -19,3 +19,7 @@ pub fn init() {
     interrupt::init();
     memory::init();
 }
+
+#[cfg(feature = "test")]
+pub fn tests() {
+}
