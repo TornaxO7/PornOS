@@ -10,3 +10,10 @@ limine = "0.1.9"
 spin = "0.9"
 x86_64 = "0.14.10"
 lazy_static = {version = "1.4.0", features = ["spin_no_std"]}
+
+[features]
+default = []
+
+# since `cargo test` doesn't work (*sad pika noises*) I will add tests as a
+# feature
+test = []

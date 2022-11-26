@@ -11,3 +11,7 @@ pub fn init() {
     gdt::init();
     interrupt::init();
 }
+
+#[cfg(feature = "test")]
+pub fn tests() {
+}
