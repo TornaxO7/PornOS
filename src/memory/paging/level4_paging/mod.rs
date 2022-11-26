@@ -25,6 +25,8 @@ const PMLE4_MAP_SIZE: Bytes = Bytes::new((8 * 512) * 3);
 pub fn init(frame_allocator: &FrameAllocator) {
     print!("\n\tInit Level 4 Paging ... ");
 
+    
+
     println!("OK");
 }
 
