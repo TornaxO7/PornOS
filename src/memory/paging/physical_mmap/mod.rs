@@ -7,14 +7,11 @@ use limine::{
 };
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::{
-    memory::{
+use crate::memory::{
         paging::PageSize,
         types::{Byte, Bytes},
         HHDM,
-    },
-    println,
-};
+    };
 
 pub use phys_linear_addr::PhysLinearAddr;
 
@@ -28,7 +25,7 @@ static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 /// # Note
 /// This is only used at the time where the kernel-paging isn't loaded yet.
 /// This should be used to setup the frame-allocator and the first memory mapping of paging.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct PhysMemMap {
     entry_count: u64,
 }
@@ -48,15 +45,17 @@ impl PhysMemMap {
         for index in 0..self.entry_count {
             let mmap = &mmaps[index as usize];
 
-            let has_enough_space = {
-                let skipped_bytes = start.as_u64().saturating_sub(mmap.base);
-                let useable_mem = mmap.len - skipped_bytes;
+            if start.as_u64() <= mmap.base {
+                let has_enough_space = {
+                    let skipped_bytes = mmap.base.saturating_sub(start.as_u64());
+                    let useable_mem = mmap.len.saturating_sub(skipped_bytes);
 
-                useable_mem >= size.as_u64()
-            };
+                    useable_mem >= size.as_u64()
+                };
 
-            if mmap.typ == LimineMemoryMapEntryType::Usable && has_enough_space {
-                return Some(PhysAddr::new(mmap.base));
+                if mmap.typ == LimineMemoryMapEntryType::Usable && has_enough_space {
+                    return Some(PhysAddr::new(mmap.base));
+                }
             }
         }
 
@@ -83,7 +82,7 @@ impl PhysMemMap {
         let (index, offset) = self.get_matching_mem_chunk(phys_linear_addr).unwrap();
         let mmap = Self::get_mmaps();
 
-        PhysAddr::new(mmap[index as usize].base + offset.as_u64())
+        PhysAddr::new(mmap[index].base + offset.as_u64())
     }
 
     /// Returns the amount of available page frames according to the given page-frame-size.

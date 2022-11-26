@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(abi_x86_interrupt)]
+#![feature(int_roundings)]
 // #![feature(alloc_error_handler)]
 
 #![allow(non_snake_case)]

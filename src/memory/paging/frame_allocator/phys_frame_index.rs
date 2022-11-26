@@ -37,7 +37,7 @@ pub struct FrameIndexByteIterator {
 impl From<PhysFrameIndex> for FrameIndexByteIterator {
     fn from(frame_index: PhysFrameIndex) -> Self {
         Self {
-            bytes: frame_index.0.to_le_bytes().map(|entry| Byte::new(entry)),
+            bytes: frame_index.0.to_le_bytes().map(Byte::new),
             index: 0,
         }
     }

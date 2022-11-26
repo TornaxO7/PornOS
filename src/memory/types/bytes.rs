@@ -81,3 +81,12 @@ impl Mul<u64> for Bytes {
         Self(self.0 * rhs)
     }
 }
+
+impl Mul<usize> for Bytes {
+    type Output = Bytes;
+
+    fn mul(self, rhs: usize) -> Self::Output {
+        let rhs_u64 = u64::try_from(rhs).unwrap();
+        Self(self.0 * rhs_u64)
+    }
+}
