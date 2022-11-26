@@ -5,13 +5,9 @@ use limine::{
     LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
     NonNullPtr,
 };
-use x86_64::{PhysAddr, VirtAddr};
+use x86_64::PhysAddr;
 
-use crate::memory::{
-        paging::PageSize,
-        types::{Byte, Bytes},
-        HHDM,
-    };
+use crate::memory::{paging::PageSize, types::Bytes};
 
 pub use phys_linear_addr::PhysLinearAddr;
 

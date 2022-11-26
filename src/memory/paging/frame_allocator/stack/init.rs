@@ -26,7 +26,7 @@ impl Stack {
         };
 
         stack.add_entries(phys_mmap);
-        stack.remove_stack_frames();
+        stack.swap_stack_frames(phys_mmap);
 
         println!("OK");
         stack
@@ -65,9 +65,12 @@ impl Stack {
         )
     }
 
-    /// Removes the used frames of the stack because we don't want to return the frames
-    /// where this stack resides, don't we?
-    fn remove_stack_frames(&mut self) {
+    /// Moves the frames which the stack uses to the top of the stack.
+    /// Then the stack reduces it's capacity to the first real free frame.
+    ///
+    /// This makes it possible to get the physical addresses of the stack-frames without the
+    /// conflict of popping or pushing.
+    fn swap_stack_frames(&mut self, phys_mmap: &PhysMemMap) {
         if let Some(stack_frame_index) = self.get_stack_frame_index() {
             let used_frames = self.get_used_frames();
             for index in stack_frame_index..stack_frame_index + used_frames {
@@ -76,19 +79,22 @@ impl Stack {
                     addr as * mut u64
                 };
 
-                let free_frame_addr: * const u64 = {
+                let free_frame_addr: * mut u64 = {
                     let addr = self.start.as_u64() + (POINTER_SIZE * (index + used_frames)).as_u64();
-                    addr as * const u64
+                    addr as * mut u64
                 };
 
                 unsafe {
-                    *used_frame_addr = *free_frame_addr;
+                    core::ptr::swap(used_frame_addr, free_frame_addr);
                 }
             }
+
+            self.capacity = phys_mmap.get_amount_page_frames(self.page_size) - used_frames;
+            self.len = self.capacity;
         }
     }
 
-    /// Returns the stack index which holds the frame where the stack resides.
+    /// Returns the stack index which holds the frame where the stack starts.
     ///
     /// # Return
     /// - `Some<StackIndex>`: If the given frame could be found.
