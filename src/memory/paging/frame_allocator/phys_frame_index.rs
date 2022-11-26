@@ -6,13 +6,13 @@ const AMOUNT_BYTES: usize = 8;
 /// A helper struct which can be used as an index, if the frames are stored in an array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(C)]
-pub struct FrameIndex(pub u64);
+pub struct PhysFrameIndex(pub u64);
 
-impl FrameIndex {
+impl PhysFrameIndex {
     pub const SIZE: Bytes = Bytes::new(core::mem::size_of::<Self>() as u64);
 }
 
-impl IntoIterator for FrameIndex {
+impl IntoIterator for PhysFrameIndex {
     type Item = Byte;
 
     type IntoIter = FrameIndexByteIterator;
@@ -34,8 +34,8 @@ pub struct FrameIndexByteIterator {
     index: usize,
 }
 
-impl From<FrameIndex> for FrameIndexByteIterator {
-    fn from(frame_index: FrameIndex) -> Self {
+impl From<PhysFrameIndex> for FrameIndexByteIterator {
+    fn from(frame_index: PhysFrameIndex) -> Self {
         Self {
             bytes: frame_index.0.to_le_bytes().map(|entry| Byte::new(entry)),
             index: 0,

@@ -22,3 +22,6 @@ bitflags::bitflags! {
 pub struct PageTable {
     entries: [PageTableEntry; AMOUNT_ENTRIES],
 }
+
+pub fn kinit() {
+}

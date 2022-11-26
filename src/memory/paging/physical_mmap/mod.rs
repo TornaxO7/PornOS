@@ -5,7 +5,7 @@ use limine::{
     LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
     NonNullPtr,
 };
-use x86_64::VirtAddr;
+use x86_64::{PhysAddr, VirtAddr};
 
 use crate::{
     memory::{
@@ -40,6 +40,29 @@ impl PhysMemMap {
         }
     }
 
+    /// Tries to find an address which guarantees to have the given size.
+    pub fn get_frame(&self, start: PhysAddr, align: PageSize, size: Bytes) -> Option<PhysAddr> {
+        let start = start.align_up(align.size().as_u64());
+
+        let mmaps = Self::get_mmaps();
+        for index in 0..self.entry_count {
+            let mmap = &mmaps[index as usize];
+
+            let has_enough_space = {
+                let skipped_bytes = start.as_u64().saturating_sub(mmap.base);
+                let useable_mem = mmap.len - skipped_bytes;
+
+                useable_mem >= size.as_u64()
+            };
+
+            if mmap.typ == LimineMemoryMapEntryType::Usable && has_enough_space {
+                return Some(PhysAddr::new(mmap.base));
+            }
+        }
+
+        None
+    }
+
     /// Converts the given physical linear address into a virtual address.
     /// # Returns
     /// `Some(VirtAddr)`: If the given phys_linear_addr is valid isn't over the available physical
@@ -54,6 +77,13 @@ impl PhysMemMap {
         } else {
             None
         }
+    }
+
+    pub fn get_phys_addr(&self, phys_linear_addr: &PhysLinearAddr) -> PhysAddr {
+        let (index, offset) = self.get_matching_mem_chunk(phys_linear_addr).unwrap();
+        let mmap = Self::get_mmaps();
+
+        PhysAddr::new(mmap[index as usize].base + offset.as_u64())
     }
 
     /// Returns the amount of available page frames according to the given page-frame-size.

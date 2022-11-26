@@ -1,6 +1,6 @@
 // currently implements only 4KiB pages
 
-use spin::{mutex::SpinMutex, Spin};
+use spin::RwLock;
 
 use crate::{print, println, memory::types::Bytes};
 
@@ -14,7 +14,7 @@ mod pdpt;
 mod pmle4;
 
 lazy_static::lazy_static! {
-    static ref KPMLE4_MAP: Spin<PMLE4> = Spin::new(PMLE4::new());
+    static ref KPMLE4_MAP: RwLock<PMLE4> = RwLock::new(PMLE4::new());
 }
 
 /// 512: 512 entries per level
