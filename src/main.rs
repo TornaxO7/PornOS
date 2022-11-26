@@ -12,6 +12,7 @@ static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 /// `_start` is defined in the linker script as the entry point for the ELF file.
 /// Unless the [`Entry Point`](limine::LimineEntryPointRequest) feature is requested,
 /// the bootloader will transfer control to this function.
+#[cfg(not(feature = "test"))]
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
     if let Some(bootinfo) = BOOTLOADER_INFO.get_response().get() {
@@ -23,6 +24,17 @@ pub extern "C" fn pornos_entry() -> ! {
     }
 
     pornos::init();
+
+    hlt_loop();
+}
+
+#[cfg(feature = "test")]
+#[no_mangle]
+pub extern "C" fn pornos_entry() -> ! {
+    println!("=== TEST MODE ===");
+    pornos::tests();
+
+    println!("=== TESTS DONE ===");
 
     hlt_loop();
 }
