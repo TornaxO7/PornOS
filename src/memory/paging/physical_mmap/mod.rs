@@ -40,13 +40,8 @@ impl<P: PageSize> PhysMemMap<P> {
     /// Returns the amount of available page frames according to the given page-frame-size.
     pub fn get_amount_page_frames(&self) -> u64 {
         let mut page_frame_counter = 0;
-        let response = Self::get_memmap_response();
-
-        for index in 0..response.entry_count {
-            let entry = &response.memmap()[index as usize];
-            if entry.typ == LimineMemoryMapEntryType::Usable {
-                page_frame_counter += entry.len / P::SIZE;
-            }
+        for mmap in self.get_useable_mem_chunks() {
+            page_frame_counter += mmap.len / P::SIZE;
         }
 
         page_frame_counter
@@ -110,11 +105,11 @@ impl<P: PageSize> Iterator for UseableMemChunkIterator<P> {
         let mmaps = PhysMemMap::<P>::get_mmaps();
         while self.index < self.entry_count {
             let mmap = &mmaps[self.index as usize];
+            self.index += 1;
+
             if mmap.typ == LimineMemoryMapEntryType::Usable {
                 return Some(mmap);
             }
-
-            self.index += 1;
         }
 
         None

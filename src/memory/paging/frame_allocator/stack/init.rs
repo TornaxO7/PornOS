@@ -14,11 +14,7 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
     pub fn new(phys_mmap: &PhysMemMap<P>) -> Self {
         print!("Using Frame-Allocator-Stack ... ");
         let amount_page_frames = phys_mmap.get_amount_page_frames();
-        let stack_start = {
-            let amount_page_frames = phys_mmap.get_amount_page_frames();
-            let needed_free_space = POINTER_SIZE * amount_page_frames;
-            get_start_addr(phys_mmap, amount_page_frames, needed_free_space)
-        };
+        let stack_start = get_start_addr(phys_mmap);
         let capacity = amount_page_frames;
 
         let mut stack = Self {
@@ -35,14 +31,14 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
         stack
     }
 
-    /// Fills the stack with pointers to the useable memory chunks.
+    /// Fills the stack with pointers to the page frames.
     fn add_entries(&self, phys_mmap: &PhysMemMap<P>) {
         let mut entry_addr = self.start.as_u64();
         for mmap in phys_mmap.get_useable_mem_chunks() {
             for readed_bytes in (0..mmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let frame_addr = mmap.base + readed_bytes;
+                let ptr = entry_addr as *mut u64;
                 unsafe {
-                    let mut ptr = entry_addr as *mut u64;
                     *ptr = frame_addr;
                 }
                 entry_addr += *POINTER_SIZE;
@@ -104,13 +100,12 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
 
 // FUTURE: It could happen, that we'll get the last frame because the other frames might
 // be too small....
-fn get_start_addr<P: PageSize>(
-    phys_mmap: &PhysMemMap<P>,
-    amount_p: u64,
-    needed_space: Bytes,
-) -> PhysAddr {
+fn get_start_addr<P: PageSize>(phys_mmap: &PhysMemMap<P>) -> PhysAddr {
+    let amount_page_frames = phys_mmap.get_amount_page_frames();
+    let needed_free_space = POINTER_SIZE * amount_page_frames;
+
     for mmap in phys_mmap.get_useable_mem_chunks() {
-        let has_enough_space = mmap.len >= needed_space.as_u64();
+        let has_enough_space = mmap.len >= needed_free_space.as_u64();
         if has_enough_space {
             return PhysAddr::new(mmap.base);
         }
