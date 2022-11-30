@@ -1,7 +1,6 @@
 //! Includes the different paging implementation.
 mod frame_allocator;
 mod heap;
-// pub mod level4_paging;
 mod physical_mmap;
 
 use core::marker::PhantomData;
