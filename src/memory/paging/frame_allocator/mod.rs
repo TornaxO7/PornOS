@@ -38,20 +38,20 @@ pub trait FrameManager<P: PageSize>: Send + Sync + Debug {
     fn free_frame(&mut self, frame: PhysFrame<P>);
 }
 
-/// The main frame allocator struct which manages the frames.
-#[derive(Debug)]
-pub struct FrameAllocator<P: PageSize + Send + Sync + Debug> {
-    /// this stores the datastructure how the frames are stored.
-    frame_manager: Stack<P>,
-}
-
-impl<P: PageSize + Send + Sync + Debug> FrameManager<P> for FrameAllocator<P> {
-    /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> Option<PhysFrame<P>> {
-        self.frame_manager.get_free_frame()
-    }
-
-    fn free_frame(&mut self, frame: PhysFrame<P>) {
-        self.frame_manager.free_frame(frame);
-    }
-}
+// The main frame allocator struct which manages the frames.
+// #[derive(Debug)]
+// pub struct FrameAllocator<P: PageSize + Send + Sync + Debug> {
+//     /// this stores the datastructure how the frames are stored.
+//     frame_manager: Stack<P>,
+// }
+//
+// impl<P: PageSize + Send + Sync + Debug> FrameManager<P> for FrameAllocator<P> {
+//     /// Returns the starting address of a free frame.
+//     fn get_free_frame(&mut self) -> Option<PhysFrame<P>> {
+//         self.frame_manager.get_free_frame()
+//     }
+//
+//     fn free_frame(&mut self, frame: PhysFrame<P>) {
+//         self.frame_manager.free_frame(frame);
+//     }
+// }

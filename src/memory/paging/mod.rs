@@ -1,20 +1,27 @@
 //! Includes the different paging implementation.
 mod frame_allocator;
-mod heap;
 mod physical_mmap;
 
 use core::marker::PhantomData;
 
+use lazy_static::lazy_static;
 pub use physical_mmap::{PhysLinearAddr, PhysMemMap};
 use spin::RwLock;
 use x86_64::{
-    structures::paging::{Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB, page_table::PageTableLevel},
-    VirtAddr, PhysAddr,
+    structures::paging::{
+        page_table::{PageTableEntry, PageTableLevel},
+        Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+    },
+    PhysAddr, VirtAddr,
 };
 
 use self::frame_allocator::{FrameManager, Stack, FRAME_ALLOCATOR};
 
-use super::HHDM;
+use crate::memory::HHDM;
+
+lazy_static! {
+    pub static ref HEAP_START: VirtAddr = *HHDM;
+}
 
 pub fn init() {
     let phys_mmap = PhysMemMap::<Size4KiB>::new();
@@ -59,8 +66,8 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
         while let Some(mmap) = kernel_iter.next() {
             for offset in (0..mmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let virt_kframe_addr = *HHDM + mmap.base + offset;
-                let page_frame_ptr = virt_kframe_addr.as_mut_ptr() as * const Page;
-                let page = unsafe {page_frame_ptr.read()};
+                let page_frame_ptr = virt_kframe_addr.as_mut_ptr() as *const Page;
+                let page = unsafe { page_frame_ptr.read() };
                 self.map_existing_frame(page);
             }
         }
@@ -68,17 +75,54 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
 
     /// Maps a heap for the kernel.
     pub fn map_heap(&mut self) {
+        let heap_page = Page::from_start_address(*HHDM).unwrap();
+        let heap_page_frame = PhysFrame::from_start_address(Self::get_free_phys_frame()).unwrap();
+
+        self.map_page(heap_page, heap_page_frame);
+    }
+}
+
+impl<'a, P: PageSize + 'a> KPagingConfigurator<'a, P> {
+    /// Maps the given virtual page to the given physical page/frame.
+    pub fn map_page(&self, vpage: Page, ppage: PhysFrame) {
+        let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE;
+        let p1_entry_ptr = self.get_page_table_entry_ptr(vpage.start_address());
+
+        let new_page_entry = {
+            let mut page_entry = PageTableEntry::new();
+            page_entry.set_frame(ppage, flags);
+            page_entry
+        };
+
+        unsafe { p1_entry_ptr.write(new_page_entry) };
     }
 
-    /// This functions creates all necessary entries in the paging-hierarchy so it gets mapped.
+    /// This function maps the given frame as the paging of limine does.
+    ///
+    /// This is useful to add already used entries which can't be changed anymore like the kernel
+    /// code and its modules.
     pub fn map_existing_frame(&self, frame: Page) {
         // u8: Just a type to be able to use the function
-self.get_mem_mut_ptr::<u8>(frame.start_address());
+        self.get_mem_mut_ptr::<u8>(frame.start_address());
     }
 
-    /// Returns a pointer of the given type which points on a free memory chunk.
+    /// Returns a pointer to physical address of the given addr.
     pub fn get_mem_mut_ptr<T>(&self, addr: VirtAddr) -> *mut T {
-        let new_table_entry_flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE;
+        let page_table_entry = {
+            let page_table_entry_ptr = self.get_page_table_entry_ptr(addr);
+            unsafe { page_table_entry_ptr.read() }
+        };
+
+        let page_frame_phys_addr = page_table_entry.addr();
+        let page_frame_virt_addr = *HHDM + page_frame_phys_addr.as_u64();
+        let value_virt_addr: VirtAddr = page_frame_virt_addr + u64::from(addr.page_offset());
+        value_virt_addr.as_mut_ptr() as *mut T
+    }
+
+    /// Returns a pointer to the page entry (the entry of the page table (level 1)).
+    pub fn get_page_table_entry_ptr(&self, addr: VirtAddr) -> *mut PageTableEntry {
+        let new_table_entry_flags =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE;
         let mut table = unsafe { self.p4_ptr.read() };
         let mut level = PageTableLevel::Four;
 
@@ -92,24 +136,24 @@ self.get_mem_mut_ptr::<u8>(frame.start_address());
 
             let next_table_vtr_ptr = if table_entry.is_unused() {
                 let new_frame = Self::get_free_phys_frame();
-                table_entry.set_addr(new_frame , new_table_entry_flags);
+                table_entry.set_addr(new_frame, new_table_entry_flags);
 
                 *HHDM + new_frame.as_u64()
             } else {
                 *HHDM + table_entry.addr().as_u64()
             };
-            let next_table_ptr = next_table_vtr_ptr.as_mut_ptr() as * mut PageTable;
+            let next_table_ptr = next_table_vtr_ptr.as_mut_ptr() as *mut PageTable;
 
-            table = unsafe {next_table_ptr.read()};
+            table = unsafe { next_table_ptr.read() };
             level = lower_level;
         }
 
-        let page_frame_phys_addr = &table[addr.p1_index()];
-        let page_frame_virt_addr = *HHDM + page_frame_phys_addr.addr().as_u64();
-        let value_virt_addr: VirtAddr = page_frame_virt_addr + u64::from(addr.page_offset());
-        value_virt_addr.as_mut_ptr() as *mut T
+        let page_table_entry_phys_addr = &table[addr.p1_index()].addr();
+        let page_table_entry_virt_addr = *HHDM + page_table_entry_phys_addr.as_u64();
+        page_table_entry_virt_addr.as_mut_ptr() as *mut PageTableEntry
     }
 
+    /// Returns the physical address of a free page frame.
     fn get_free_phys_frame() -> PhysAddr {
         let new_frame = FRAME_ALLOCATOR
             .get()
@@ -120,6 +164,7 @@ self.get_mem_mut_ptr::<u8>(frame.start_address());
         new_frame.start_address()
     }
 
+    /// Returns the virtual address of a free page frame.
     fn get_free_virt_frame() -> VirtAddr {
         let phys_frame = Self::get_free_phys_frame();
         let new_frame_virt_addr = *HHDM + phys_frame.as_u64();
