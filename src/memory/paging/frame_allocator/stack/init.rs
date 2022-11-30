@@ -1,10 +1,11 @@
 use crate::memory::paging::frame_allocator::stack::POINTER_SIZE;
 use crate::println;
 use crate::{
-    memory::paging::{PageSize, PhysMemMap},
+    memory::paging::PhysMemMap,
     print,
 };
 use x86_64::PhysAddr;
+use x86_64::structures::paging::PageSize;
 
 use super::Stack;
 
@@ -12,7 +13,7 @@ type StackIndex = u64;
 
 impl Stack {
     /// Creates a new frame-stack with the given arguments.
-    pub fn new(phys_mmap: &PhysMemMap, page_size: PageSize) -> Self {
+    pub fn new(phys_mmap: &PhysMemMap, page_size: &dyn PageSize) -> Self {
         print!("Using Frame-Allocator-Stack ... ");
         let amount_page_frames = phys_mmap.get_amount_page_frames(page_size);
         let stack_start = get_start_addr(phys_mmap, page_size);

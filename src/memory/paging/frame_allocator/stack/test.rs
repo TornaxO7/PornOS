@@ -1,7 +1,8 @@
 use x86_64::PhysAddr;
 
-use crate::memory::paging::{PhysMemMap, PageSize};
-use crate::{println, print};
+use crate::memory::paging::page_frame::PageFrame;
+use crate::memory::paging::{PageSize, PhysMemMap};
+use crate::{print, println};
 
 use super::Stack;
 
@@ -20,8 +21,17 @@ fn test_push_pop(stack: &mut Stack) {
 
     assert!(stack.pop().is_some());
 
-    assert!(stack.push(addr));
-    assert_eq!(stack.pop(), Some(addr));
+    assert!(stack.push(PageFrame {
+        start: addr,
+        size: PageSize::Page4KB
+    }));
+    assert_eq!(
+        stack.pop(),
+        Some(PageFrame {
+            start: addr,
+            size: PageSize::Page4KB
+        })
+    );
 
     println!("OK");
 }
@@ -31,7 +41,10 @@ fn test_get_entry(stack: &mut Stack) {
 
     let addr = PhysAddr::new(0xCAFEBABE);
     assert!(stack.pop().is_some());
-    assert!(stack.push(addr));
+    assert!(stack.push(PageFrame {
+        start: addr,
+        size: PageSize::Page4KB
+    }));
 
     assert!(stack.get_entry(stack.len).is_none());
     assert_eq!(stack.get_entry(stack.len - 1), Some(addr.as_u64()));
@@ -45,7 +58,10 @@ fn test_get_entry_addr(stack: &mut Stack) {
     let test_addr = PhysAddr::new(0xB00BA);
 
     if stack.len == 0 {
-        assert!(stack.push(test_addr));
+        assert!(stack.push(PageFrame {
+            start: test_addr,
+            size: PageSize::Page4KB
+        }));
     }
 
     assert_eq!(stack.get_entry_addr(0), Some(stack.start));

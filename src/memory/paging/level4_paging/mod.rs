@@ -1,30 +1,34 @@
 // currently implements only 4KiB pages
 
+use crate::{
+    memory::paging::{frame_allocator::FrameManager, level4_paging::cr3::{Cr3Flag, Cr3Value}},
+    print, println,
+};
+use limine::LimineKernelAddressRequest;
 use spin::RwLock;
+use x86_64::VirtAddr;
 
-use crate::{print, println, memory::{types::Bytes, paging::level4_paging::cr3::Cr3Value}};
+use super::{frame_allocator::FrameAllocator, page_frame::PageFrame, PhysMemMap};
 
-use super::frame_allocator::FrameAllocator;
+static KERNEl_REQUEST: LimineKernelAddressRequest = LimineKernelAddressRequest::new(0);
 
 mod cr3;
-mod pml4e;
-mod pdpte;
 mod pd;
+mod pdpte;
+mod pml4e;
 mod pt;
 
-// lazy_static::lazy_static! {
-//     static ref KPMLE4_MAP: RwLock<PMLE4> = RwLock::new(PMLE4::new());
-// }
-
-/// 512: 512 entries per level
-/// 8: Each entry is 8 bytes big
-/// 3: Three levels need to be in memory. Level 1 (PMLE4) is already in the binary
-const PMLE4_MAP_SIZE: Bytes = Bytes::new((8 * 512) * 3);
-
-pub fn init(frame_allocator: &FrameAllocator) {
+pub fn init(phys_mmap: &PhysMemMap, frame_allocator: &RwLock<FrameAllocator>) {
     print!("Init Level 4 Paging ... ");
 
-    // let cr3_value = Cr3Value::new();
+    let mut pml4e = frame_allocator.write().get_free_frame().unwrap();
+    let cr3_value = Cr3Value::new(Cr3Flag::PWT | Cr3Flag::PCD).set_pml4e_phys_addr(pml4e.start);
+
+    map_kernel(phys_mmap, &mut pml4e);
+    map_heap(&mut pml4e);
+    map_stack(&mut pml4e);
+
+    load_paging(cr3_value);
 
     println!("OK");
 }
@@ -38,5 +42,16 @@ pub fn tests() {
     pt::tests();
 }
 
-fn load() {
+fn load_paging(_cr3_value: Cr3Value) {}
+
+fn map_kernel(phys_mmap: &PhysMemMap, pml4e: &mut PageFrame) {
+    let (_, klen) = phys_mmap.get_kernel_frame();
+    let virt_kstart = {
+        let virt_addr = KERNEl_REQUEST.get_response().get().unwrap().virtual_base;
+        VirtAddr::new(virt_addr)
+    };
 }
+
+fn map_heap(pml4e: &mut PageFrame) {}
+
+fn map_stack(pml4e: &mut PageFrame) {}

@@ -14,44 +14,45 @@ mod test;
 #[cfg(feature = "test")]
 pub use test::tests;
 
-use x86_64::{PhysAddr, VirtAddr};
+use x86_64::{PhysAddr, structures::paging::PageSize};
 
-use crate::memory::{paging::PageSize, types::Bytes};
+use crate::memory::{paging::page_frame::PageFrame, types::Bytes};
 
-use super::{frame::Frame, FrameManager};
+use super::FrameManager;
 
 /// The size of a pointer in bytes.
 const POINTER_SIZE: Bytes = Bytes::new(8);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Stack {
+pub struct Stack<P: PageSize> {
     start: PhysAddr,
     len: u64,
     capacity: u64,
-    page_size: PageSize,
 }
 
-impl Default for Stack {
+impl<P: PageSize> Default for Stack<P> {
     fn default() -> Self {
         Self {
             start: PhysAddr::zero(),
             len: 0,
             capacity: 0,
-            page_size: PageSize::Page4KB,
         }
     }
 }
 
-impl Stack {
+impl<P: PageSize> Stack<P> {
     /// # Returns
     /// - `Some<FrameIndex>`: The frame index of the frame which isn't used yet.
     /// - `None`: If there are no free frames anymore.
     #[must_use]
-    pub fn pop(&mut self) -> Option<PhysAddr> {
+    pub fn pop(&mut self) -> Option<PageFrame> {
         if let Some(value_index) = self.len.checked_sub(1) {
             let value = PhysAddr::new(self.get_entry(value_index).unwrap());
             self.len -= 1;
-            Some(value)
+            Some(PageFrame {
+                start: value,
+                size: self.page_size,
+            })
         } else {
             None
         }
@@ -67,7 +68,7 @@ impl Stack {
     /// You have to make sure that the given frame index ***is*** free! Otherwise Undefined
     /// Behaviour will be your OS.
     #[must_use]
-    pub fn push(&mut self, frame_addr: PhysAddr) -> bool {
+    pub fn push(&mut self, page_frame: PageFrame) -> bool {
         let exceeds_capacity = self.len >= self.capacity;
         if exceeds_capacity {
             return false;
@@ -79,7 +80,7 @@ impl Stack {
         };
 
         unsafe {
-            *new_entry_ptr = frame_addr.as_u64();
+            *new_entry_ptr = page_frame.start.as_u64();
         }
 
         // SAFETY: Check if self.len exceeds self.capacity already done before
@@ -120,11 +121,11 @@ impl Stack {
 }
 
 impl FrameManager for Stack {
-    fn get_free_frame(&mut self) -> Option<Frame> {
-        todo!()
+    fn get_free_frame(&mut self) -> Option<PageFrame> {
+        self.pop()
     }
 
-    fn free_frame(&mut self, _addr: VirtAddr) {
-        todo!()
+    fn free_frame(&mut self, frame: PageFrame) {
+        assert!(self.push(frame));
     }
 }

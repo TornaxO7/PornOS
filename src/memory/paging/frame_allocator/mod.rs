@@ -10,17 +10,16 @@ mod bitflag;
 mod stack;
 
 mod phys_frame_index;
-pub mod frame;
 
 pub use phys_frame_index::PhysFrameIndex;
 
-use spin::Once;
-use x86_64::VirtAddr;
+use spin::{Once, RwLock};
+use x86_64::{VirtAddr, PhysAddr, structures::paging::{PageSize, Size4KiB}};
 
-use self::{stack::Stack, frame::Frame};
-use super::{page_size::PageSize, PhysMemMap, PhysLinearAddr};
+use self::stack::Stack;
+use super::{PhysMemMap, page_frame::PageFrame};
 
-pub static FRAME_ALLOCATOR: Once<FrameAllocator> = Once::new();
+pub static FRAME_ALLOCATOR: Once<RwLock<FrameAllocator<Size4KiB>>> = Once::new();
 
 /// Sets up the frame allocator
 pub fn init(phys_mmap: &PhysMemMap) {
@@ -35,37 +34,34 @@ pub fn tests(phys_mmap: &PhysMemMap) {
 /// Each frame manager needs to implement those functions.
 pub trait FrameManager: Send + Sync + core::fmt::Debug {
     /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> Option<Frame>;
+    fn get_free_frame(&mut self) -> Option<PageFrame>;
 
     /// Marks the given starting address of a frame as free.
-    fn free_frame(&mut self, addr: VirtAddr);
+    fn free_frame(&mut self, addr: PageFrame);
 }
 
 /// The main frame allocator struct which manages the frames.
 #[derive(Debug)]
-pub struct FrameAllocator {
-    /// this saves the sizes of the pages
-    page_size: PageSize,
+pub struct FrameAllocator<P: PageSize> {
     /// this stores the datastructure how the frames are stored.
-    frame_manager: Stack,
+    frame_manager: Stack<P>,
 }
 
-impl FrameManager for FrameAllocator {
+impl<P: PageSize> FrameManager for FrameAllocator<P> {
     /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> Option<Frame> {
+    fn get_free_frame(&mut self) -> Option<PageFrame> {
         self.frame_manager.get_free_frame()
     }
 
-    fn free_frame(&mut self, frame_addr: VirtAddr) {
-        self.frame_manager.free_frame(frame_addr);
+    fn free_frame(&mut self, frame: PageFrame) {
+        self.frame_manager.free_frame(frame);
     }
 }
 
 fn setup_frame_allocator(phys_mmap: &PhysMemMap) {
     let page_size = PageSize::Page4KB;
 
-    FRAME_ALLOCATOR.call_once(|| FrameAllocator {
-        page_size,
+    FRAME_ALLOCATOR.call_once(|| RwLock::new(FrameAllocator {
         frame_manager: Stack::new(phys_mmap, page_size),
-    });
+    }));
 }

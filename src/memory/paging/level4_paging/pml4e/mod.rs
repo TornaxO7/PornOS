@@ -1,36 +1,31 @@
-use x86_64::PhysAddr;
-
-use self::flags::PML4EFlags;
-
+mod entry;
+mod flags;
 #[cfg(feature = "test")]
 mod test;
+
 #[cfg(feature = "test")]
 pub use test::tests;
 
-mod flags;
+use x86_64::PhysAddr;
+pub use self::flags::PML4EFlags;
+pub use self::entry::PML4EEntry;
+
+const AMOUNT_ENTRIES: usize = 512;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[repr(transparent)]
-pub struct PML4E(u64);
-
-impl PML4E {
-    pub fn new(flags: PML4EFlags) -> Self {
-        Self(flags.bits())
-    }
-
-    pub fn set_pdpt_phys_addr(mut self, addr: PhysAddr) -> Self {
-        let value = {
-            let value = addr.as_u64() & ((1 << 39) - 1);
-            value << 12
-        };
-
-        self.0 |= value;
-        self
-    }
+pub struct PML4E {
+    start: PhysAddr,
+    entries: [PML4EEntry; AMOUNT_ENTRIES],
 }
 
 impl PML4E {
-    pub fn as_u64(&self) -> u64 {
-        self.0
+    pub fn new(start: PhysAddr) -> Self {
+        Self {
+            start,
+            entries: [PML4EEntry::default(); AMOUNT_ENTRIES],
+        }
+    }
+
+    pub fn write(&self) {
     }
 }
