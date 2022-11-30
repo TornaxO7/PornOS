@@ -1,7 +1,8 @@
 mod phys_linear_addr;
 mod test;
+mod iterators;
 
-use core::marker::PhantomData;
+use core::{marker::PhantomData, array::IntoIter};
 
 use limine::{
     LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
@@ -40,7 +41,7 @@ impl<P: PageSize> PhysMemMap<P> {
     /// Returns the amount of available page frames according to the given page-frame-size.
     pub fn get_amount_page_frames(&self) -> u64 {
         let mut page_frame_counter = 0;
-        for mmap in self.get_useable_mem_chunks() {
+        for mmap in self.into_iter_useable() {
             page_frame_counter += mmap.len / P::SIZE;
         }
 
@@ -67,51 +68,11 @@ impl<P: PageSize> PhysMemMap<P> {
         unreachable!("Eh... so... the kernel doesn't seem to be in the memory :sus:");
     }
 
-    /// # Returns
-    /// Returns an iterator through all useable memory chunks.
-    pub fn get_useable_mem_chunks(&self) -> UseableMemChunkIterator<P> {
-        UseableMemChunkIterator::new(self.entry_count)
-    }
-
     fn get_mmaps() -> &'static [NonNullPtr<LimineMemmapEntry>] {
         Self::get_memmap_response().memmap()
     }
 
     fn get_memmap_response() -> &'static LimineMemmapResponse {
         MEMMAP_REQUEST.get_response().get().unwrap()
-    }
-}
-
-pub struct UseableMemChunkIterator<P: PageSize> {
-    entry_count: u64,
-    index: u64,
-    size: PhantomData<P>,
-}
-
-impl<P: PageSize> UseableMemChunkIterator<P> {
-    pub fn new(entry_count: u64) -> Self {
-        Self {
-            entry_count,
-            index: 0,
-            size: PhantomData,
-        }
-    }
-}
-
-impl<P: PageSize> Iterator for UseableMemChunkIterator<P> {
-    type Item = &'static NonNullPtr<LimineMemmapEntry>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let mmaps = PhysMemMap::<P>::get_mmaps();
-        while self.index < self.entry_count {
-            let mmap = &mmaps[self.index as usize];
-            self.index += 1;
-
-            if mmap.typ == LimineMemoryMapEntryType::Usable {
-                return Some(mmap);
-            }
-        }
-
-        None
     }
 }

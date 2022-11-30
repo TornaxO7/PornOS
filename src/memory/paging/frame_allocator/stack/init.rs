@@ -34,7 +34,7 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
     /// Fills the stack with pointers to the page frames.
     fn add_entries(&self, phys_mmap: &PhysMemMap<P>) {
         let mut entry_addr = self.start.as_u64();
-        for mmap in phys_mmap.get_useable_mem_chunks() {
+        for mmap in phys_mmap.into_iter_useable() {
             for readed_bytes in (0..mmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let frame_addr = mmap.base + readed_bytes;
                 let ptr = entry_addr as *mut u64;
@@ -104,7 +104,7 @@ fn get_start_addr<P: PageSize>(phys_mmap: &PhysMemMap<P>) -> PhysAddr {
     let amount_page_frames = phys_mmap.get_amount_page_frames();
     let needed_free_space = POINTER_SIZE * amount_page_frames;
 
-    for mmap in phys_mmap.get_useable_mem_chunks() {
+    for mmap in phys_mmap.into_iter_useable() {
         let has_enough_space = mmap.len >= needed_free_space.as_u64();
         if has_enough_space {
             return PhysAddr::new(mmap.base);

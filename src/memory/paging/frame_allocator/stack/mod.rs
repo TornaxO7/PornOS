@@ -101,7 +101,7 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
     /// # Return
     /// - `Some<u64>`: The value at the given index.
     /// - `None`: If the given index exceeds the current length of the stack.
-    pub fn get_entry(&self, index: StackIndex) -> Option<PhysAddr> {
+    fn get_entry(&self, index: StackIndex) -> Option<PhysAddr> {
         if index < self.len {
             if let Some(entry_addr) = self.get_entry_addr(index) {
                 let entry_addr = entry_addr.as_u64() as *const u64;
@@ -117,7 +117,7 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
     /// # Returns
     /// - `Some<PhysAddr>`: If the index is valid (<= self.len).
     /// - `None`: If the index is greater than the amount of valid entries.
-    pub fn get_entry_addr(&self, index: u64) -> Option<PhysAddr> {
+    fn get_entry_addr(&self, index: u64) -> Option<PhysAddr> {
         if index <= self.len {
             let phys_addr = PhysAddr::new(self.start.as_u64() + (POINTER_SIZE * index).as_u64());
             Some(phys_addr)
