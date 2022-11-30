@@ -1,7 +1,7 @@
 //! Includes the different paging implementation.
 mod frame_allocator;
 mod heap;
-pub mod level4_paging;
+// pub mod level4_paging;
 mod page_frame;
 mod physical_mmap;
 
@@ -13,23 +13,23 @@ use x86_64::{
     VirtAddr,
 };
 
+use self::frame_allocator::{FRAME_ALLOCATOR, Stack};
+
 static KERNEL_ADDR_REQUEST: LimineKernelAddressRequest = LimineKernelAddressRequest::new(0);
 static PML4E: Once<RwLock<Page<Size4KiB>>> = Once::new();
 
 pub fn init() {
-    let phys_mmap = PhysMemMap::new();
+    let phys_mmap = PhysMemMap::<Size4KiB>::new();
+    FRAME_ALLOCATOR.call_once(|| RwLock::new(Stack::new(&phys_mmap)));
 
-    frame_allocator::init(&phys_mmap);
-
-    let mut p_configurator = KPagingConfigurator::new::<Size4KiB>(&phys_mmap);
+    let mut p_configurator = KPagingConfigurator::<Size4KiB>::new(&phys_mmap);
     p_configurator.map_kernel();
 }
 
 #[cfg(feature = "test")]
 pub fn tests() {
-    let phys_mmap = PhysMemMap::new();
+    let phys_mmap: PhysMemMap<Size4KiB> = PhysMemMap::new();
     frame_allocator::tests(&phys_mmap);
-    level4_paging::tests();
 }
 
 /// The paging configurator which sets up the different paging levels.
@@ -61,7 +61,6 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     }
 
     fn setup_pml4e(&self) {
-
         PML4E.call_once(|| RwLock::new(todo!()));
     }
 }

@@ -1,6 +1,8 @@
 mod phys_linear_addr;
 mod test;
 
+use core::marker::PhantomData;
+
 use limine::{
     LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
     NonNullPtr,
@@ -24,38 +26,15 @@ static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct PhysMemMap<P: PageSize> {
     pub entry_count: u64,
+    size: PhantomData<P>,
 }
 
 impl<P: PageSize> PhysMemMap<P> {
     pub fn new() -> Self {
         Self {
             entry_count: Self::get_memmap_response().entry_count,
+            size: PhantomData,
         }
-    }
-
-    /// Tries to find an address which guarantees to have the given size.
-    pub fn get_frame(&self, start: PhysAddr, size: Bytes) -> Option<PhysAddr> {
-        let start = start.align_up(P::SIZE);
-
-        let mmaps = Self::get_mmaps();
-        for index in 0..self.entry_count {
-            let mmap = &mmaps[index as usize];
-
-            if start.as_u64() <= mmap.base {
-                let has_enough_space = {
-                    let skipped_bytes = mmap.base.saturating_sub(start.as_u64());
-                    let useable_mem = mmap.len.saturating_sub(skipped_bytes);
-
-                    useable_mem >= size.as_u64()
-                };
-
-                if mmap.typ == LimineMemoryMapEntryType::Usable && has_enough_space {
-                    return Some(PhysAddr::new(mmap.base));
-                }
-            }
-        }
-
-        None
     }
 
     /// Returns the amount of available page frames according to the given page-frame-size.
@@ -93,11 +72,51 @@ impl<P: PageSize> PhysMemMap<P> {
         unreachable!("Eh... so... the kernel doesn't seem to be in the memory :sus:");
     }
 
+    /// # Returns
+    /// Returns an iterator through all useable memory chunks.
+    pub fn get_useable_mem_chunks(&self) -> UseableMemChunkIterator<P> {
+        UseableMemChunkIterator::new(self.entry_count)
+    }
+
     fn get_mmaps() -> &'static [NonNullPtr<LimineMemmapEntry>] {
         Self::get_memmap_response().memmap()
     }
 
     fn get_memmap_response() -> &'static LimineMemmapResponse {
         MEMMAP_REQUEST.get_response().get().unwrap()
+    }
+}
+
+pub struct UseableMemChunkIterator<P: PageSize> {
+    entry_count: u64,
+    index: u64,
+    size: PhantomData<P>,
+}
+
+impl<P: PageSize> UseableMemChunkIterator<P> {
+    pub fn new(entry_count: u64) -> Self {
+        Self {
+            entry_count,
+            index: 0,
+            size: PhantomData,
+        }
+    }
+}
+
+impl<P: PageSize> Iterator for UseableMemChunkIterator<P> {
+    type Item = &'static NonNullPtr<LimineMemmapEntry>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mmaps = PhysMemMap::<P>::get_mmaps();
+        while self.index < self.entry_count {
+            let mmap = &mmaps[self.index as usize];
+            if mmap.typ == LimineMemoryMapEntryType::Usable {
+                return Some(mmap);
+            }
+
+            self.index += 1;
+        }
+
+        None
     }
 }

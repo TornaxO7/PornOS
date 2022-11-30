@@ -11,57 +11,47 @@ mod stack;
 
 mod phys_frame_index;
 
+use core::fmt::Debug;
+
 pub use phys_frame_index::PhysFrameIndex;
 
 use spin::{Once, RwLock};
-use x86_64::{VirtAddr, PhysAddr, structures::paging::{PageSize, Size4KiB}};
+use x86_64::structures::paging::{PageSize, PhysFrame, Size4KiB};
 
-use self::stack::Stack;
-use super::{PhysMemMap, page_frame::PageFrame};
+pub use self::stack::Stack;
+use super::PhysMemMap;
 
-pub static FRAME_ALLOCATOR: Once<RwLock<FrameAllocator<Size4KiB>>> = Once::new();
-
-/// Sets up the frame allocator
-pub fn init(phys_mmap: &PhysMemMap) {
-    setup_frame_allocator(phys_mmap);
-}
+// pub static FRAME_ALLOCATOR: Once<RwLock<FrameAllocator<Size4KiB>>> = Once::new();
+pub static FRAME_ALLOCATOR: Once<RwLock<Stack<Size4KiB>>> = Once::new();
 
 #[cfg(feature = "test")]
-pub fn tests(phys_mmap: &PhysMemMap) {
+pub fn tests<P: PageSize + Send + Sync + Debug>(phys_mmap: &PhysMemMap<P>) {
     stack::tests(phys_mmap);
 }
 
 /// Each frame manager needs to implement those functions.
-pub trait FrameManager: Send + Sync + core::fmt::Debug {
+pub trait FrameManager<P: PageSize>: Send + Sync + Debug {
     /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> Option<PageFrame>;
+    fn get_free_frame(&mut self) -> Option<PhysFrame<P>>;
 
     /// Marks the given starting address of a frame as free.
-    fn free_frame(&mut self, addr: PageFrame);
+    fn free_frame(&mut self, frame: PhysFrame<P>);
 }
 
 /// The main frame allocator struct which manages the frames.
 #[derive(Debug)]
-pub struct FrameAllocator<P: PageSize> {
+pub struct FrameAllocator<P: PageSize + Send + Sync + Debug> {
     /// this stores the datastructure how the frames are stored.
     frame_manager: Stack<P>,
 }
 
-impl<P: PageSize> FrameManager for FrameAllocator<P> {
+impl<P: PageSize + Send + Sync + Debug> FrameManager<P> for FrameAllocator<P> {
     /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> Option<PageFrame> {
+    fn get_free_frame(&mut self) -> Option<PhysFrame<P>> {
         self.frame_manager.get_free_frame()
     }
 
-    fn free_frame(&mut self, frame: PageFrame) {
+    fn free_frame(&mut self, frame: PhysFrame<P>) {
         self.frame_manager.free_frame(frame);
     }
-}
-
-fn setup_frame_allocator(phys_mmap: &PhysMemMap) {
-    let page_size = PageSize::Page4KB;
-
-    FRAME_ALLOCATOR.call_once(|| RwLock::new(FrameAllocator {
-        frame_manager: Stack::new(phys_mmap, page_size),
-    }));
 }

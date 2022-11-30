@@ -9,14 +9,22 @@
 //! So if you need a new frame is the equal operation of a pop from the stack
 //! and register a freed frame is basically a push.
 mod init;
+
 #[cfg(feature = "test")]
 mod test;
+use core::{fmt::Debug, marker::PhantomData};
+
 #[cfg(feature = "test")]
 pub use test::tests;
 
-use x86_64::{PhysAddr, structures::paging::PageSize};
+type StackIndex = u64;
 
-use crate::memory::{paging::page_frame::PageFrame, types::Bytes};
+use x86_64::{
+    structures::paging::{PageSize, PhysFrame},
+    PhysAddr,
+};
+
+use crate::memory::types::Bytes;
 
 use super::FrameManager;
 
@@ -24,35 +32,34 @@ use super::FrameManager;
 const POINTER_SIZE: Bytes = Bytes::new(8);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Stack<P: PageSize> {
+pub struct Stack<P: PageSize + Send + Sync + Debug> {
     start: PhysAddr,
     len: u64,
     capacity: u64,
+    psize: PhantomData<P>,
 }
 
-impl<P: PageSize> Default for Stack<P> {
+impl<P: PageSize + Send + Sync + Debug> Default for Stack<P> {
     fn default() -> Self {
         Self {
             start: PhysAddr::zero(),
             len: 0,
             capacity: 0,
+            psize: PhantomData,
         }
     }
 }
 
-impl<P: PageSize> Stack<P> {
+impl<P: PageSize + Send + Sync + Debug> Stack<P> {
     /// # Returns
     /// - `Some<FrameIndex>`: The frame index of the frame which isn't used yet.
     /// - `None`: If there are no free frames anymore.
     #[must_use]
-    pub fn pop(&mut self) -> Option<PageFrame> {
+    pub fn pop(&mut self) -> Option<PhysAddr> {
         if let Some(value_index) = self.len.checked_sub(1) {
-            let value = PhysAddr::new(self.get_entry(value_index).unwrap());
+            let value = self.get_entry(value_index).unwrap();
             self.len -= 1;
-            Some(PageFrame {
-                start: value,
-                size: self.page_size,
-            })
+            Some(value)
         } else {
             None
         }
@@ -68,7 +75,7 @@ impl<P: PageSize> Stack<P> {
     /// You have to make sure that the given frame index ***is*** free! Otherwise Undefined
     /// Behaviour will be your OS.
     #[must_use]
-    pub fn push(&mut self, page_frame: PageFrame) -> bool {
+    pub fn push(&mut self, entry_value: PhysAddr) -> bool {
         let exceeds_capacity = self.len >= self.capacity;
         if exceeds_capacity {
             return false;
@@ -80,7 +87,7 @@ impl<P: PageSize> Stack<P> {
         };
 
         unsafe {
-            *new_entry_ptr = page_frame.start.as_u64();
+            *new_entry_ptr = entry_value.as_u64();
         }
 
         // SAFETY: Check if self.len exceeds self.capacity already done before
@@ -94,11 +101,11 @@ impl<P: PageSize> Stack<P> {
     /// # Return
     /// - `Some<u64>`: The value at the given index.
     /// - `None`: If the given index exceeds the current length of the stack.
-    pub fn get_entry(&self, index: u64) -> Option<u64> {
+    pub fn get_entry(&self, index: StackIndex) -> Option<PhysAddr> {
         if index < self.len {
             if let Some(entry_addr) = self.get_entry_addr(index) {
                 let entry_addr = entry_addr.as_u64() as *const u64;
-                return Some(unsafe { *entry_addr });
+                return Some(PhysAddr::new(unsafe { *entry_addr }));
             }
         }
         None
@@ -120,12 +127,13 @@ impl<P: PageSize> Stack<P> {
     }
 }
 
-impl FrameManager for Stack {
-    fn get_free_frame(&mut self) -> Option<PageFrame> {
+impl<P: PageSize + Send + Sync + Debug> FrameManager<P> for Stack<P> {
+    fn get_free_frame(&mut self) -> Option<PhysFrame<P>> {
         self.pop()
+            .map(|phys_addr| PhysFrame::from_start_address(phys_addr).unwrap())
     }
 
-    fn free_frame(&mut self, frame: PageFrame) {
-        assert!(self.push(frame));
+    fn free_frame(&mut self, frame: PhysFrame<P>) {
+        assert!(self.push(frame.start_address()));
     }
 }

@@ -2,7 +2,7 @@
 use limine::LimineHhdmRequest;
 use x86_64::VirtAddr;
 
-use crate::{print, println};
+use crate::println;
 
 pub mod paging;
 pub mod types;
