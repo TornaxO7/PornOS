@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
-use pornos::println;
+use pornos::{println, hlt_loop};
 
 /// Kernel Entry Point
 ///
@@ -12,9 +12,9 @@ use pornos::println;
 #[cfg(not(feature = "test"))]
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
-    pornos::init();
-
-    hlt_loop();
+    pornos::gdt::init();
+    pornos::interrupt::init();
+    pornos::memory::init();
 }
 
 #[cfg(feature = "test")]
@@ -24,8 +24,7 @@ pub extern "C" fn pornos_entry() -> ! {
     pornos::tests();
 
     println!("=== TESTS DONE ===");
-
-    hlt_loop();
+    hlt_loop()
 }
 
 #[panic_handler]
@@ -33,10 +32,4 @@ fn rust_panic(info: &core::panic::PanicInfo) -> ! {
     println!("==== KERNEL PANIC ====");
     println!("{}", info);
     hlt_loop();
-}
-
-pub fn hlt_loop() -> ! {
-    loop {
-        x86_64::instructions::hlt();
-    }
 }

@@ -28,7 +28,7 @@ lazy_static! {
 const STACK_INIT_PAGES: u64 = 16;
 pub const STACK_START: Once<VirtAddr> = Once::new();
 
-pub fn init() {
+pub fn init() -> ! {
     let phys_mmap = PhysMemMap::<Size4KiB>::new();
     FRAME_ALLOCATOR.call_once(|| RwLock::new(Stack::new(&phys_mmap)));
 
@@ -36,6 +36,8 @@ pub fn init() {
     p_configurator.map_kernel();
     p_configurator.map_heap();
     p_configurator.map_stack();
+
+    crate::init();
 }
 
 #[cfg(feature = "test")]

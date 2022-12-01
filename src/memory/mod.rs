@@ -19,7 +19,7 @@ lazy_static::lazy_static! {
 }
 
 /// Setting up the memory stuff.
-pub fn init() {
+pub fn init() -> ! {
     println!("Init Memory ...");
     paging::init();
 }
