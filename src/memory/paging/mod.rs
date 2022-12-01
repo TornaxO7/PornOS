@@ -6,7 +6,7 @@ use core::marker::PhantomData;
 
 use lazy_static::lazy_static;
 pub use physical_mmap::{PhysLinearAddr, PhysMemMap};
-use spin::RwLock;
+use spin::{RwLock, Once};
 use x86_64::{
     structures::paging::{
         page_table::{PageTableEntry, PageTableLevel},
@@ -23,13 +23,19 @@ lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
 }
 
+/// The amount of pages which should be used in the beginning for the stack.
+/// == 64KiB
+const STACK_INIT_PAGES: u64 = 16;
+pub const STACK_START: Once<VirtAddr> = Once::new();
+
 pub fn init() {
     let phys_mmap = PhysMemMap::<Size4KiB>::new();
     FRAME_ALLOCATOR.call_once(|| RwLock::new(Stack::new(&phys_mmap)));
 
-    let mut p_configurator = KPagingConfigurator::<Size4KiB>::new(&phys_mmap);
+    let p_configurator = KPagingConfigurator::<Size4KiB>::new(&phys_mmap);
     p_configurator.map_kernel();
     p_configurator.map_heap();
+    p_configurator.map_stack();
 }
 
 #[cfg(feature = "test")]
@@ -61,7 +67,7 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
 
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
-    pub fn map_kernel(&mut self) {
+    pub fn map_kernel(&self) {
         let mut kernel_iter = self.phys_mmap.into_iter_mem_chunk();
         while let Some(mmap) = kernel_iter.next() {
             for offset in (0..mmap.len).step_by(P::SIZE.try_into().unwrap()) {
@@ -74,11 +80,30 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     }
 
     /// Maps a heap for the kernel.
-    pub fn map_heap(&mut self) {
+    pub fn map_heap(&self) {
         let heap_page = Page::from_start_address(*HHDM).unwrap();
         let heap_page_frame = PhysFrame::from_start_address(Self::get_free_phys_frame()).unwrap();
 
         self.map_page(heap_page, heap_page_frame);
+    }
+
+    /// Creates a new stack mapping for the kernel.
+    pub fn map_stack(&self) {
+        // "- P::SIZE" to let the stack start in the allocated frame
+        STACK_START.call_once(|| VirtAddr::new_truncate(u64::MAX));
+        let mut addr = STACK_START.get().unwrap().clone();
+
+        for _page_num in 0..STACK_INIT_PAGES {
+            let phys_frame = {
+                let phys_addr = Self::get_free_phys_frame();
+                PhysFrame::from_start_address(phys_addr).unwrap()
+            };
+
+            let virt_frame = Page::from_start_address(addr).unwrap();
+            self.map_page(virt_frame, phys_frame);
+
+            addr -= P::SIZE;
+        }
     }
 }
 
