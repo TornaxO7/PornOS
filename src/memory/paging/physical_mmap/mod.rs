@@ -48,26 +48,6 @@ impl<P: PageSize> PhysMemMap<P> {
         page_frame_counter
     }
 
-    /// Returns the frame where the kernel (and its modules) starts to reside.
-    ///
-    /// # Return
-    /// - `PhysAddr`: The starting address
-    /// - `Bytes`: The size of the kernel.
-    pub fn get_kernel_frame(&self) -> (PhysAddr, Bytes) {
-        let mmaps = Self::get_mmaps();
-        for index in 0..self.entry_count {
-            let mmap = &mmaps[index as usize];
-
-            if mmap.typ == LimineMemoryMapEntryType::KernelAndModules {
-                let start = PhysAddr::new(mmap.base);
-                let size = Bytes::new(mmap.len);
-                return (start, size);
-            }
-        }
-
-        unreachable!("Eh... so... the kernel doesn't seem to be in the memory :sus:");
-    }
-
     fn get_mmaps() -> &'static [NonNullPtr<LimineMemmapEntry>] {
         Self::get_memmap_response().memmap()
     }
