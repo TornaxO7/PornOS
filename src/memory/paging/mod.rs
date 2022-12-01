@@ -59,7 +59,7 @@ pub struct KPagingConfigurator<'a, P: PageSize> {
 
 impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     pub fn new(phys_mmap: &'a PhysMemMap<P>) -> Self {
-        let pml4e_addr = *HHDM + Self::get_free_virt_frame().as_u64();
+        let pml4e_addr = Self::get_free_virt_frame();
         Self {
             size: PhantomData,
             phys_mmap,

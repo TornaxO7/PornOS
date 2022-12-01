@@ -10,7 +10,7 @@
 
 pub mod util;
 pub mod gdt;
-mod interrupt;
+pub mod interrupt;
 pub mod io;
 pub mod memory;
 
