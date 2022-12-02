@@ -23,12 +23,8 @@ impl<P: PageSize> Iterator for KernelAndModulesIterator<P> {
     type Item = &'static NonNullPtr<LimineMemmapEntry>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(mmap) = self.0.next() {
-            if mmap.typ == LimineMemoryMapEntryType::KernelAndModules {
-                return Some(mmap);
-            }
-        }
-
-        None
+        self.0
+            .by_ref()
+            .find(|&mmap| mmap.typ == LimineMemoryMapEntryType::KernelAndModules)
     }
 }

@@ -17,6 +17,7 @@ Cargo.lock
 # Custom stuff
 isodir/pornos
 pornos.iso
+.gdb_history
 
 
 # Added by cargo

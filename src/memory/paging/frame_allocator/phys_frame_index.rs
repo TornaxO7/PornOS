@@ -8,10 +8,6 @@ const AMOUNT_BYTES: usize = 8;
 #[repr(C)]
 pub struct PhysFrameIndex(pub u64);
 
-impl PhysFrameIndex {
-    pub const SIZE: Bytes = Bytes::new(core::mem::size_of::<Self>() as u64);
-}
-
 impl IntoIterator for PhysFrameIndex {
     type Item = Byte;
 

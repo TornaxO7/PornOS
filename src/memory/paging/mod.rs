@@ -2,7 +2,7 @@
 mod frame_allocator;
 mod physical_mmap;
 
-use core::marker::PhantomData;
+use core::{arch::asm, marker::PhantomData};
 
 use lazy_static::lazy_static;
 pub use physical_mmap::{PhysLinearAddr, PhysMemMap};
@@ -17,7 +17,7 @@ use x86_64::{
 
 use self::frame_allocator::{FrameManager, Stack, FRAME_ALLOCATOR};
 
-use crate::{memory::HHDM, println};
+use crate::memory::HHDM;
 
 lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
@@ -36,6 +36,7 @@ pub fn init() -> ! {
     p_configurator.map_kernel();
     p_configurator.map_heap();
     p_configurator.map_stack();
+    p_configurator.switch_cr3();
 
     crate::init();
 }
@@ -55,23 +56,26 @@ pub struct KPagingConfigurator<'a, P: PageSize> {
     size: PhantomData<P>,
     phys_mmap: &'a PhysMemMap<P>,
     p4_ptr: *mut PageTable,
+    p4_phys_addr: PhysAddr,
 }
 
 impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     pub fn new(phys_mmap: &'a PhysMemMap<P>) -> Self {
-        let pml4e_addr = Self::get_free_virt_frame();
+        let pml4e_addr = Self::get_free_phys_frame();
+        let pml4e_virt_addr = *HHDM + pml4e_addr.as_u64();
         Self {
             size: PhantomData,
             phys_mmap,
-            p4_ptr: pml4e_addr.as_mut_ptr() as *mut PageTable,
+            p4_phys_addr: pml4e_addr,
+            p4_ptr: pml4e_virt_addr.as_mut_ptr() as *mut PageTable,
         }
     }
 
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-        let mut kernel_iter = self.phys_mmap.into_iter_kernel_and_modules();
-        while let Some(mmap) = kernel_iter.next() {
+        let kernel_iter = self.phys_mmap.into_iter_kernel_and_modules();
+        for mmap in kernel_iter {
             for offset in (0..mmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let page_frame = {
                     let page_frame_phys_addr = PhysAddr::new(mmap.base + offset);
@@ -99,7 +103,7 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     pub fn map_stack(&self) {
         // "- P::SIZE" to let the stack start in the allocated frame
         STACK_START.call_once(|| VirtAddr::new_truncate(u64::MAX).align_down(P::SIZE));
-        let mut addr = STACK_START.get().unwrap().clone();
+        let mut addr = *STACK_START.get().unwrap();
 
         for _page_num in 0..STACK_INIT_PAGES {
             let page_frame = {
@@ -115,9 +119,24 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     }
 }
 
+impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
+    pub fn switch_cr3(&self) {
+        let p4_phys_addr = self.p4_phys_addr.as_u64() & !(0xFFF);
+        unsafe {
+            asm! {
+                "xor r8, r8",
+                "mov r8, {0}",
+                "mov cr3, r8",
+                in(reg) p4_phys_addr,
+                inout("r8") 0 => _,
+            }
+        }
+    }
+}
+
 impl<'a, P: PageSize + 'a> KPagingConfigurator<'a, P> {
-    /// Maps the given virtual page to the given physical page-frame if it's set. If it's `None` the
-    /// virtual page will be mapped with any physical frame.
+    /// Maps the given virtual page to the given physical page-frame if it's set.
+    /// If `page_frame` is `None` a new page frame will be mapped to the given page.
     pub fn map_page(&self, page: Page, page_frame: Option<PhysFrame>) {
         let page_table_entry_flags =
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE;
@@ -161,7 +180,7 @@ impl<'a, P: PageSize + 'a> KPagingConfigurator<'a, P> {
             page_entry
         };
 
-        unsafe {table_entry_ptr.write(new_page_entry)}
+        unsafe { table_entry_ptr.write(new_page_entry) }
     }
 
     /// Returns the physical address of a free page frame.
@@ -173,11 +192,5 @@ impl<'a, P: PageSize + 'a> KPagingConfigurator<'a, P> {
             .get_free_frame()
             .unwrap();
         new_frame.start_address()
-    }
-
-    /// Returns the virtual address of a free page frame.
-    fn get_free_virt_frame() -> VirtAddr {
-        let phys_frame = Self::get_free_phys_frame();
-        *HHDM + phys_frame.as_u64()
     }
 }

@@ -1,5 +1,5 @@
 use crate::memory::paging::PhysMemMap;
-use limine::{NonNullPtr, LimineMemmapEntry, LimineMemoryMapEntryType};
+use limine::{LimineMemmapEntry, LimineMemoryMapEntryType, NonNullPtr};
 
 use x86_64::structures::paging::PageSize;
 
@@ -27,12 +27,8 @@ impl<P: PageSize> Iterator for UseableMemChunkIterator<P> {
     type Item = &'static NonNullPtr<LimineMemmapEntry>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(mmap) = self.0.next() {
-            if mmap.typ == LimineMemoryMapEntryType::Usable {
-                return Some(mmap);
-            }
-        }
-
-        None
+        self.0
+            .by_ref()
+            .find(|&mmap| mmap.typ == LimineMemoryMapEntryType::Usable)
     }
 }

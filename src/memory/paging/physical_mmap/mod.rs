@@ -2,21 +2,15 @@ mod phys_linear_addr;
 mod test;
 mod iterators;
 
-use core::{marker::PhantomData, array::IntoIter};
+use core::marker::PhantomData;
 
 use limine::{
-    LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, LimineMemoryMapEntryType,
+    LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse,
     NonNullPtr,
 };
-use x86_64::{PhysAddr, structures::paging::PageSize};
-
-use crate::memory::types::Bytes;
+use x86_64::structures::paging::PageSize;
 
 pub use phys_linear_addr::PhysLinearAddr;
-
-/// A little helper type to show that the given value can be used as an index to get the appropriate
-/// memory chunk.
-pub type MemChunkIndex = usize;
 
 static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 
