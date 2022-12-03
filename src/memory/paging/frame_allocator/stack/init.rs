@@ -1,3 +1,6 @@
+use core::ops::Range;
+
+use crate::memory::HHDM;
 use crate::memory::paging::frame_allocator::stack::POINTER_SIZE;
 use crate::memory::paging::physical_mmap::{self, UseableMemChunkIterator};
 use crate::print;
@@ -19,7 +22,6 @@ impl Stack {
             start: stack_start,
             len: capacity,
             capacity,
-            ..Self::default()
         };
 
         stack.add_entries();
@@ -33,8 +35,8 @@ impl Stack {
     fn add_entries(&self) {
         let mut entry_addr = self.start.as_u64();
         for mmap in UseableMemChunkIterator::new() {
-            for readed_bytes in (0..mmap.len).step_by(Self::PAGE_SIZE) {
-                let frame_addr = mmap.base + readed_bytes;
+            for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE) {
+                let frame_addr = mmap.base + frame_offset;
                 let ptr = entry_addr as *mut u64;
                 unsafe {
                     *ptr = frame_addr;
@@ -49,32 +51,46 @@ impl Stack {
     ///
     /// This makes it possible to get the physical addresses of the stack-frames without the
     /// conflict of popping or pushing.
-    ///
-    /// BUG (Maybe?): Could happen that we are storing the stack in the last frames => swapping not
-    /// needed
     fn swap_stack_frames(&mut self) {
-        if let Some(stack_frame_index) = self.get_stack_frame_index() {
-            let used_frames = (self.capacity * *POINTER_SIZE).div_ceil(Size4KiB::SIZE);
-            for index in stack_frame_index..stack_frame_index + used_frames {
-                let used_frame_addr: *mut u64 = {
-                    let addr = self.start.as_u64() + (POINTER_SIZE * index).as_u64();
-                    addr as *mut u64
-                };
+        let stack_range = self.get_stack_range().unwrap();
+        let offset = self.len - stack_range.end;
 
-                let free_frame_addr: *mut u64 = {
-                    let addr =
-                        self.start.as_u64() + (POINTER_SIZE * (index + used_frames)).as_u64();
-                    addr as *mut u64
-                };
+        let mut stack_entry_virt_addr = {
+            let entry_phys_addr = self.start + (*POINTER_SIZE) * stack_range.start;
+            *HHDM + entry_phys_addr.as_u64()
+        };
+        let mut entry_switch_virt_addr = {
+            let entry_phys_addr = self.start + (*POINTER_SIZE) * stack_range.end;
+            *HHDM + entry_phys_addr.as_u64()
+        };
 
-                unsafe {
-                    core::ptr::swap(used_frame_addr, free_frame_addr);
-                }
+        for _ in 0..offset {
+            let stack_entry_ptr = stack_entry_virt_addr.as_mut_ptr() as * mut u64;
+            let entry_switch_ptr = entry_switch_virt_addr.as_mut_ptr() as * mut u64;
+            unsafe {
+                core::ptr::swap(stack_entry_ptr, entry_switch_ptr);
             }
 
-            self.capacity = physical_mmap::get_amount_page_frames::<Size4KiB>() - used_frames;
-            self.len = self.capacity;
+            stack_entry_virt_addr += *POINTER_SIZE;
+            entry_switch_virt_addr += *POINTER_SIZE;
         }
+
+        self.len -= offset;
+        self.capacity = self.len;
+    }
+
+    /// Returns a range where:
+    ///     - `start` is the starting index inside the stack which points to the page-frame where
+    ///     the stack resides
+    ///     - `end` (exclusive) is the ending index inside the stack which points to the page-frame
+    ///     which is *behind* the last page-frame where the stack resides.
+    fn get_stack_range(&self) -> Option<Range<StackIndex>> {
+        if let Some(start) = self.get_stack_start_index() {
+            if let Some(end) = self.get_stack_end_index() {
+                return Some(Range { start, end });
+            }
+        }
+        None
     }
 
     /// Returns the stack index which holds the frame where the stack starts.
@@ -82,17 +98,27 @@ impl Stack {
     /// # Return
     /// - `Some<StackIndex>`: If the given frame could be found.
     /// - `None`: If the frame isn't in the stack anymore.
-    fn get_stack_frame_index(&self) -> Option<StackIndex> {
+    fn get_stack_start_index(&self) -> Option<StackIndex> {
         for stack_index in 0..self.len {
-            let frame_addr = self.get_entry(stack_index).unwrap();
-            if frame_addr == self.start {
+            let page_frame = self.get_entry_value(stack_index).unwrap();
+            if page_frame == self.start {
                 return Some(stack_index);
             }
         }
         None
     }
+
+    /// Return the stack index of the last page-frame which includes the data of the stack.
+    fn get_stack_end_index(&self) -> Option<StackIndex> {
+        let amount_used_page_frames = (self.capacity * (*POINTER_SIZE)).div_ceil(Size4KiB::SIZE);
+        self.get_stack_start_index()
+            .map(|start_index| start_index + amount_used_page_frames)
+    }
 }
 
+// Returns the physical address where the stack can start to store itself. It's guaranteed that the
+// given start-address has enough space for the stack.
+//
 // FUTURE: It could happen, that we'll get the last frame because the other frames might
 // be too small....
 fn get_start_addr() -> PhysAddr {

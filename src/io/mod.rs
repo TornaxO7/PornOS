@@ -1,3 +1,5 @@
+pub mod logger;
+
 use core::fmt;
 use limine::LimineTerminalRequest;
 use spin::Mutex;

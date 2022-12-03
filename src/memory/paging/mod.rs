@@ -17,7 +17,7 @@ use x86_64::{
 
 use self::{frame_allocator::FRAME_ALLOCATOR, physical_mmap::KernelAndModulesIterator, utils::table_wrapper::TableWrapper};
 
-use crate::memory::HHDM;
+use crate::{memory::HHDM, println, dbg};
 
 lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
@@ -63,17 +63,28 @@ impl<P: PageSize> KPagingConfigurator<P> {
             .unwrap()
             .start_address();
         let pml4e_virt_addr = *HHDM + pml4e_addr.as_u64();
+        let ptr = pml4e_virt_addr.as_mut_ptr() as * mut PageTable;
+
+        {
+            let mut wrapper = TableWrapper::new(ptr);
+            let entry = {
+                let mut entry = PageTableEntry::new();
+                entry.set_addr(PhysAddr::new(0xDEADC0DE).align_down(4096u64), PageTableFlags::WRITABLE);
+                    entry
+            };
+            wrapper.set_entry(PageTableIndex::new(0), entry);
+        }
+
         Self {
             size: PhantomData,
             p4_phys_addr: pml4e_addr,
-            p4_ptr: pml4e_virt_addr.as_mut_ptr() as *mut PageTable,
+            p4_ptr: ptr,
         }
     }
 
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-
         {
             let mut wrapper = TableWrapper::new(self.p4_ptr);
             let entry = {

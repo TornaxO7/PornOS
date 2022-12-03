@@ -9,6 +9,7 @@
 //! So if you need a new frame is the equal operation of a pop from the stack
 //! and register a freed frame is basically a push.
 mod init;
+mod iterator;
 mod page_frame_allocator;
 
 #[cfg(feature = "test")]
@@ -20,9 +21,12 @@ pub use test::tests;
 
 type StackIndex = u64;
 
-use x86_64::{PhysAddr, structures::paging::{PageSize, Size4KiB}};
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr,
+};
 
-use crate::memory::types::Bytes;
+use crate::memory::{types::Bytes, HHDM};
 
 // use super::FrameManager;
 
@@ -55,8 +59,8 @@ impl Stack {
     /// - `None`: If there are no free frames anymore.
     #[must_use]
     pub fn pop(&mut self) -> Option<PhysAddr> {
-        if let Some(value_index) = self.len.checked_sub(1) {
-            let value = self.get_entry(value_index).unwrap();
+        if self.len > 0 {
+            let value = self.get_entry_value(self.len - 1).unwrap();
             self.len -= 1;
             Some(value)
         } else {
@@ -80,10 +84,7 @@ impl Stack {
             return false;
         }
 
-        let new_entry_ptr = {
-            let phys_addr = self.get_entry_addr(self.len).unwrap();
-            phys_addr.as_u64() as *mut u64
-        };
+        let new_entry_ptr = self.get_entry_ptr_mut(self.len - 1).unwrap();
 
         unsafe {
             *new_entry_ptr = entry_value.as_u64();
@@ -94,34 +95,37 @@ impl Stack {
         true
     }
 
-    /// Returns the value at the given index in the stack.
-    /// `0` points to the bottom of the stack.
+    /// Return the value at the given index of the stack.
     ///
-    /// # Return
-    /// - `Some<u64>`: The value at the given index.
-    /// - `None`: If the given index exceeds the current length of the stack.
-    fn get_entry(&self, index: StackIndex) -> Option<PhysAddr> {
-        if index < self.len {
-            if let Some(entry_addr) = self.get_entry_addr(index) {
-                let entry_addr = entry_addr.as_u64() as *const u64;
-                return Some(PhysAddr::new(unsafe { *entry_addr }));
-            }
-        }
-        None
+    /// * `index`: The index of the stack where to get the value from.
+    pub fn get_entry_value(&self, index: StackIndex) -> Option<PhysAddr> {
+        self.get_entry_ptr(index)
+            .map(|ptr| unsafe {PhysAddr::new(*ptr)})
     }
 
-    /// Returns the physical address of the entry with the given index.
-    /// Index 0 starts from the bottom of the stack.
+    /// Returns a pointer to the entry with the given index in the stack.
     ///
-    /// # Returns
-    /// - `Some<PhysAddr>`: If the index is valid (<= self.len).
-    /// - `None`: If the index is greater than the amount of valid entries.
-    fn get_entry_addr(&self, index: u64) -> Option<PhysAddr> {
-        if index <= self.len {
-            let phys_addr = PhysAddr::new(self.start.as_u64() + (POINTER_SIZE * index).as_u64());
-            Some(phys_addr)
-        } else {
-            None
+    /// * `index`: The entry index to the entry where the pointer should point to.
+    fn get_entry_ptr(&self, index: StackIndex) -> Option<*const u64> {
+        if index >= self.len {
+            return None;
         }
+
+        let entry_phys_addr = self.start + (*POINTER_SIZE) * index;
+        let entry_virt_addr = *HHDM + entry_phys_addr.as_u64();
+        Some(entry_phys_addr.as_u64() as *const u64)
+    }
+
+    /// Returns a mut pointer to the entry with the given index in the stack.
+    ///
+    /// * `index`: The entry index to the entry where the pointer should point to.
+    fn get_entry_ptr_mut(&self, index: StackIndex) -> Option<*mut u64> {
+        if index >= self.len {
+            return None;
+        }
+
+        let entry_phys_addr = self.start + (*POINTER_SIZE) * index;
+        let entry_virt_addr = *HHDM + entry_phys_addr.as_u64();
+        Some(entry_phys_addr.as_u64() as *mut u64)
     }
 }
