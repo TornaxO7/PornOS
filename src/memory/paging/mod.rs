@@ -5,19 +5,19 @@ mod physical_mmap;
 use core::{arch::asm, marker::PhantomData};
 
 use lazy_static::lazy_static;
-pub use physical_mmap::{PhysLinearAddr, PhysMemMap};
+pub use physical_mmap::PhysMemMap;
 use spin::{Once, RwLock};
 use x86_64::{
     structures::paging::{
         page_table::{PageTableEntry, PageTableLevel},
-        Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+        Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
     },
     PhysAddr, VirtAddr,
 };
 
-use self::frame_allocator::{FrameManager, Stack, FRAME_ALLOCATOR};
+use self::frame_allocator::{Stack};
 
-use crate::memory::HHDM;
+use crate::{memory::HHDM, println};
 
 lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
@@ -30,13 +30,13 @@ pub static STACK_START: Once<VirtAddr> = Once::new();
 
 pub fn init() -> ! {
     let phys_mmap = PhysMemMap::<Size4KiB>::new();
-    FRAME_ALLOCATOR.call_once(|| RwLock::new(Stack::new(&phys_mmap)));
+    // FRAME_ALLOCATOR.call_once(|| RwLock::new(Stack::new(&phys_mmap)));
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new(&phys_mmap);
     p_configurator.map_kernel();
     p_configurator.map_heap();
     p_configurator.map_stack();
-    p_configurator.switch_cr3();
+    p_configurator.switch_paging();
 
     crate::init();
 }
@@ -45,6 +45,36 @@ pub fn init() -> ! {
 pub fn tests() {
     let phys_mmap: PhysMemMap<Size4KiB> = PhysMemMap::new();
     frame_allocator::tests(&phys_mmap);
+}
+
+#[derive(Debug, Clone)]
+pub struct TableWrapper {
+    ptr: *mut PageTable,
+    data: PageTable,
+}
+
+impl TableWrapper {
+    pub fn new(ptr: *mut PageTable) -> Self {
+        Self {
+            ptr,
+            data: unsafe { ptr.read() },
+        }
+    }
+
+    pub fn create_entry<P: PageSize>(&mut self, index: PageTableIndex, kpconf: &KPagingConfigurator<P>) -> PageTableEntry {
+        let page_table_entry_flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+        // let new_frame = kpconf::get
+        todo!()
+
+    }
+
+    /// Updates the entry at the given index in the page table and also writes that into the memory.
+    pub fn update(&mut self, index: PageTableIndex, entry: PageTableEntry) {
+        self.data[index] = entry;
+        unsafe {
+            self.ptr.write(self.data);
+        }
+    }
 }
 
 /// The paging configurator which sets up the different paging levels.
@@ -74,11 +104,10 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-        let kernel_iter = self.phys_mmap.into_iter_kernel_and_modules();
-        for mmap in kernel_iter {
-            for offset in (0..mmap.len).step_by(P::SIZE.try_into().unwrap()) {
+        for kmmap in self.phys_mmap.into_iter_kernel_and_modules() {
+            for offset in (0..kmmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let page_frame = {
-                    let page_frame_phys_addr = PhysAddr::new(mmap.base + offset);
+                    let page_frame_phys_addr = PhysAddr::new(kmmap.base + offset);
                     PhysFrame::from_start_address(page_frame_phys_addr).unwrap()
                 };
                 let page = {
@@ -120,7 +149,7 @@ impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
 }
 
 impl<'a, P: PageSize> KPagingConfigurator<'a, P> {
-    pub fn switch_cr3(&self) {
+    pub fn switch_paging(&self) {
         let p4_phys_addr = self.p4_phys_addr.as_u64() & !(0xFFF);
         unsafe {
             asm! {
@@ -138,59 +167,71 @@ impl<'a, P: PageSize + 'a> KPagingConfigurator<'a, P> {
     /// Maps the given virtual page to the given physical page-frame if it's set.
     /// If `page_frame` is `None` a new page frame will be mapped to the given page.
     pub fn map_page(&self, page: Page, page_frame: Option<PhysFrame>) {
-        let page_table_entry_flags =
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE;
-        let mut table = unsafe { self.p4_ptr.read() };
+        // let p1_table_ptr = self.get_p1_table(page);
+        //
+        // let table_entry_ptr = {
+        //     let table_entry = &table[page.start_address().p1_index()];
+        //     let table_entry_virt_addr = *HHDM + table_entry.addr().as_u64();
+        //     table_entry_virt_addr.as_mut_ptr() as *mut PageTableEntry
+        // };
+        //
+        // let new_page_entry = {
+        //     let mut page_entry = PageTableEntry::new();
+        //     let page_frame_addr = match page_frame {
+        //         Some(pf) => pf.start_address(),
+        //         None => Self::get_free_phys_frame(),
+        //     };
+        //     page_entry.set_addr(page_frame_addr, page_table_entry_flags);
+        //     page_entry
+        // };
+        //
+        // unsafe { table_entry_ptr.write(new_page_entry) }
+    }
+
+    fn get_p1_table(&self, page: Page) -> *mut PageTable {
+        let mut table_wrapper = TableWrapper::new(self.p4_ptr);
         let mut level = PageTableLevel::Four;
 
         while let Some(lower_level) = level.next_lower_level() {
-            let table_entry = match lower_level {
-                PageTableLevel::Three => &mut table[page.start_address().p4_index()],
-                PageTableLevel::Two => &mut table[page.start_address().p3_index()],
-                PageTableLevel::One => &mut table[page.start_address().p2_index()],
+            let entry_index = match lower_level {
+                PageTableLevel::Three => page.start_address().p4_index(),
+                PageTableLevel::Two => page.start_address().p3_index(),
+                PageTableLevel::One => page.start_address().p2_index(),
                 _ => unreachable!("Ayo, '{:?}' shouldn't be here <.<", lower_level),
             };
+            let table_entry = table_wrapper.data[entry_index];
 
-            let next_table_vtr_ptr = if table_entry.is_unused() {
-                let new_frame = Self::get_free_phys_frame();
-                table_entry.set_addr(new_frame, page_table_entry_flags);
-
-                *HHDM + new_frame.as_u64()
-            } else {
-                *HHDM + table_entry.addr().as_u64()
+            let next_table_ptr = {
+                let next_table_vtr_ptr = if table_entry.is_unused() {
+                    let new_table_entry = table_wrapper.create_entry(entry_index, &self);
+                        // self.register_new_table_entry(table_entry, entry_index, &mut table_wrapper);
+                    *HHDM + new_table_entry.addr().as_u64()
+                } else {
+                    *HHDM + table_entry.addr().as_u64()
+                };
+                next_table_vtr_ptr.as_mut_ptr() as *mut PageTable
             };
-            let next_table_ptr = next_table_vtr_ptr.as_mut_ptr() as *mut PageTable;
 
-            table = unsafe { next_table_ptr.read() };
+            table_wrapper = TableWrapper::new(next_table_ptr);
             level = lower_level;
         }
-        let table_entry_ptr = {
-            let table_entry = &table[page.start_address().p1_index()];
-            let table_entry_virt_addr = *HHDM + table_entry.addr().as_u64();
-            table_entry_virt_addr.as_mut_ptr() as *mut PageTableEntry
-        };
 
-        let new_page_entry = {
-            let mut page_entry = PageTableEntry::new();
-            let page_frame_addr = match page_frame {
-                Some(ppage) => ppage.start_address(),
-                None => Self::get_free_phys_frame(),
-            };
-            page_entry.set_addr(page_frame_addr, page_table_entry_flags);
-            page_entry
-        };
-
-        unsafe { table_entry_ptr.write(new_page_entry) }
+        table_wrapper.ptr
     }
 
-    /// Returns the physical address of a free page frame.
-    fn get_free_phys_frame() -> PhysAddr {
-        let new_frame = FRAME_ALLOCATOR
-            .get()
-            .unwrap()
-            .write()
-            .get_free_frame()
-            .unwrap();
-        new_frame.start_address()
+    fn register_new_table_entry(
+        &self,
+        old_entry: PageTableEntry,
+        entry_index: PageTableIndex,
+        table_wrapper: &mut TableWrapper,
+    ) -> PageTableEntry {
+        let page_table_entry_flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+        let new_frame = frame_allocator::get_free_phys_frame::<P>();
+
+        let mut new_table_entry = old_entry.clone();
+        new_table_entry.set_addr(new_frame.start_address(), page_table_entry_flags);
+        table_wrapper.update(entry_index, new_table_entry);
+
+        new_table_entry
     }
 }

@@ -9,48 +9,47 @@
 //! So if you need a new frame is the equal operation of a pop from the stack
 //! and register a freed frame is basically a push.
 mod init;
+mod page_frame_allocator;
 
 #[cfg(feature = "test")]
 mod test;
-use core::{fmt::Debug, marker::PhantomData};
+use core::fmt::Debug;
 
 #[cfg(feature = "test")]
 pub use test::tests;
 
 type StackIndex = u64;
 
-use x86_64::{
-    structures::paging::{PageSize, PhysFrame},
-    PhysAddr,
-};
+use x86_64::{PhysAddr, structures::paging::{PageSize, Size4KiB}};
 
 use crate::memory::types::Bytes;
 
-use super::FrameManager;
+// use super::FrameManager;
 
 /// The size of a pointer in bytes.
 const POINTER_SIZE: Bytes = Bytes::new(8);
 
+/// A Page-Frame Allocator which includes pointer to 4KiB big Page-Frames.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Stack<P: PageSize + Send + Sync + Debug> {
+pub struct Stack {
     start: PhysAddr,
     len: u64,
     capacity: u64,
-    psize: PhantomData<P>,
 }
 
-impl<P: PageSize + Send + Sync + Debug> Default for Stack<P> {
+impl Default for Stack {
     fn default() -> Self {
         Self {
             start: PhysAddr::zero(),
             len: 0,
             capacity: 0,
-            psize: PhantomData,
         }
     }
 }
 
-impl<P: PageSize + Send + Sync + Debug> Stack<P> {
+impl Stack {
+    pub const PAGE_SIZE: usize = Size4KiB::SIZE as usize;
+
     /// # Returns
     /// - `Some<FrameIndex>`: The frame index of the frame which isn't used yet.
     /// - `None`: If there are no free frames anymore.
@@ -124,16 +123,5 @@ impl<P: PageSize + Send + Sync + Debug> Stack<P> {
         } else {
             None
         }
-    }
-}
-
-impl<P: PageSize + Send + Sync + Debug> FrameManager<P> for Stack<P> {
-    fn get_free_frame(&mut self) -> Option<PhysFrame<P>> {
-        self.pop()
-            .map(|phys_addr| PhysFrame::from_start_address(phys_addr).unwrap())
-    }
-
-    fn free_frame(&mut self, frame: PhysFrame<P>) {
-        assert!(self.push(frame.start_address()));
     }
 }

@@ -11,31 +11,18 @@ mod stack;
 
 mod phys_frame_index;
 
-use core::fmt::Debug;
-
 pub use phys_frame_index::PhysFrameIndex;
 
-use spin::{Once, RwLock};
-use x86_64::structures::paging::{PageSize, PhysFrame, Size4KiB};
+use spin::RwLock;
+use x86_64::structures::paging::Size4KiB;
 
 pub use self::stack::Stack;
-use super::PhysMemMap;
 
-// pub static FRAME_ALLOCATOR: Once<RwLock<FrameAllocator<Size4KiB>>> = Once::new();
-pub static FRAME_ALLOCATOR: Once<RwLock<Stack<Size4KiB>>> = Once::new();
+pub static FRAME_ALLOCATOR: RwLock<Stack> = RwLock::new(Stack::new());
 
 #[cfg(feature = "test")]
 pub fn tests<P: PageSize + Send + Sync + Debug>(phys_mmap: &PhysMemMap<P>) {
     stack::tests(phys_mmap);
-}
-
-/// Each frame manager needs to implement those functions.
-pub trait FrameManager<P: PageSize>: Send + Sync + Debug {
-    /// Returns the starting address of a free frame.
-    fn get_free_frame(&mut self) -> Option<PhysFrame<P>>;
-
-    /// Marks the given starting address of a frame as free.
-    fn free_frame(&mut self, frame: PhysFrame<P>);
 }
 
 // The main frame allocator struct which manages the frames.
