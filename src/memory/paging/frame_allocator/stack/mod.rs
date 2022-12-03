@@ -9,7 +9,7 @@
 //! So if you need a new frame is the equal operation of a pop from the stack
 //! and register a freed frame is basically a push.
 mod init;
-mod iterator;
+// mod iterator;
 mod page_frame_allocator;
 
 #[cfg(feature = "test")]
@@ -22,13 +22,11 @@ pub use test::tests;
 type StackIndex = u64;
 
 use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr,
+    structures::paging::{PageSize, Size4KiB, PhysFrame},
+    PhysAddr, VirtAddr,
 };
 
 use crate::memory::{types::Bytes, HHDM};
-
-// use super::FrameManager;
 
 /// The size of a pointer in bytes.
 const POINTER_SIZE: Bytes = Bytes::new(8);
@@ -84,48 +82,55 @@ impl Stack {
             return false;
         }
 
-        let new_entry_ptr = self.get_entry_ptr_mut(self.len - 1).unwrap();
-
-        unsafe {
-            *new_entry_ptr = entry_value.as_u64();
-        }
-
-        // SAFETY: Check if self.len exceeds self.capacity already done before
         self.len += 1;
+        self.set_entry_value(self.len - 1, PhysFrame::from_start_address(entry_value).unwrap());
         true
     }
 
     /// Return the value at the given index of the stack.
     ///
     /// * `index`: The index of the stack where to get the value from.
+    ///
+    /// # Return
+    /// Returns the physical address, the value at the given index, if the index doesn't exceed the
+    /// capacity of the stack.
     pub fn get_entry_value(&self, index: StackIndex) -> Option<PhysAddr> {
-        self.get_entry_ptr(index)
-            .map(|ptr| unsafe {PhysAddr::new(*ptr)})
+        self.get_entry_virt_ptr(index)
+            .map(|entry_virt_ptr| {
+                let entry_ptr = entry_virt_ptr.as_mut_ptr() as * const u64;
+                let entry_value = unsafe {entry_ptr.read()};
+                PhysAddr::new(entry_value)
+            })
     }
 
-    /// Returns a pointer to the entry with the given index in the stack.
+    /// Sets the value at the given index in the stack to the starting address of the given page
+    /// frame.
+    pub fn set_entry_value(&self, index: StackIndex, page_frame: PhysFrame) {
+        self.get_entry_virt_ptr(index)
+            .map(|entry_virt_ptr|{
+                let entry_ptr = entry_virt_ptr.as_mut_ptr() as * mut u64;
+                let new_entry_value = page_frame.start_address();
+                unsafe {entry_ptr.write(new_entry_value.as_u64())};
+            });
+    }
+
+    /// Returns a pointer to the physical address of the entry with the given index in the stack.
     ///
     /// * `index`: The entry index to the entry where the pointer should point to.
-    fn get_entry_ptr(&self, index: StackIndex) -> Option<*const u64> {
+    fn get_entry_phys_ptr(&self, index: StackIndex) -> Option<PhysAddr> {
         if index >= self.len {
             return None;
         }
 
         let entry_phys_addr = self.start + (*POINTER_SIZE) * index;
-        let entry_virt_addr = *HHDM + entry_phys_addr.as_u64();
-        Some(entry_phys_addr.as_u64() as *const u64)
+        Some(entry_phys_addr)
     }
 
-    /// Returns a mut pointer to the entry with the given index in the stack.
+    /// Returns a pointer to the virtual address of the entry with the given index in the stack.
     ///
-    /// * `index`: The entry index to the entry where the pointer should point to.
-    fn get_entry_ptr_mut(&self, index: StackIndex) -> Option<*mut u64> {
-        if index >= self.len {
-            return None;
-        }
-
-        let entry_phys_addr = self.start + (*POINTER_SIZE) * index;
-        let entry_virt_addr = *HHDM + entry_phys_addr.as_u64();
-        Some(entry_phys_addr.as_u64() as *mut u64)
+    /// * `index`: The entryz index to the entry where the pointer should point to.
+    fn get_entry_virt_ptr(&self, index: StackIndex) -> Option<VirtAddr> {
+        self.get_entry_phys_ptr(index)
+            .map(|entry_phys_ptr| *HHDM + entry_phys_ptr.as_u64())
     }
 }

@@ -11,6 +11,6 @@ unsafe impl FrameAllocator<Size4KiB> for Stack {
 
 impl FrameDeallocator<Size4KiB> for Stack {
     unsafe fn deallocate_frame(&mut self, frame: PhysFrame<Size4KiB>) {
-        self.push(frame.start_address());
+        assert!(self.push(frame.start_address()));
     }
 }

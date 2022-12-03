@@ -1,8 +1,8 @@
 use core::ops::Range;
 
-use crate::memory::HHDM;
 use crate::memory::paging::frame_allocator::stack::POINTER_SIZE;
 use crate::memory::paging::physical_mmap::{self, UseableMemChunkIterator};
+use crate::memory::HHDM;
 use crate::print;
 use crate::println;
 use x86_64::structures::paging::{PageSize, Size4KiB};
@@ -15,7 +15,7 @@ impl Stack {
     pub fn new() -> Self {
         print!("Using Frame-Allocator-Stack ... ");
         let amount_page_frames = physical_mmap::get_amount_page_frames::<Size4KiB>();
-        let stack_start = get_start_addr();
+        let stack_start = get_stack_page_frame();
         let capacity = amount_page_frames;
 
         let mut stack = Self {
@@ -24,7 +24,7 @@ impl Stack {
             capacity,
         };
 
-        stack.add_entries();
+        stack.add_useable_page_frames();
         stack.swap_stack_frames();
 
         println!("OK");
@@ -32,16 +32,20 @@ impl Stack {
     }
 
     /// Fills the stack with pointers to the page frames.
-    fn add_entries(&self) {
-        let mut entry_addr = self.start.as_u64();
+    fn add_useable_page_frames(&self) {
+        let mut entry_virt_addr = *HHDM + self.start.as_u64();
+
         for mmap in UseableMemChunkIterator::new() {
             for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE) {
-                let frame_addr = mmap.base + frame_offset;
-                let ptr = entry_addr as *mut u64;
-                unsafe {
-                    *ptr = frame_addr;
+                let frame_addr = PhysAddr::new(mmap.base + frame_offset);
+
+                {
+                    let entry_virt_addr_ptr = entry_virt_addr.as_mut_ptr() as *mut u64;
+                    unsafe {
+                        entry_virt_addr_ptr.write(frame_addr.as_u64());
+                    }
                 }
-                entry_addr += *POINTER_SIZE;
+                entry_virt_addr += *POINTER_SIZE;
             }
         }
     }
@@ -65,8 +69,8 @@ impl Stack {
         };
 
         for _ in 0..offset {
-            let stack_entry_ptr = stack_entry_virt_addr.as_mut_ptr() as * mut u64;
-            let entry_switch_ptr = entry_switch_virt_addr.as_mut_ptr() as * mut u64;
+            let stack_entry_ptr = stack_entry_virt_addr.as_mut_ptr() as *mut u64;
+            let entry_switch_ptr = entry_switch_virt_addr.as_mut_ptr() as *mut u64;
             unsafe {
                 core::ptr::swap(stack_entry_ptr, entry_switch_ptr);
             }
@@ -121,7 +125,7 @@ impl Stack {
 //
 // FUTURE: It could happen, that we'll get the last frame because the other frames might
 // be too small....
-fn get_start_addr() -> PhysAddr {
+fn get_stack_page_frame() -> PhysAddr {
     let amount_page_frames = physical_mmap::get_amount_page_frames::<Size4KiB>();
     let needed_free_space = POINTER_SIZE * amount_page_frames;
 

@@ -33,6 +33,7 @@ pub fn init() -> ! {
     p_configurator.map_kernel();
     p_configurator.map_heap();
     p_configurator.map_stack();
+    p_configurator.map_frame_allocator();
     p_configurator.switch_paging();
 
     crate::init();
@@ -140,6 +141,10 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
             addr -= P::SIZE;
         }
+    }
+
+    pub fn map_frame_allocator(&self) {
+        todo!();
     }
 }
 

@@ -1,5 +1,7 @@
 use x86_64::{structures::paging::{PhysFrame, Size4KiB}, PhysAddr};
 
+use crate::memory::HHDM;
+
 use super::{Stack, POINTER_SIZE};
 
 impl IntoIterator for Stack {
@@ -33,7 +35,7 @@ impl Iterator for StackIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.index < self.capacity {
-            let entry_addr = self.start + self.index * (*POINTER_SIZE);
+            let entry_addr = *HHDM + self.start + self.index * (*POINTER_SIZE);
             let ptr = entry_addr.as_u64() as * mut u64;
 
             let page_frame = {

@@ -1,1 +1,2 @@
-Get a /good/ frame allocator...
+1. Kontrollieren, dass der stack die korrekten Addressen hat.
+2. Beim mappen auch den Stack korrekt mappen.
