@@ -15,7 +15,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-use self::{frame_allocator::FRAME_ALLOCATOR, physical_mmap::KernelAndModulesIterator, utils::table_wrapper::TableWrapper};
+use self::{frame_allocator::FRAME_ALLOCATOR, physical_mmap::{KernelAndModulesIterator, UseableMemChunkIterator}, utils::table_wrapper::TableWrapper};
 
 use crate::{memory::HHDM, println, dbg};
 
@@ -65,6 +65,10 @@ impl<P: PageSize> KPagingConfigurator<P> {
             .start_address();
         let pml4e_virt_addr = *HHDM + pml4e_addr.as_u64();
         let ptr = pml4e_virt_addr.as_mut_ptr() as * mut PageTable;
+
+        for useable in UseableMemChunkIterator::new() {
+            let dummy = 10;
+        }
 
         {
             let mut wrapper = TableWrapper::new(ptr);
@@ -181,7 +185,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
     ///
     /// * `page`: The page where to read the different levels from.
     fn get_p1_table(&self, page: Page) -> TableWrapper {
-        let mut table_wrapper = unsafe {TableWrapper::new(self.p4_ptr)};
+        let mut table_wrapper = TableWrapper::new(self.p4_ptr);
         let mut level = PageTableLevel::Four;
 
         while let Some(lower_level) = level.next_lower_level() {

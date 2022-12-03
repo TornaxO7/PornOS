@@ -14,7 +14,7 @@ impl Stack {
     /// Creates a new frame-stack with the given arguments.
     pub fn new() -> Self {
         print!("Using Frame-Allocator-Stack ... ");
-        let amount_page_frames = physical_mmap::get_amount_page_frames::<Size4KiB>();
+        let amount_page_frames = physical_mmap::get_amount_useable_page_frames::<Size4KiB>();
         let stack_start = get_stack_page_frame();
         let capacity = amount_page_frames;
 
@@ -32,11 +32,12 @@ impl Stack {
     }
 
     /// Fills the stack with pointers to the page frames.
+    /// WORKS:
     fn add_useable_page_frames(&self) {
         let mut entry_virt_addr = *HHDM + self.start.as_u64();
 
         for mmap in UseableMemChunkIterator::new() {
-            for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE) {
+            for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE.as_usize()) {
                 let frame_addr = PhysAddr::new(mmap.base + frame_offset);
 
                 {
@@ -126,7 +127,7 @@ impl Stack {
 // FUTURE: It could happen, that we'll get the last frame because the other frames might
 // be too small....
 fn get_stack_page_frame() -> PhysAddr {
-    let amount_page_frames = physical_mmap::get_amount_page_frames::<Size4KiB>();
+    let amount_page_frames = physical_mmap::get_amount_useable_page_frames::<Size4KiB>();
     let needed_free_space = POINTER_SIZE * amount_page_frames;
 
     for mmap in UseableMemChunkIterator::new() {

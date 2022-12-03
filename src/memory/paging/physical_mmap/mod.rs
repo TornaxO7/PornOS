@@ -10,7 +10,7 @@ use x86_64::structures::paging::PageSize;
 
 static MEMMAP_REQUEST: LimineMemmapRequest = LimineMemmapRequest::new(0);
 
-pub fn get_amount_page_frames<P: PageSize>() -> u64 {
+pub fn get_amount_useable_page_frames<P: PageSize>() -> u64 {
     let mut page_frame_counter = 0;
     for mmap in UseableMemChunkIterator::new() {
         page_frame_counter += mmap.len.div_floor(P::SIZE);

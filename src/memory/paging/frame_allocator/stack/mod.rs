@@ -50,7 +50,7 @@ impl Default for Stack {
 }
 
 impl Stack {
-    pub const PAGE_SIZE: usize = Size4KiB::SIZE as usize;
+    pub const PAGE_SIZE: Bytes = Bytes::new(Size4KiB::SIZE);
 
     /// # Returns
     /// - `Some<FrameIndex>`: The frame index of the frame which isn't used yet.
