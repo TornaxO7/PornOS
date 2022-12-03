@@ -17,10 +17,11 @@ impl TableWrapper {
     /// Creates a new table wrapper of the given start address of a table.
     ///
     /// * `ptr`: A pointer to a page table which the struct should wrap.
-    pub unsafe fn new(ptr: *mut PageTable) -> Self {
+    pub fn new(ptr: *mut PageTable) -> Self {
+        let data = unsafe{ ptr.read()};
         Self {
             ptr,
-            data: ptr.read(),
+            data,
         }
     }
 

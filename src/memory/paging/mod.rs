@@ -10,7 +10,7 @@ use spin::Once;
 use x86_64::{
     structures::paging::{
         FrameAllocator, Page, PageSize, PageTable,
-        Size4KiB, page_table::PageTableLevel, PhysFrame,
+        Size4KiB, page_table::{PageTableLevel, PageTableEntry}, PhysFrame, PageTableFlags, PageTableIndex,
     },
     PhysAddr, VirtAddr,
 };
@@ -73,6 +73,17 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
+
+        {
+            let mut wrapper = TableWrapper::new(self.p4_ptr);
+            let entry = {
+                let mut entry = PageTableEntry::new();
+                entry.set_addr(PhysAddr::new(0xDEADC0DE).align_down(4096u64), PageTableFlags::WRITABLE);
+                    entry
+            };
+            wrapper.set_entry(PageTableIndex::new(0), entry);
+        }
+
         for kmmap in KernelAndModulesIterator::new() {
             for offset in (0..kmmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let page_frame = {

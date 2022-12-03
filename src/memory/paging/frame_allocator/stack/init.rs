@@ -49,9 +49,12 @@ impl Stack {
     ///
     /// This makes it possible to get the physical addresses of the stack-frames without the
     /// conflict of popping or pushing.
+    ///
+    /// BUG (Maybe?): Could happen that we are storing the stack in the last frames => swapping not
+    /// needed
     fn swap_stack_frames(&mut self) {
         if let Some(stack_frame_index) = self.get_stack_frame_index() {
-            let used_frames = self.get_used_frames();
+            let used_frames = (self.capacity * *POINTER_SIZE).div_ceil(Size4KiB::SIZE);
             for index in stack_frame_index..stack_frame_index + used_frames {
                 let used_frame_addr: *mut u64 = {
                     let addr = self.start.as_u64() + (POINTER_SIZE * index).as_u64();
@@ -87,12 +90,6 @@ impl Stack {
             }
         }
         None
-    }
-
-    /// # Return
-    /// The amount of frames which the stack uses.
-    fn get_used_frames(&self) -> u64 {
-        self.capacity.div_ceil(Size4KiB::SIZE)
     }
 }
 
