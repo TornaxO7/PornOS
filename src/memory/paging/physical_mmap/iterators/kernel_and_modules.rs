@@ -1,7 +1,5 @@
 use limine::{LimineMemmapEntry, LimineMemoryMapEntryType, NonNullPtr};
 
-use crate::memory::paging::PhysMemMap;
-
 use super::MemChunkIterator;
 
 pub struct KernelAndModulesIterator(MemChunkIterator);

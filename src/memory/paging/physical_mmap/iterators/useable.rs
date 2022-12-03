@@ -1,4 +1,3 @@
-use crate::memory::paging::PhysMemMap;
 use limine::{LimineMemmapEntry, LimineMemoryMapEntryType, NonNullPtr};
 
 use core::iter::Iterator;

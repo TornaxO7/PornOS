@@ -1,7 +1,7 @@
 use crate::memory::paging::frame_allocator::stack::POINTER_SIZE;
 use crate::memory::paging::physical_mmap::{self, UseableMemChunkIterator};
+use crate::print;
 use crate::println;
-use crate::{memory::paging::PhysMemMap, print};
 use x86_64::structures::paging::{PageSize, Size4KiB};
 use x86_64::PhysAddr;
 
