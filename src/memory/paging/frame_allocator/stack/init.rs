@@ -24,6 +24,11 @@ impl Stack {
             capacity,
         };
 
+        println!("");
+        for mmap in UseableMemChunkIterator::new() {
+            println!("{:?}", mmap);
+        }
+
         stack.add_useable_page_frames();
         stack.swap_stack_frames();
 
@@ -58,29 +63,32 @@ impl Stack {
     /// conflict of popping or pushing.
     fn swap_stack_frames(&mut self) {
         let stack_range = self.get_stack_range().unwrap();
-        let offset = self.len - stack_range.end;
+        // the amount of occupied page frames by the stack
+        let amount_occupied_page_frames = stack_range.end - stack_range.start;
 
-        let mut stack_entry_virt_addr = {
-            let entry_phys_addr = self.start + (*POINTER_SIZE) * stack_range.start;
-            *HHDM + entry_phys_addr.as_u64()
-        };
-        let mut entry_switch_virt_addr = {
-            let entry_phys_addr = self.start + (*POINTER_SIZE) * stack_range.end;
-            *HHDM + entry_phys_addr.as_u64()
-        };
+        if stack_range.end < self.len {
+            let mut stack_entry_virt_addr = {
+                let entry_phys_addr = self.start + (*POINTER_SIZE) * (stack_range.end - 1);
+                *HHDM + entry_phys_addr.as_u64()
+            };
+            let mut entry_switch_virt_addr = {
+                let entry_phys_addr = self.start + (*POINTER_SIZE) * (self.len - 1);
+                *HHDM + entry_phys_addr.as_u64()
+            };
 
-        for _ in 0..offset {
-            let stack_entry_ptr = stack_entry_virt_addr.as_mut_ptr() as *mut u64;
-            let entry_switch_ptr = entry_switch_virt_addr.as_mut_ptr() as *mut u64;
-            unsafe {
-                core::ptr::swap(stack_entry_ptr, entry_switch_ptr);
+            for _ in 0..amount_occupied_page_frames {
+                let stack_entry_ptr = stack_entry_virt_addr.as_mut_ptr() as *mut u64;
+                let entry_switch_ptr = entry_switch_virt_addr.as_mut_ptr() as *mut u64;
+                unsafe {
+                    core::ptr::swap(stack_entry_ptr, entry_switch_ptr);
+                }
+
+                stack_entry_virt_addr -= *POINTER_SIZE;
+                entry_switch_virt_addr -= *POINTER_SIZE;
             }
-
-            stack_entry_virt_addr += *POINTER_SIZE;
-            entry_switch_virt_addr += *POINTER_SIZE;
         }
 
-        self.len -= offset;
+        self.len -= amount_occupied_page_frames;
         self.capacity = self.len;
     }
 

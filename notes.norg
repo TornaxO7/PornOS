@@ -2,8 +2,11 @@ PtrPhysical = 0x11c000
 
 Usebale:
 0x44000, 0x5b000 => 91 page frames
-0x100_000, 0x725e000 (?0x7259000) => (?29_273) page frames
+0x100_000, 0x7259000 => 29_273 page frames
 0x7b51000, 0x3a2000 => 930 page frames
 
 Kernel:
 0x7745000, 0x40_000
+
+== SWAPPING ==
+start writing at 0x7f0d0
