@@ -80,6 +80,10 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 ptr2.write(table);
             }
 
+            let test = unsafe {
+                ptr2.read()
+            };
+
             panic!("Success");
         }
 
