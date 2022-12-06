@@ -24,11 +24,6 @@ impl Stack {
             capacity,
         };
 
-        println!("");
-        for mmap in UseableMemChunkIterator::new() {
-            println!("{:?}", mmap);
-        }
-
         stack.add_useable_page_frames();
         stack.swap_stack_frames();
 

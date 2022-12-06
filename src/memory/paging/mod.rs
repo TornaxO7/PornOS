@@ -66,8 +66,21 @@ impl<P: PageSize> KPagingConfigurator<P> {
         let pml4e_virt_addr = *HHDM + pml4e_addr.as_u64();
         let ptr = pml4e_virt_addr.as_mut_ptr() as * mut PageTable;
 
-        for useable in UseableMemChunkIterator::new() {
-            let dummy = 10;
+        {
+            let ptr2 = ptr.clone();
+            let mut table = PageTable::new();
+            let entry = {
+                let mut entry = PageTableEntry::new();
+                entry.set_addr(PhysAddr::new_truncate(0xDEADBEEF).align_down(4096u64), PageTableFlags::WRITABLE);
+                entry
+            };
+
+            table[0] = entry;
+            unsafe {
+                ptr2.write(table);
+            }
+
+            panic!("Success");
         }
 
         {
