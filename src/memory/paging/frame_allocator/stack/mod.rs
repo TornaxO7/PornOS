@@ -9,7 +9,7 @@
 //! So if you need a new frame is the equal operation of a pop from the stack
 //! and register a freed frame is basically a push.
 mod init;
-// mod iterator;
+mod iterators;
 mod page_frame_allocator;
 
 #[cfg(feature = "test")]
@@ -37,6 +37,7 @@ pub struct Stack {
     start: PhysAddr,
     len: u64,
     capacity: u64,
+    amount_used_page_frames: u64,
 }
 
 impl Default for Stack {
@@ -45,6 +46,7 @@ impl Default for Stack {
             start: PhysAddr::zero(),
             len: 0,
             capacity: 0,
+            amount_used_page_frames: 0,
         }
     }
 }

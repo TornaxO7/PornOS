@@ -9,15 +9,20 @@ use lazy_static::lazy_static;
 use spin::Once;
 use x86_64::{
     structures::paging::{
-        FrameAllocator, Page, PageSize, PageTable,
-        Size4KiB, page_table::{PageTableLevel, PageTableEntry}, PhysFrame, PageTableFlags, PageTableIndex,
+        page_table::{PageTableEntry, PageTableLevel},
+        FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame,
+        Size4KiB,
     },
     PhysAddr, VirtAddr,
 };
 
-use self::{frame_allocator::FRAME_ALLOCATOR, physical_mmap::{KernelAndModulesIterator, UseableMemChunkIterator}, utils::table_wrapper::TableWrapper};
+use self::{
+    frame_allocator::FRAME_ALLOCATOR,
+    physical_mmap::{KernelAndModulesIterator, UseableMemChunkIterator},
+    utils::table_wrapper::TableWrapper,
+};
 
-use crate::{memory::HHDM, println, dbg};
+use crate::{memory::HHDM, println};
 
 lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
@@ -35,6 +40,8 @@ pub fn init() -> ! {
     p_configurator.map_stack();
     p_configurator.map_frame_allocator();
     p_configurator.switch_paging();
+
+    panic!("Bruh");
 
     crate::init();
 }
@@ -64,38 +71,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
             .unwrap()
             .start_address();
         let pml4e_virt_addr = *HHDM + pml4e_addr.as_u64();
-        let ptr = pml4e_virt_addr.as_mut_ptr() as * mut PageTable;
-
-        {
-            let ptr2 = ptr.clone();
-            let mut table = PageTable::new();
-            let entry = {
-                let mut entry = PageTableEntry::new();
-                entry.set_addr(PhysAddr::new_truncate(0xDEADBEEF).align_down(4096u64), PageTableFlags::WRITABLE);
-                entry
-            };
-
-            table[0] = entry;
-            unsafe {
-                ptr2.write(table);
-            }
-
-            let test = unsafe {
-                ptr2.read()
-            };
-
-            panic!("Success");
-        }
-
-        {
-            let mut wrapper = TableWrapper::new(ptr);
-            let entry = {
-                let mut entry = PageTableEntry::new();
-                entry.set_addr(PhysAddr::new(0xDEADC0DE).align_down(4096u64), PageTableFlags::WRITABLE);
-                    entry
-            };
-            wrapper.set_entry(PageTableIndex::new(0), entry);
-        }
+        let ptr = pml4e_virt_addr.as_mut_ptr() as *mut PageTable;
 
         Self {
             size: PhantomData,
@@ -107,16 +83,6 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-        {
-            let mut wrapper = TableWrapper::new(self.p4_ptr);
-            let entry = {
-                let mut entry = PageTableEntry::new();
-                entry.set_addr(PhysAddr::new(0xDEADC0DE).align_down(4096u64), PageTableFlags::WRITABLE);
-                    entry
-            };
-            wrapper.set_entry(PageTableIndex::new(0), entry);
-        }
-
         for kmmap in KernelAndModulesIterator::new() {
             for offset in (0..kmmap.len).step_by(P::SIZE.try_into().unwrap()) {
                 let page_frame = {
@@ -165,7 +131,14 @@ impl<P: PageSize> KPagingConfigurator<P> {
     }
 
     pub fn map_frame_allocator(&self) {
-        todo!();
+        for page_frame in FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() {
+            let page: Page = {
+                let page_addr = *HHDM + page_frame.start_address().as_u64();
+                Page::from_start_address(page_addr).unwrap()
+            };
+
+            self.map_page(page, Some(page_frame));
+        }
     }
 }
 
@@ -212,7 +185,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 PageTableLevel::One => page.start_address().p2_index(),
                 _ => unreachable!("Ayo, '{:?}' shouldn't be here <.<", lower_level),
             };
-            let table_entry = &table_wrapper.data[entry_index];
+            let table_entry = table_wrapper.get_entry(entry_index);
 
             let next_table_ptr = {
                 let next_table_vtr_ptr = if table_entry.is_unused() {
@@ -224,7 +197,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 next_table_vtr_ptr.as_mut_ptr() as *mut PageTable
             };
 
-            table_wrapper = unsafe {TableWrapper::new(next_table_ptr)};
+            table_wrapper = TableWrapper::new(next_table_ptr);
             level = lower_level;
         }
 

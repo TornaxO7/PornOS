@@ -10,7 +10,6 @@ use crate::memory::paging::frame_allocator::FRAME_ALLOCATOR;
 #[derive(Debug, Clone)]
 pub struct TableWrapper {
     ptr: *mut PageTable,
-    pub data: PageTable,
 }
 
 impl TableWrapper {
@@ -18,10 +17,8 @@ impl TableWrapper {
     ///
     /// * `ptr`: A pointer to a page table which the struct should wrap.
     pub fn new(ptr: *mut PageTable) -> Self {
-        let data = unsafe{ ptr.read()};
         Self {
             ptr,
-            data,
         }
     }
 
@@ -46,9 +43,8 @@ impl TableWrapper {
 
     /// Updates the entry at the given index in the page table and also writes that into the memory.
     pub fn set_entry(&mut self, index: PageTableIndex, entry: PageTableEntry) {
-        self.data[index] = entry;
         unsafe {
-            self.ptr.write(self.data.clone());
+            (*self.ptr)[index] = entry;
         }
     }
 
@@ -61,5 +57,11 @@ impl TableWrapper {
         };
 
         self.set_entry(index, entry);
+    }
+
+    pub fn get_entry(&self, index: PageTableIndex) -> &PageTableEntry {
+        unsafe {
+            &(*self.ptr)[index]
+        }
     }
 }

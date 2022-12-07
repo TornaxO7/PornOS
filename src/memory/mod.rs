@@ -1,5 +1,5 @@
 //! This module contains everything Memory related.
-use limine::LimineHhdmRequest;
+use limine::{LimineHhdmRequest, LimineStackSizeRequest};
 use x86_64::VirtAddr;
 
 use crate::println;
@@ -8,6 +8,7 @@ pub mod paging;
 pub mod types;
 
 static HDDM_REQUEST: LimineHhdmRequest = LimineHhdmRequest::new(0);
+// static STACK_SIZE_REQUEST: LimineStackSizeRequest = LimineStackSizeRequest::new(0).stack_size(256_000_000);
 
 lazy_static::lazy_static! {
     /// This variable contains the starting virtual address of the higher half virtual memory.

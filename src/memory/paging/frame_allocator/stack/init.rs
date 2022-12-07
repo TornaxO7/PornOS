@@ -22,6 +22,7 @@ impl Stack {
             start: stack_start,
             len: capacity,
             capacity,
+            amount_used_page_frames: 0,
         };
 
         stack.add_useable_page_frames();
@@ -33,7 +34,7 @@ impl Stack {
 
     /// Fills the stack with pointers to the page frames.
     /// WORKS:
-    fn add_useable_page_frames(&self) {
+    fn add_useable_page_frames(&mut self) {
         let mut entry_virt_addr = *HHDM + self.start.as_u64();
 
         for mmap in UseableMemChunkIterator::new() {
@@ -58,8 +59,7 @@ impl Stack {
     /// conflict of popping or pushing.
     fn swap_stack_frames(&mut self) {
         let stack_range = self.get_stack_range().unwrap();
-        // the amount of occupied page frames by the stack
-        let amount_occupied_page_frames = stack_range.end - stack_range.start;
+        self.amount_used_page_frames = stack_range.end - stack_range.start;
 
         if stack_range.end < self.len {
             let mut stack_entry_virt_addr = {
@@ -71,7 +71,7 @@ impl Stack {
                 *HHDM + entry_phys_addr.as_u64()
             };
 
-            for _ in 0..amount_occupied_page_frames {
+            for _ in 0..self.amount_used_page_frames {
                 let stack_entry_ptr = stack_entry_virt_addr.as_mut_ptr() as *mut u64;
                 let entry_switch_ptr = entry_switch_virt_addr.as_mut_ptr() as *mut u64;
                 unsafe {
@@ -83,7 +83,7 @@ impl Stack {
             }
         }
 
-        self.len -= amount_occupied_page_frames;
+        self.len -= self.amount_used_page_frames;
         self.capacity = self.len;
     }
 
