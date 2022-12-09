@@ -22,7 +22,7 @@ use self::{
     utils::table_wrapper::TableWrapper,
 };
 
-use crate::memory::HHDM;
+use crate::{memory::HHDM, println};
 
 lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
@@ -34,6 +34,7 @@ const STACK_INIT_PAGES: u64 = 16;
 pub static STACK_START: Once<VirtAddr> = Once::new();
 
 pub fn init() -> ! {
+    println!("HHDM: {:x}", HHDM.as_u64());
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
     p_configurator.map_heap();
@@ -96,6 +97,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 self.map_page(page, Some(page_frame));
             }
         }
+
+        println!("Yay");
     }
 
     /// Maps a heap for the kernel.

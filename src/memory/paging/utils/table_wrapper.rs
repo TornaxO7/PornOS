@@ -3,7 +3,7 @@ use x86_64::structures::paging::{
     PhysFrame,
 };
 
-use crate::memory::paging::frame_allocator::FRAME_ALLOCATOR;
+use crate::{memory::paging::frame_allocator::FRAME_ALLOCATOR, println};
 
 /// A little helper struct which should help to make more readable code by
 /// taking care of writing into the table and reading from it.
