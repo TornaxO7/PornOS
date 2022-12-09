@@ -9,20 +9,20 @@ use lazy_static::lazy_static;
 use spin::Once;
 use x86_64::{
     structures::paging::{
-        page_table::{PageTableEntry, PageTableLevel},
-        FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame,
-        Size4KiB,
+        page_table::PageTableLevel,
+        FrameAllocator, Page, PageSize, PageTable,
+        Size4KiB, PhysFrame,
     },
     PhysAddr, VirtAddr,
 };
 
 use self::{
     frame_allocator::FRAME_ALLOCATOR,
-    physical_mmap::{KernelAndModulesIterator, UseableMemChunkIterator},
+    physical_mmap::KernelAndModulesIterator,
     utils::table_wrapper::TableWrapper,
 };
 
-use crate::{memory::HHDM, println};
+use crate::memory::HHDM;
 
 lazy_static! {
     pub static ref HEAP_START: VirtAddr = *HHDM;
@@ -48,8 +48,7 @@ pub fn init() -> ! {
 
 #[cfg(feature = "test")]
 pub fn tests() {
-    let phys_mmap: PhysMemMap<Size4KiB> = PhysMemMap::new();
-    frame_allocator::tests(&phys_mmap);
+    frame_allocator::tests();
 }
 
 /// The paging configurator which sets up the different paging levels.
@@ -144,7 +143,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
 impl<P: PageSize> KPagingConfigurator<P> {
     pub fn switch_paging(&self) {
-        let p4_phys_addr = self.p4_phys_addr.as_u64() & !(0xFFF);
+        let p4_phys_addr = self.p4_phys_addr.as_u64();
         unsafe {
             asm! {
                 "xor r8, r8",

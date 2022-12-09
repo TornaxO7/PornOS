@@ -31,12 +31,28 @@ use crate::memory::{types::Bytes, HHDM};
 /// The size of a pointer in bytes.
 const POINTER_SIZE: Bytes = Bytes::new(8);
 
+/// The different errors which can appear when you try to push a value onto the stack.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum StackPushError {
+    /// The stack is already full
+    FullStack,
+    /// The given entry is not aligned
+    EntryNotAligned,
+}
+
 /// A Page-Frame Allocator which includes pointer to 4KiB big Page-Frames.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Stack {
+    /// Points where the stack starts
     start: PhysAddr,
+
+    /// The current amount of available page frames
     len: u64,
+
+    /// The maximum amount of available page frames.
     capacity: u64,
+
+    /// The amount of page frames which the stack itself uses to store the information.
     amount_used_page_frames: u64,
 }
 
@@ -71,22 +87,22 @@ impl Stack {
     /// Pushes the given frame index onto the stack.
     ///
     /// # Returns
-    /// `true` if the given frame index could be pushed successfully.
-    /// `false` if the stack is already full.
     ///
     /// # WARNING
     /// You have to make sure that the given frame index ***is*** free! Otherwise Undefined
     /// Behaviour will be your OS.
     #[must_use]
-    pub fn push(&mut self, entry_value: PhysAddr) -> bool {
+    pub fn push(&mut self, entry_value: PhysAddr) -> Result<(), StackPushError> {
         let exceeds_capacity = self.len >= self.capacity;
         if exceeds_capacity {
-            return false;
+            return Err(StackPushError::FullStack);
+        } else if !entry_value.is_aligned(Self::PAGE_SIZE.as_u64()) {
+            return Err(StackPushError::EntryNotAligned);
         }
 
         self.len += 1;
         self.set_entry_value(self.len - 1, PhysFrame::from_start_address(entry_value).unwrap());
-        true
+        Ok(())
     }
 
     /// Return the value at the given index of the stack.

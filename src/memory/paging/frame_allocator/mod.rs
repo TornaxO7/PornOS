@@ -22,6 +22,6 @@ lazy_static::lazy_static! {
 }
 
 #[cfg(feature = "test")]
-pub fn tests<P: PageSize + Send + Sync + Debug>(phys_mmap: &PhysMemMap<P>) {
-    stack::tests(phys_mmap);
+pub fn tests<>() {
+    stack::tests();
 }
