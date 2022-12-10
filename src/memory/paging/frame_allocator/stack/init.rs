@@ -13,7 +13,6 @@ use super::{Stack, StackIndex};
 impl Stack {
     /// Creates a new frame-stack with the given arguments.
     pub fn new() -> Self {
-        print!("Using Frame-Allocator-Stack ... ");
         let amount_page_frames = physical_mmap::get_amount_useable_page_frames::<Size4KiB>();
         let stack_start = get_stack_page_frame();
         let capacity = amount_page_frames;
@@ -28,7 +27,6 @@ impl Stack {
         stack.add_useable_page_frames();
         stack.swap_stack_frames();
 
-        println!("OK");
         stack
     }
 

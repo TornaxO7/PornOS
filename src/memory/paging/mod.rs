@@ -5,7 +5,6 @@ mod utils;
 
 use core::{arch::asm, marker::PhantomData};
 
-use lazy_static::lazy_static;
 use spin::Once;
 use x86_64::{
     structures::paging::{
