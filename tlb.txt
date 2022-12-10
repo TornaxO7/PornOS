@@ -1,2 +1,0 @@
-QEMU 7.1.0 monitor - type 'help' for more information
-(qemu) n[K[Dnv[K[D[Dnvi[K[D[D[Dnv[K

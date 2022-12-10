@@ -9,23 +9,20 @@ use lazy_static::lazy_static;
 use spin::Once;
 use x86_64::{
     structures::paging::{
-        page_table::PageTableLevel,
-        FrameAllocator, Page, PageSize, PageTable,
-        Size4KiB, PhysFrame,
+        page_table::PageTableLevel, FrameAllocator, Page, PageSize, PageTable, PhysFrame, Size4KiB,
     },
     PhysAddr, VirtAddr,
 };
 
 use self::{
-    frame_allocator::FRAME_ALLOCATOR,
-    physical_mmap::KernelAndModulesIterator,
+    frame_allocator::FRAME_ALLOCATOR, physical_mmap::KernelAndModulesIterator,
     utils::table_wrapper::TableWrapper,
 };
 
 use crate::{memory::HHDM, println};
 
-lazy_static! {
-    pub static ref HEAP_START: VirtAddr = *HHDM;
+lazy_static::lazy_static! {
+    pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
 }
 
 /// The amount of pages which should be used in the beginning for the stack.
@@ -82,6 +79,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
+    ///
+    /// SHOULD BE FINE
     pub fn map_kernel(&self) {
         for kmmap in KernelAndModulesIterator::new() {
             for offset in (0..kmmap.len).step_by(P::SIZE.try_into().unwrap()) {
@@ -97,36 +96,29 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 self.map_page(page, Some(page_frame));
             }
         }
-
-        println!("Yay");
     }
 
     /// Maps a heap for the kernel.
+    ///
+    /// SHOULD WORK
     pub fn map_heap(&self) {
-        let heap_page = Page::from_start_address(*HHDM).unwrap();
-        let heap_page_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
+        let heap_page = Page::from_start_address(*HEAP_START).unwrap();
 
-        self.map_page(heap_page, Some(heap_page_frame));
+        self.map_page(heap_page, None);
     }
 
     /// Creates a new stack mapping for the kernel.
     pub fn map_stack(&self) {
         // "- P::SIZE" to let the stack start in the allocated frame
-        STACK_START.call_once(|| VirtAddr::new_truncate(u64::MAX).align_down(P::SIZE));
+        STACK_START.call_once(|| {
+            VirtAddr::new((HHDM.as_u64() - 1) & ((1 << 48) - 1)).align_down(4u64)
+        });
         let mut addr = *STACK_START.get().unwrap();
 
         for _page_num in 0..STACK_INIT_PAGES {
-            let page_frame = {
-                let phys_addr = FRAME_ALLOCATOR
-                    .write()
-                    .allocate_frame()
-                    .unwrap()
-                    .start_address();
-                PhysFrame::from_start_address(phys_addr).unwrap()
-            };
+            let page = Page::from_start_address(addr.align_down(P::SIZE)).unwrap();
 
-            let page = Page::from_start_address(addr).unwrap();
-            self.map_page(page, Some(page_frame));
+            self.map_page(page, None);
 
             addr -= P::SIZE;
         }
@@ -147,13 +139,18 @@ impl<P: PageSize> KPagingConfigurator<P> {
 impl<P: PageSize> KPagingConfigurator<P> {
     pub fn switch_paging(&self) {
         let p4_phys_addr = self.p4_phys_addr.as_u64();
+        let stack_start = STACK_START.get().unwrap().as_u64();
         unsafe {
             asm! {
                 "xor r8, r8",
+                "mov r9, {1}",
                 "mov r8, {0}",
+                "mov rsp, r9",
                 "mov cr3, r8",
                 in(reg) p4_phys_addr,
+                in(reg) stack_start,
                 inout("r8") 0 => _,
+                inout("r9") 0 => _,
             }
         }
     }
