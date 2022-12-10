@@ -36,11 +36,7 @@ pub fn init() -> ! {
     p_configurator.map_stack();
     p_configurator.map_frame_allocator();
 
-    panic!("Bruh");
     p_configurator.switch_paging();
-
-
-    crate::init();
 }
 
 #[cfg(feature = "test")]
@@ -78,8 +74,6 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
-    ///
-    /// SHOULD BE FINE
     pub fn map_kernel(&self) {
         for kmmap in KernelAndModulesIterator::new() {
             for offset in (0..kmmap.len).step_by(P::SIZE.try_into().unwrap()) {
@@ -97,9 +91,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
         }
     }
 
-    /// Maps a heap for the kernel.
-    ///
-    /// SHOULD WORK
+    /// Map a heap for the kernel.
     pub fn map_heap(&self) {
         let heap_page = Page::from_start_address(*HEAP_START).unwrap();
 
@@ -136,12 +128,11 @@ impl<P: PageSize> KPagingConfigurator<P> {
 }
 
 impl<P: PageSize> KPagingConfigurator<P> {
-    pub fn switch_paging(&self) {
+    pub fn switch_paging(&self) -> ! {
         let p4_phys_addr = self.p4_phys_addr.as_u64();
         let stack_start = STACK_START.get().unwrap().as_u64();
         unsafe {
             asm! {
-                "xor r8, r8",
                 "mov r9, {1}",
                 "mov r8, {0}",
                 "mov rsp, r9",
@@ -153,6 +144,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 inout("r9") 0 => _,
             }
         }
+
+        crate::init();
     }
 }
 
