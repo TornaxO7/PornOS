@@ -30,15 +30,15 @@ const STACK_INIT_PAGES: u64 = 16;
 pub static STACK_START: Once<VirtAddr> = Once::new();
 
 pub fn init() -> ! {
-    println!("HHDM: {:x}", HHDM.as_u64());
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
     p_configurator.map_heap();
     p_configurator.map_stack();
     p_configurator.map_frame_allocator();
-    p_configurator.switch_paging();
 
     panic!("Bruh");
+    p_configurator.switch_paging();
+
 
     crate::init();
 }
@@ -109,9 +109,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// Creates a new stack mapping for the kernel.
     pub fn map_stack(&self) {
         // "- P::SIZE" to let the stack start in the allocated frame
-        STACK_START.call_once(|| {
-            VirtAddr::new((HHDM.as_u64() - 1) & ((1 << 48) - 1)).align_down(4u64)
-        });
+        STACK_START
+            .call_once(|| VirtAddr::new((HHDM.as_u64() - 1) & ((1 << 48) - 1)).align_down(4u64));
         let mut addr = *STACK_START.get().unwrap();
 
         for _page_num in 0..STACK_INIT_PAGES {
@@ -124,7 +123,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
     }
 
     pub fn map_frame_allocator(&self) {
-        for page_frame in FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() {
+        let stack_page_frames = { FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() };
+        for page_frame in stack_page_frames {
             let page: Page = {
                 let page_addr = *HHDM + page_frame.start_address().as_u64();
                 Page::from_start_address(page_addr).unwrap()
@@ -145,6 +145,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 "mov r9, {1}",
                 "mov r8, {0}",
                 "mov rsp, r9",
+                "mov rbp, r9",
                 "mov cr3, r8",
                 in(reg) p4_phys_addr,
                 in(reg) stack_start,
