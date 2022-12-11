@@ -1,10 +1,12 @@
 //! Contains the physical frame allocator.
 //! Currently only 4KiB page frames are possible.
 mod iterators;
+mod kernel_info;
 
 use limine::{LimineMemmapEntry, LimineMemmapRequest, LimineMemmapResponse, NonNullPtr};
 
 pub use iterators::{KernelAndModulesIterator, MemChunkIterator, UseableMemChunkIterator};
+pub use kernel_info::KernelData;
 
 use x86_64::structures::paging::PageSize;
 
@@ -26,3 +28,5 @@ pub fn get_memmap_response() -> &'static LimineMemmapResponse {
 pub fn get_mmaps() -> &'static [NonNullPtr<LimineMemmapEntry>] {
     get_memmap_response().memmap()
 }
+
+

@@ -5,7 +5,9 @@ OUTPUT_FORMAT(elf64-x86-64)
 KERNEL_BASE = 0xffffffff80000000;
 
 SECTIONS {
-    . = KERNEL_BASE + SIZEOF_HEADERS;
+    . = KERNEL_BASE;
+    KERNEL_START = .;
+    . += SIZEOF_HEADERS;
 
     .hash                   : { *(.hash) }
     .gnu.hash               : { *(.gnu.hash) }
@@ -71,4 +73,6 @@ SECTIONS {
     .shstrtab             0 : { *(.shstrtab) }
     .strtab               0 : { *(.strtab) }
     .symtab               0 : { *(.symtab) }
+
+    KERNEL_END = .;
 }

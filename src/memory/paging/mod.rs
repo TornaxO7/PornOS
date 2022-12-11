@@ -10,15 +10,12 @@ use x86_64::{
     structures::paging::{
         page_table::PageTableLevel, FrameAllocator, Page, PageSize, PageTable, PhysFrame, Size4KiB,
     },
-    PhysAddr, VirtAddr,
+    PhysAddr, VirtAddr, registers::control::{Cr3, Cr3Flags},
 };
 
-use self::{
-    frame_allocator::FRAME_ALLOCATOR, physical_mmap::KernelAndModulesIterator,
-    utils::table_wrapper::TableWrapper,
-};
+use self::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper};
 
-use crate::{memory::HHDM, println};
+use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 
 lazy_static::lazy_static! {
     pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
@@ -75,19 +72,19 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-        for kmmap in KernelAndModulesIterator::new() {
-            for offset in (0..kmmap.len).step_by(P::SIZE.try_into().unwrap()) {
-                let page_frame = {
-                    let page_frame_phys_addr = PhysAddr::new(kmmap.base + offset);
-                    PhysFrame::from_start_address(page_frame_phys_addr).unwrap()
-                };
-                let page = {
-                    let page_frame_virt_addr = *HHDM + page_frame.start_address().as_u64();
-                    Page::from_start_address(page_frame_virt_addr).unwrap()
-                };
+        let data = KernelData::new();
 
-                self.map_page(page, Some(page_frame));
-            }
+        for offset in (0..data.len.as_u64()).step_by(P::SIZE.try_into().unwrap()) {
+            let kernel_page_frame = {
+                let addr = (data.phys_addr + offset).align_down(P::SIZE);
+                PhysFrame::from_start_address(addr).unwrap()
+            };
+            let kernel_page = {
+                let addr = (data.virt_addr + offset).align_down(P::SIZE);
+                Page::from_start_address(addr).unwrap()
+            };
+
+            self.map_page(kernel_page, Some(kernel_page_frame));
         }
     }
 
@@ -131,19 +128,23 @@ impl<P: PageSize> KPagingConfigurator<P> {
     pub fn switch_paging(&self) -> ! {
         let p4_phys_addr = self.p4_phys_addr.as_u64();
         let stack_start = STACK_START.get().unwrap().as_u64();
+        // unsafe {
+        //     asm! {
+        //         "mov r9, {1}",
+        //         "mov r8, {0}",
+        //         "mov rsp, r9",
+        //         "mov rbp, r9",
+        //         "mov cr3, r8",
+        //         in(reg) p4_phys_addr,
+        //         in(reg) stack_start,
+        //         inout("r8") 0 => _,
+        //         inout("r9") 0 => _,
+        //     }
+        // }
         unsafe {
-            asm! {
-                "mov r9, {1}",
-                "mov r8, {0}",
-                "mov rsp, r9",
-                "mov rbp, r9",
-                "mov cr3, r8",
-                in(reg) p4_phys_addr,
-                in(reg) stack_start,
-                inout("r8") 0 => _,
-                inout("r9") 0 => _,
-            }
+            Cr3::write(PhysFrame::from_start_address(self.p4_phys_addr).unwrap(), Cr3Flags::empty());
         }
+        panic!("test");
 
         crate::init();
     }
