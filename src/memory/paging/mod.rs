@@ -8,9 +8,10 @@ use core::{arch::asm, marker::PhantomData};
 use spin::Once;
 use x86_64::{
     structures::paging::{
-        page_table::PageTableLevel, FrameAllocator, Page, PageSize, PageTable, PhysFrame, Size4KiB,
+        page_table::PageTableLevel, FrameAllocator, Page, PageSize, PageTable, PageTableFlags,
+        PhysFrame, Size4KiB,
     },
-    PhysAddr, VirtAddr, registers::control::{Cr3, Cr3Flags},
+    PhysAddr, VirtAddr,
 };
 
 use self::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper};
@@ -84,7 +85,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 Page::from_start_address(addr).unwrap()
             };
 
-            self.map_page(kernel_page, Some(kernel_page_frame));
+            self.map_page(kernel_page, Some(kernel_page_frame), PageTableFlags::PRESENT);
         }
     }
 
@@ -92,7 +93,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
     pub fn map_heap(&self) {
         let heap_page = Page::from_start_address(*HEAP_START).unwrap();
 
-        self.map_page(heap_page, None);
+        self.map_page(heap_page, None, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
     }
 
     /// Creates a new stack mapping for the kernel.
@@ -105,7 +106,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
         for _page_num in 0..STACK_INIT_PAGES {
             let page = Page::from_start_address(addr.align_down(P::SIZE)).unwrap();
 
-            self.map_page(page, None);
+            self.map_page(page, None, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
 
             addr -= P::SIZE;
         }
@@ -119,7 +120,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 Page::from_start_address(page_addr).unwrap()
             };
 
-            self.map_page(page, Some(page_frame));
+            self.map_page(page, Some(page_frame), PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
         }
     }
 }
@@ -128,24 +129,19 @@ impl<P: PageSize> KPagingConfigurator<P> {
     pub fn switch_paging(&self) -> ! {
         let p4_phys_addr = self.p4_phys_addr.as_u64();
         let stack_start = STACK_START.get().unwrap().as_u64();
-        // unsafe {
-        //     asm! {
-        //         "mov r9, {1}",
-        //         "mov r8, {0}",
-        //         "mov rsp, r9",
-        //         "mov rbp, r9",
-        //         "mov cr3, r8",
-        //         in(reg) p4_phys_addr,
-        //         in(reg) stack_start,
-        //         inout("r8") 0 => _,
-        //         inout("r9") 0 => _,
-        //     }
-        // }
         unsafe {
-            Cr3::write(PhysFrame::from_start_address(self.p4_phys_addr).unwrap(), Cr3Flags::empty());
+            asm! {
+                "mov r9, {1}",
+                "mov r8, {0}",
+                "mov rsp, r9",
+                "mov rbp, r9",
+                "mov cr3, r8",
+                in(reg) p4_phys_addr,
+                in(reg) stack_start,
+                inout("r8") 0 => _,
+                inout("r9") 0 => _,
+            }
         }
-        panic!("test");
-
         crate::init();
     }
 }
@@ -153,21 +149,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
 impl<P: PageSize> KPagingConfigurator<P> {
     /// Maps the given virtual page to the given physical page-frame if it's set.
     /// If `page_frame` is `None` a new page frame will be mapped to the given page.
-    pub fn map_page(&self, page: Page, page_frame: Option<PhysFrame>) {
-        let p1_index = page.p1_index();
-        let mut p1_table = self.get_p1_table(page);
-
-        if let Some(page_frame) = page_frame {
-            p1_table.set_page_frame(p1_index, page_frame);
-        } else {
-            p1_table.create_entry(p1_index);
-        }
-    }
-
-    /// Returns a table wrapper of the PageTable in the last level according to the given page.
-    ///
-    /// * `page`: The page where to read the different levels from.
-    fn get_p1_table(&self, page: Page) -> TableWrapper {
+    pub fn map_page(&self, page: Page, page_frame: Option<PhysFrame>, flags: PageTableFlags) {
         let mut table_wrapper = TableWrapper::new(self.p4_ptr);
         let mut level = PageTableLevel::Four;
 
@@ -182,8 +164,9 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
             let next_table_ptr = {
                 let next_table_vtr_ptr = if table_entry.is_unused() {
-                    let new_table_entry = table_wrapper.create_entry(entry_index);
-                    *HHDM + new_table_entry.addr().as_u64()
+                    let flags = PageTableFlags::WRITABLE | PageTableFlags::PRESENT;
+                    table_wrapper.set_page_frame(entry_index, None, flags);
+                    *HHDM + table_wrapper.get_entry(entry_index).addr().as_u64()
                 } else {
                     *HHDM + table_entry.addr().as_u64()
                 };
@@ -194,6 +177,6 @@ impl<P: PageSize> KPagingConfigurator<P> {
             level = lower_level;
         }
 
-        table_wrapper
+        table_wrapper.set_page_frame(page.p1_index(), page_frame, flags);
     }
 }

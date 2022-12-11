@@ -20,25 +20,6 @@ impl TableWrapper {
         Self { ptr }
     }
 
-    /// Creates a new entry for the page table by allocating a new page-frame and inserting it's
-    /// physical address at the given index.
-    ///
-    /// * `index`: The table-index where to write the physical starting address of the page-frame.
-    pub fn create_entry(&mut self, index: PageTableIndex) -> PageTableEntry {
-        let page_table_entry_flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-        let new_page_frame = { FRAME_ALLOCATOR.write().allocate_frame().unwrap() };
-
-        let new_entry = {
-            let mut entry = PageTableEntry::new();
-            entry.set_addr(new_page_frame.start_address(), page_table_entry_flags);
-            entry
-        };
-
-        self.set_entry(index, new_entry.clone());
-
-        new_entry
-    }
-
     /// Updates the entry at the given index in the page table and also writes that into the memory.
     pub fn set_entry(&mut self, index: PageTableIndex, entry: PageTableEntry) {
         unsafe {
@@ -46,11 +27,24 @@ impl TableWrapper {
         }
     }
 
-    pub fn set_page_frame(&mut self, index: PageTableIndex, page_frame: PhysFrame) {
-        let page_table_entry_flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+    /// Inserts the given page frame, if available, at the corresponding index in the current page
+    /// table with the given flags.
+    ///
+    /// * `index`: The entry-index where to put the page-frame.
+    /// * `page_frame`: The page frame which should be stored in the given index.
+    /// * `flags`: The flags of the new page-frame entry.
+    pub fn set_page_frame(
+        &mut self,
+        index: PageTableIndex,
+        page_frame: Option<PhysFrame>,
+        flags: PageTableFlags,
+    ) {
+        let page_frame =
+            page_frame.unwrap_or_else(|| FRAME_ALLOCATOR.write().allocate_frame().unwrap());
+
         let entry = {
             let mut entry = PageTableEntry::new();
-            entry.set_addr(page_frame.start_address(), page_table_entry_flags);
+            entry.set_addr(page_frame.start_address(), flags);
             entry
         };
 
@@ -61,3 +55,5 @@ impl TableWrapper {
         unsafe { &(*self.ptr)[index] }
     }
 }
+
+impl TableWrapper {}
