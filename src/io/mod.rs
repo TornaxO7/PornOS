@@ -1,3 +1,4 @@
+mod port;
 mod limine_terminal;
 
 use core::fmt::{self, Write};
