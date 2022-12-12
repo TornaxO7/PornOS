@@ -21,8 +21,6 @@ pub fn prolog_init() -> ! {
 }
 
 pub fn init() -> ! {
-    println!("SIU!!!");
-
     hlt_loop();
 }
 

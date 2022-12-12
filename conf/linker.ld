@@ -10,7 +10,7 @@ SECTIONS {
     .plt                    : { *(.plt .plt.*) }
     .text                   : { *(.text .text.*) }
 
-    /* ======== EPILOG START ======== */
+    /* ======== C START ======== */
     . += CONSTANT(MAXPAGESIZE);
     .code_end               : { *(.pornos_code_end) }
 
@@ -33,20 +33,8 @@ SECTIONS {
     }
     .gcc_except_table       : { KEEP(*(.gcc_except_table .gcc_except_table.*)) }
 
-    .tdata                  : { *(.tdata .tdata.*) }
-    .tbss                   : { *(.tbss .tbss.*) }
-
     .data.rel.ro            : { *(.data.rel.ro .data.rel.ro.*) }
     .dynamic                : { *(.dynamic) }
-
-    . = DATA_SEGMENT_RELRO_END(0, .);
-
-    .got                    : { *(.got .got.*) }
-    .got.plt                : { *(.got.plt .got.plt.*) }
-    .data                   : { *(.data .data.*) }
-    .bss                    : { *(.bss .bss.*) *(COMMON) }
-
-    . = DATA_SEGMENT_END(.);
 
     .comment                : { *(.comment) }
     .debug                  : { *(.debug) }
@@ -71,6 +59,21 @@ SECTIONS {
     .shstrtab               : { *(.shstrtab) }
     .strtab                 : { *(.strtab) }
     .symtab                 : { *(.symtab) }
+
+    . += CONSTANT(MAXPAGESIZE);
+    .read_only_end          : { *(.pornos_read_only_end) }
+
+    . = DATA_SEGMENT_RELRO_END(0, .);
+
+    .got                    : { *(.got .got.*) }
+    .got.plt                : { *(.got.plt .got.plt.*) }
+    .data                   : { *(.data .data.*) }
+    .bss                    : { *(.bss .bss.*) *(COMMON) }
+
+    .tdata                  : { *(.tdata .tdata.*) }
+    .tbss                   : { *(.tbss .tbss.*) }
+
+    . = DATA_SEGMENT_END(.);
 
     .data_end               : { *(.pornos_data_end) }
 }
