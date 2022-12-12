@@ -1,25 +1,30 @@
-use limine::LimineMemmapRequest;
-use x86_64::{VirtAddr, structures::paging::PageTable};
+//! This module contains everything Memory related.
+use limine::LimineHhdmRequest;
+use x86_64::VirtAddr;
 
-static MMAP_FEATURE: LimineMemmapRequest = LimineMemmapRequest::new(0);
+use crate::println;
 
-pub fn init() {
-    match MMAP_FEATURE.get_response().get() {
-        Some(memmap_response) => (),
-        None => (),
-    };
+pub mod paging;
+pub mod types;
+
+static HDDM_REQUEST: LimineHhdmRequest = LimineHhdmRequest::new(0);
+
+lazy_static::lazy_static! {
+    /// This variable contains the starting virtual address of the higher half virtual memory.
+    pub static ref HHDM: VirtAddr = VirtAddr::new(HDDM_REQUEST
+        .get_response()
+        .get()
+        .unwrap()
+        .offset);
 }
 
-fn enable_level_4_table(physical_memory_offset: VirtAddr) -> &'static mut PageTable {
-    use x86_64::registers::control::Cr3;
+/// Setting up the memory stuff.
+pub fn init() -> ! {
+    println!("Init Memory ...");
+    paging::init();
+}
 
-    let (level_4_table_frame, _) = Cr3::read();
-
-    let phys = level_4_table_frame.start_address();
-    let virt = physical_memory_offset + phys.as_u64();
-    let page_table_ptr: * mut PageTable = virt.as_mut_ptr();
-
-    unsafe {
-        &mut *page_table_ptr
-    }
+#[cfg(feature = "test")]
+pub fn tests() {
+    paging::tests();
 }
