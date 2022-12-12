@@ -24,6 +24,8 @@ lazy_static::lazy_static! {
     pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
 }
 
+pub static PML4E_ADDR: Once<VirtAddr> = Once::new();
+
 /// The amount of pages which should be used in the beginning for the stack.
 /// == 64KiB
 const STACK_INIT_PAGES: u64 = 16;
@@ -63,8 +65,9 @@ impl<P: PageSize> KPagingConfigurator<P> {
             .allocate_frame()
             .unwrap()
             .start_address();
-        let pml4e_virt_addr = *HHDM + pml4e_addr.as_u64();
-        let ptr = pml4e_virt_addr.as_mut_ptr() as *mut PageTable;
+
+        PML4E_ADDR.call_once(|| *HHDM + pml4e_addr.as_u64());
+        let ptr = PML4E_ADDR.get().unwrap().as_mut_ptr() as *mut PageTable;
 
         Self {
             size: PhantomData,
