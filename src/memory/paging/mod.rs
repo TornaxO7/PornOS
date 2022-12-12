@@ -3,7 +3,7 @@ mod frame_allocator;
 mod physical_mmap;
 mod utils;
 
-use core::{arch::asm, marker::PhantomData};
+use core::{arch::asm, marker::PhantomData, ops::Range};
 
 use spin::Once;
 use x86_64::{
@@ -17,6 +17,8 @@ use x86_64::{
 use self::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper};
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};
+
+use super::types::Bytes;
 
 lazy_static::lazy_static! {
     pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
@@ -54,6 +56,7 @@ pub struct KPagingConfigurator<P: PageSize> {
 }
 
 impl<P: PageSize> KPagingConfigurator<P> {
+    /// Creates a new pornos-paging-configurator
     pub fn new() -> Self {
         let pml4e_addr = FRAME_ALLOCATOR
             .write()
@@ -73,27 +76,21 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-        let data = KernelData::new();
+        let data = KernelData::<P>::new();
 
-        for offset in (0..data.len.as_u64()).step_by(P::SIZE.try_into().unwrap()) {
-            let kernel_page_frame = {
-                let addr = (data.phys_addr + offset).align_down(P::SIZE);
-                PhysFrame::from_start_address(addr).unwrap()
-            };
-            let kernel_page = {
-                let addr = (data.virt_addr + offset).align_down(P::SIZE);
-                Page::from_start_address(addr).unwrap()
-            };
-
-            self.map_page(kernel_page, Some(kernel_page_frame), PageTableFlags::PRESENT);
-        }
+        self.map_kernel_part(data.start_phys, data.start_virt, data.code, PageTableFlags::PRESENT);
+        self.map_kernel_part(data.start_phys, data.start_virt, data.data, PageTableFlags::PRESENT | PageTableFlags::NO_EXECUTE);
     }
 
     /// Map a heap for the kernel.
     pub fn map_heap(&self) {
         let heap_page = Page::from_start_address(*HEAP_START).unwrap();
 
-        self.map_page(heap_page, None, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
+        self.map_page(
+            heap_page,
+            None,
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+        );
     }
 
     /// Creates a new stack mapping for the kernel.
@@ -106,12 +103,17 @@ impl<P: PageSize> KPagingConfigurator<P> {
         for _page_num in 0..STACK_INIT_PAGES {
             let page = Page::from_start_address(addr.align_down(P::SIZE)).unwrap();
 
-            self.map_page(page, None, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
+            self.map_page(
+                page,
+                None,
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            );
 
             addr -= P::SIZE;
         }
     }
 
+    /// Maps the pages of the frame allocator.
     pub fn map_frame_allocator(&self) {
         let stack_page_frames = { FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() };
         for page_frame in stack_page_frames {
@@ -120,12 +122,17 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 Page::from_start_address(page_addr).unwrap()
             };
 
-            self.map_page(page, Some(page_frame), PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
+            self.map_page(
+                page,
+                Some(page_frame),
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            );
         }
     }
 }
 
 impl<P: PageSize> KPagingConfigurator<P> {
+    /// Switches the page-tables of limine with the custom one.
     pub fn switch_paging(&self) -> ! {
         let p4_phys_addr = self.p4_phys_addr.as_u64();
         let stack_start = STACK_START.get().unwrap().as_u64();
@@ -147,8 +154,12 @@ impl<P: PageSize> KPagingConfigurator<P> {
 }
 
 impl<P: PageSize> KPagingConfigurator<P> {
-    /// Maps the given virtual page to the given physical page-frame if it's set.
-    /// If `page_frame` is `None` a new page frame will be mapped to the given page.
+    /// Maps a page to the given page_frame (if available) with the given flags.
+    ///
+    /// * `page`: The page to be mapped.
+    /// * `page_frame`: If it's `Some`, then the page will be mapped to the given page frame,
+    ///                 otherwise a new page frame will ba allocated.
+    /// * `flags`: The flags for the given mapping.
     pub fn map_page(&self, page: Page, page_frame: Option<PhysFrame>, flags: PageTableFlags) {
         let mut table_wrapper = TableWrapper::new(self.p4_ptr);
         let mut level = PageTableLevel::Four;
@@ -178,5 +189,56 @@ impl<P: PageSize> KPagingConfigurator<P> {
         }
 
         table_wrapper.set_page_frame(page.p1_index(), page_frame, flags);
+    }
+
+    /// Maps a range of pages in a romw.
+    ///
+    /// * `page`: The starting page which should be mapped.
+    /// * `page_frame`: The starting page frame (if available) which should be mapped.
+    ///                 If it's `None`, random page-frames are picked up then.
+    /// * `len`: The amount of bytes which should be mapped in a row.
+    /// * `flags`: The flags for each page.
+    ///
+    /// # Note
+    /// If `page_frame` is `Some(...)`, then you **have to** make sure that, the range, starting
+    /// from the given page frame until `start + len` is **a valid Physicall address range**!!!
+    pub fn map_page_range(
+        &self,
+        page: Page,
+        page_frame: Option<PhysFrame>,
+        len: Bytes,
+        flags: PageTableFlags,
+    ) {
+        for offset in (0..len.as_u64()).step_by(P::SIZE.try_into().unwrap()) {
+            let page = {
+                let addr = (page.start_address() + offset).align_down(P::SIZE);
+                Page::from_start_address(addr).unwrap()
+            };
+
+            let page_frame = page_frame.map(|frame| {
+                let addr = (frame.start_address() + offset).align_down(P::SIZE);
+                PhysFrame::from_start_address(addr).unwrap()
+            });
+
+            self.map_page(page, page_frame, flags);
+        }
+    }
+
+    pub fn map_kernel_part(
+        &self,
+        phys_kernel_start: PhysAddr,
+        virt_kernel_start: VirtAddr,
+        range: Range<VirtAddr>,
+        flags: PageTableFlags,
+    ) {
+        let len = Bytes::new(range.end - range.start);
+        let page = Page::from_start_address(range.start).unwrap();
+
+        let page_frame = {
+            let offset = range.start - virt_kernel_start;
+            PhysFrame::from_start_address(phys_kernel_start + offset).unwrap()
+        };
+
+        self.map_page_range(page, Some(page_frame), len, flags);
     }
 }

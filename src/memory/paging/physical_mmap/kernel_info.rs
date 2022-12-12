@@ -1,41 +1,62 @@
 //! Just a helper module to get some information about the kernel.
 
-use limine::LimineKernelAddressRequest;
-use x86_64::{PhysAddr, VirtAddr};
+use core::{ops::Range, marker::PhantomData};
 
-use crate::{memory::types::Bytes, println};
+use limine::LimineKernelAddressRequest;
+use x86_64::{PhysAddr, VirtAddr, structures::paging::PageSize};
 
 static KERNEL_ADDRESS_REQUEST: LimineKernelAddressRequest = LimineKernelAddressRequest::new(0);
 
 #[no_mangle]
-static KERNEL_START: u8 = 0;
+#[link_section = ".pornos_code_end"]
+static CODE_END: u8 = 0;
+
 #[no_mangle]
-static KERNEL_END: u8 = 0;
+#[link_section = ".pornos_datad_end"]
+static DATA_END: u8 = 0;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct KernelData {
-    pub phys_addr: PhysAddr,
-    pub virt_addr: VirtAddr,
-    pub len: Bytes,
+pub struct KernelData<P: PageSize> {
+    pub start_phys: PhysAddr,
+    pub start_virt: VirtAddr,
+
+    pub code: Range<VirtAddr>,
+    pub data: Range<VirtAddr>,
+    size: PhantomData<P>,
 }
 
-impl KernelData {
+impl<P: PageSize> KernelData<P> {
     pub fn new() -> Self {
         let response = KERNEL_ADDRESS_REQUEST.get_response().get().unwrap();
-        let len = {
-            let start_ptr = (&KERNEL_START as * const u8) as u64;
-            let end_ptr = (&KERNEL_END as * const u8) as u64;
+        let code = {
+            let section_addr = (&CODE_END as * const u8) as u64;
 
-            println!("start: 0x{:x}, end: 0x{:x}", start_ptr, end_ptr);
-
-            Bytes::new(end_ptr - start_ptr)
+            let start = VirtAddr::new(response.virtual_base);
+            let end = (start + (section_addr - start.as_u64())).align_down(P::SIZE);
+            Range {
+                start,
+                end,
+            }
         };
 
+        let data = {
+            let section_addr = (&DATA_END as * const u8) as u64;
+
+            let start = code.end;
+            let end = VirtAddr::new(section_addr).align_up(P::SIZE);
+
+            Range {
+                start,
+                end,
+            }
+        };
 
         Self {
-            phys_addr: PhysAddr::new(response.physical_base),
-            virt_addr: VirtAddr::new(response.virtual_base),
-            len,
+            start_phys: PhysAddr::new(response.physical_base),
+            start_virt: VirtAddr::new(response.virtual_base),
+            code,
+            data,
+            size: PhantomData,
         }
     }
 }

@@ -1,2 +1,0 @@
-QEMU 7.1.0 monitor - type 'help' for more information
-(qemu) q[K[Dqu[K[D[Dqui[K[D[D[Dquit[K

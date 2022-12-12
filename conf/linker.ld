@@ -5,9 +5,14 @@ OUTPUT_FORMAT(elf64-x86-64)
 KERNEL_BASE = 0xffffffff80000000;
 
 SECTIONS {
-    . = KERNEL_BASE;
-    KERNEL_START = .;
-    . += SIZEOF_HEADERS;
+    . = KERNEL_BASE + SIZEOF_HEADERS;
+
+    .plt                    : { *(.plt .plt.*) }
+    .text                   : { *(.text .text.*) }
+
+    /* ======== EPILOG START ======== */
+    . += CONSTANT(MAXPAGESIZE);
+    .code_end               : { *(.pornos_code_end) }
 
     .hash                   : { *(.hash) }
     .gnu.hash               : { *(.gnu.hash) }
@@ -28,13 +33,6 @@ SECTIONS {
     }
     .gcc_except_table       : { KEEP(*(.gcc_except_table .gcc_except_table.*)) }
 
-    . += CONSTANT(MAXPAGESIZE);
-
-    .plt                    : { *(.plt .plt.*) }
-    .text                   : { *(.text .text.*) }
-
-    . += CONSTANT(MAXPAGESIZE);
-
     .tdata                  : { *(.tdata .tdata.*) }
     .tbss                   : { *(.tbss .tbss.*) }
 
@@ -50,29 +48,29 @@ SECTIONS {
 
     . = DATA_SEGMENT_END(.);
 
-    .comment              0 : { *(.comment) }
-    .debug                0 : { *(.debug) }
-    .debug_abbrev         0 : { *(.debug_abbrev) }
-    .debug_aranges        0 : { *(.debug_aranges) }
-    .debug_frame          0 : { *(.debug_frame) }
-    .debug_funcnames      0 : { *(.debug_funcnames) }
-    .debug_info           0 : { *(.debug_info .gnu.linkonce.wi.*) }
-    .debug_line           0 : { *(.debug_line) }
-    .debug_loc            0 : { *(.debug_loc) }
-    .debug_macinfo        0 : { *(.debug_macinfo) }
-    .debug_pubnames       0 : { *(.debug_pubnames) }
-    .debug_pubtypes       0 : { *(.debug_pubtypes) }
-    .debug_ranges         0 : { *(.debug_ranges) }
-    .debug_sfnames        0 : { *(.debug_sfnames) }
-    .debug_srcinfo        0 : { *(.debug_srcinfo) }
-    .debug_str            0 : { *(.debug_str) }
-    .debug_typenames      0 : { *(.debug_typenames) }
-    .debug_varnames       0 : { *(.debug_varnames) }
-    .debug_weaknames      0 : { *(.debug_weaknames) }
-    .line                 0 : { *(.line) }
-    .shstrtab             0 : { *(.shstrtab) }
-    .strtab               0 : { *(.strtab) }
-    .symtab               0 : { *(.symtab) }
+    .comment                : { *(.comment) }
+    .debug                  : { *(.debug) }
+    .debug_abbrev           : { *(.debug_abbrev) }
+    .debug_aranges          : { *(.debug_aranges) }
+    .debug_frame            : { *(.debug_frame) }
+    .debug_funcnames        : { *(.debug_funcnames) }
+    .debug_info             : { *(.debug_info .gnu.linkonce.wi.*) }
+    .debug_line             : { *(.debug_line) }
+    .debug_loc              : { *(.debug_loc) }
+    .debug_macinfo          : { *(.debug_macinfo) }
+    .debug_pubnames         : { *(.debug_pubnames) }
+    .debug_pubtypes         : { *(.debug_pubtypes) }
+    .debug_ranges           : { *(.debug_ranges) }
+    .debug_sfnames          : { *(.debug_sfnames) }
+    .debug_srcinfo          : { *(.debug_srcinfo) }
+    .debug_str              : { *(.debug_str) }
+    .debug_typenames        : { *(.debug_typenames) }
+    .debug_varnames         : { *(.debug_varnames) }
+    .debug_weaknames        : { *(.debug_weaknames) }
+    .line                   : { *(.line) }
+    .shstrtab               : { *(.shstrtab) }
+    .strtab                 : { *(.strtab) }
+    .symtab                 : { *(.symtab) }
 
-    KERNEL_END = .;
+    .data_end               : { *(.pornos_data_end) }
 }
