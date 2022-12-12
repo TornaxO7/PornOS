@@ -14,3 +14,8 @@ between two people like this:
 > A: Oh cool, never heard of i- wait a minute. ***What did you just say?***
 
 [kernel]: https://en.wikipedia.org/wiki/Kernel_(operating_system)
+
+## Other information
+This is a kernel to learn how to write a kernel. It's ***not*** meant to be used
+in production! I'm not responsible if you're running it on your real system and
+some stuff might get broken!
