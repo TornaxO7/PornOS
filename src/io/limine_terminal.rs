@@ -3,9 +3,10 @@ use core::fmt;
 use limine::LimineTerminalRequest;
 use spin::Mutex;
 
-static TERMINAL_REQUEST: LimineTerminalRequest = LimineTerminalRequest::new(0);
+use super::PornosWriter;
 
-pub static WRITER: Mutex<Writer> = Mutex::new(Writer { terminals: None });
+static TERMINAL_REQUEST: LimineTerminalRequest = LimineTerminalRequest::new(0);
+pub static PORNOS_WRITER: Mutex<Writer> = Mutex::new(Writer {terminals: None});
 
 pub struct Writer {
     terminals: Option<&'static limine::LimineTerminalResponse>,
@@ -35,3 +36,5 @@ impl fmt::Write for Writer {
         Ok(())
     }
 }
+
+impl PornosWriter for Writer {}
