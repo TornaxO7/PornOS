@@ -1,47 +1,29 @@
-pub mod logger;
+mod limine_terminal;
 
-use core::fmt;
-use limine::LimineTerminalRequest;
+use core::fmt::{self, Write};
+
 use spin::Mutex;
 
-static TERMINAL_REQUEST: LimineTerminalRequest = LimineTerminalRequest::new(0);
+static PORNOS_TERMINAL: Mutex<TerminalOutput> = Mutex::new(TerminalOutput::LimineTerminal);
 
-struct Writer {
-    terminals: Option<&'static limine::LimineTerminalResponse>,
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum TerminalOutput {
+    LimineTerminal,
 }
 
-unsafe impl Send for Writer {}
-
-impl fmt::Write for Writer {
+impl fmt::Write for TerminalOutput {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        // Get the Terminal response and cache it.
-        let response = match self.terminals {
-            None => {
-                let response = TERMINAL_REQUEST.get_response().get().ok_or(fmt::Error)?;
-                self.terminals = Some(response);
-                response
-            }
-            Some(resp) => resp,
+        let mut writer = match self {
+            Self::LimineTerminal => limine_terminal::WRITER.lock(),
         };
 
-        let write = response.write().ok_or(fmt::Error)?;
-
-        // Output the string onto each terminal.
-        for terminal in response.terminals() {
-            write(terminal, s);
-        }
-
-        Ok(())
+        writer.write_str(s)
     }
 }
 
-static WRITER: Mutex<Writer> = Mutex::new(Writer { terminals: None });
-
 pub fn _print(args: fmt::Arguments) {
-    // NOTE: Locking needs to happen around `print_fmt`, not `print_str`, as the former
-    // will call the latter potentially multiple times per invocation.
-    let mut writer = WRITER.lock();
-    fmt::Write::write_fmt(&mut *writer, args).ok();
+    let mut writer_guard = PORNOS_TERMINAL.lock();
+    writer_guard.write_fmt(args).ok();
 }
 
 #[macro_export]
