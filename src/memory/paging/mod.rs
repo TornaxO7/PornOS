@@ -78,9 +78,24 @@ impl<P: PageSize> KPagingConfigurator<P> {
     pub fn map_kernel(&self) {
         let data = KernelData::<P>::new();
 
-        self.map_kernel_part(data.start_phys, data.start_virt, data.code, PageTableFlags::PRESENT);
-        self.map_kernel_part(data.start_phys, data.start_virt, data.read_only, PageTableFlags::PRESENT | PageTableFlags::NO_EXECUTE);
-        self.map_kernel_part(data.start_phys, data.start_virt, data.data, PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE);
+        self.map_kernel_part(
+            data.start_phys,
+            data.start_virt,
+            data.code,
+            PageTableFlags::PRESENT,
+        );
+        self.map_kernel_part(
+            data.start_phys,
+            data.start_virt,
+            data.read_only,
+            PageTableFlags::PRESENT | PageTableFlags::NO_EXECUTE,
+        );
+        self.map_kernel_part(
+            data.start_phys,
+            data.start_virt,
+            data.data,
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE,
+        );
     }
 
     /// Map a heap for the kernel.
