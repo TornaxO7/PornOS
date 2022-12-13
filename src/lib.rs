@@ -8,6 +8,8 @@
 
 // extern crate alloc;
 
+use io::TerminalOutput;
+
 pub mod util;
 pub mod gdt;
 pub mod interrupt;
@@ -21,6 +23,10 @@ pub fn prolog_init() -> ! {
 }
 
 pub fn init() -> ! {
+    // now use stdio
+    // io::set_output(TerminalOutput::Serial);
+
+    println!("Serial test");
     hlt_loop();
 }
 
