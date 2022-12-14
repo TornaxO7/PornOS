@@ -10,10 +10,9 @@ SECTIONS {
     .plt                    : { *(.plt .plt.*) }
     .text                   : { *(.text .text.*) }
 
-    . += CONSTANT(MAXPAGESIZE);
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
     .code_end               : { *(.pornos_code_end) }
     /* ======== CODE END ======== */
-    . += CONSTANT(MAXPAGESIZE);
     .read_only              : { *(.read_only) *(.rodata .rodata.*) }
 
     .debug_abbrev           : { *(.debug_abbrev) }
@@ -31,7 +30,7 @@ SECTIONS {
     .shstrtab               : { *(.shstrtab) }
     .strtab                 : { *(.strtab) }
 
-    . += CONSTANT(MAXPAGESIZE);
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
     .read_only_end          : { *(.pornos_read_only_end) }
 
     .data                   : { *(.data .data.*) }
