@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 #![feature(int_roundings)]
+#![feature(strict_provenance)]
 // #![feature(alloc_error_handler)]
 
 #![allow(non_snake_case)]
@@ -21,6 +22,7 @@ pub fn prolog_init() -> ! {
 }
 
 pub fn init() -> ! {
+    println!("SIU");
     hlt_loop();
 }
 

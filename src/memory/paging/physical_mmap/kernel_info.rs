@@ -34,7 +34,7 @@ impl<P: PageSize> KernelData<P> {
     pub fn new() -> Self {
         let response = KERNEL_ADDRESS_REQUEST.get_response().get().unwrap();
         let code = {
-            let section_addr = (&CODE_END as * const u8) as u64;
+            let section_addr = (&CODE_END as * const u8).addr() as u64;
 
             let start = VirtAddr::new(response.virtual_base);
             let end = (start + (section_addr - start.as_u64())).align_up(P::SIZE);
@@ -45,7 +45,7 @@ impl<P: PageSize> KernelData<P> {
         };
 
         let read_only = {
-            let section_addr = (&READ_ONLY_END as * const u8) as u64;
+            let section_addr = (&READ_ONLY_END as * const u8).addr() as u64;
 
             let start = code.end;
             let end = VirtAddr::new(section_addr).align_up(P::SIZE);
@@ -56,7 +56,7 @@ impl<P: PageSize> KernelData<P> {
         };
 
         let data = {
-            let section_addr = (&unsafe{DATA_END} as * const u8) as u64;
+            let section_addr = (unsafe{&DATA_END as * const u8}).addr() as u64;
 
             let start = read_only.end;
             let end = VirtAddr::new(section_addr).align_up(P::SIZE);

@@ -12,8 +12,6 @@ SECTIONS {
 
     . += CONSTANT(MAXPAGESIZE);
     .code_end               : { *(.pornos_code_end) }
- . += CONSTANT(MAXPAGESIZE);
-    .code_end               : { *(.pornos_code_end) }
     /* ======== CODE END ======== */
     . += CONSTANT(MAXPAGESIZE);
     .read_only              : { *(.read_only) *(.rodata .rodata.*) }
@@ -35,7 +33,6 @@ SECTIONS {
 
     . += CONSTANT(MAXPAGESIZE);
     .read_only_end          : { *(.pornos_read_only_end) }
-	@@ -23,6 +39,8 @@ SECTIONS {
 
     .data                   : { *(.data .data.*) }
     .bss                    : { *(.bss .bss.*) *(COMMON) }
