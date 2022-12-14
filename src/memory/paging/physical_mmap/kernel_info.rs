@@ -56,13 +56,7 @@ impl<P: PageSize> KernelData<P> {
         };
 
         let data = {
-<<<<<<< HEAD
-            let section_addr = (&unsafe{DATA_END} as * const u8) as u64;
-||||||| e86050a
-            let section_addr = (&DATA_END as * const u8) as u64;
-=======
             let section_addr = (unsafe{&DATA_END as * const u8}).addr() as u64;
->>>>>>> main
 
             let start = read_only.end;
             let end = VirtAddr::new(section_addr).align_up(P::SIZE);
