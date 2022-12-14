@@ -2,13 +2,12 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 #![feature(int_roundings)]
+#![feature(strict_provenance)]
 // #![feature(alloc_error_handler)]
 
 #![allow(non_snake_case)]
 
 // extern crate alloc;
-
-use io::TerminalOutput;
 
 pub mod util;
 pub mod gdt;
@@ -23,10 +22,7 @@ pub fn prolog_init() -> ! {
 }
 
 pub fn init() -> ! {
-    // now use stdio
-    // io::set_output(TerminalOutput::Serial);
-
-    println!("Serial test");
+    println!("SIU");
     hlt_loop();
 }
 
