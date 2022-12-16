@@ -1,30 +1,24 @@
 //! This modules contains all available Terminal-IO options.
 mod serial;
-mod limine_terminal;
 
 use core::fmt::{self, Write};
 
 use spin::Mutex;
 
-static PORNOS_TERMINAL: Mutex<TerminalOutput> = Mutex::new(TerminalOutput::Limine);
+static PORNOS_TERMINAL: Mutex<TerminalOutput> = Mutex::new(TerminalOutput::Serial);
 
 /// The output type which you can choose.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TerminalOutput {
-    /// Use the terminal-feature from limine: https://github.com/limine-bootloader/limine/blob/trunk/PROTOCOL.md#terminal-feature
-    Limine,
-
     /// Use port-I/O: https://crates.io/crates/uart_16550
     Serial,
 }
 
 impl fmt::Write for TerminalOutput {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        let limine = &mut *limine_terminal::PORNOS_WRITER.lock() as &mut dyn PornosWriter;
         let serial = &mut *serial::PORNOS_WRITER.lock() as &mut dyn PornosWriter;
 
         let writer: &mut dyn PornosWriter = match self {
-            Self::Limine => limine,
             Self::Serial => serial,
         };
 

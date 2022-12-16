@@ -22,7 +22,7 @@ pub fn prolog_init() -> ! {
 }
 
 pub fn init() -> ! {
-    println!("SIU");
+    println!("OK");
     hlt_loop();
 }
 
