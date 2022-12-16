@@ -12,8 +12,6 @@ use pornos::{println, hlt_loop};
 #[cfg(not(feature = "test"))]
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
-    pornos::gdt::init();
-    pornos::interrupt::init();
     pornos::memory::init();
 }
 

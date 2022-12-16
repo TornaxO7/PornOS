@@ -9,20 +9,21 @@
 
 extern crate alloc;
 
+use alloc::boxed::Box;
+
 pub mod util;
 pub mod gdt;
 pub mod interrupt;
 pub mod io;
 pub mod memory;
 
-pub fn prolog_init() -> ! {
+pub fn init() -> ! {
     gdt::init();
     interrupt::init();
-    memory::init();
-}
 
-pub fn init() -> ! {
-    println!("OK");
+    let yes = Box::new(20);
+
+    println!("Entering infinity-loop...");
     hlt_loop();
 }
 

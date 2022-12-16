@@ -2,6 +2,7 @@
 mod frame_allocator;
 mod physical_mmap;
 mod utils;
+mod alloc;
 
 use core::{arch::asm, marker::PhantomData, ops::Range};
 
@@ -20,8 +21,9 @@ use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 
 use super::types::Bytes;
 
+pub const HEAP_SIZE: usize = 0x1000;
 lazy_static::lazy_static! {
-    pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
+    pub static ref HEAP_START: VirtAddr = VirtAddr::new(HEAP_SIZE as u64);
 }
 
 pub static PML4E_ADDR: Once<VirtAddr> = Once::new();

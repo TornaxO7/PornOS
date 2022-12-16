@@ -6,12 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["frame-allocator-stack"]
+default = ["frame-allocator-stack", "global-allocator-linked-list"]
 
 # frame allocators
 frame-allocator-array-stack = []
 frame-allocator-bitflag = []
 frame-allocator-stack = []
+
+# global allocators
+global-allocator-dummy = []
+global-allocator-linked-list = []
 
 # since `cargo test` doesn't work (*sad pika noises*) I will add tests as a
 # feature
