@@ -3,11 +3,11 @@
 #![feature(abi_x86_interrupt)]
 #![feature(int_roundings)]
 #![feature(strict_provenance)]
-// #![feature(alloc_error_handler)]
+#![feature(alloc_error_handler)]
 
 #![allow(non_snake_case)]
 
-// extern crate alloc;
+extern crate alloc;
 
 pub mod util;
 pub mod gdt;
