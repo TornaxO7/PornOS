@@ -23,7 +23,7 @@ use super::types::Bytes;
 
 pub const HEAP_SIZE: usize = 0x1000;
 lazy_static::lazy_static! {
-    pub static ref HEAP_START: VirtAddr = VirtAddr::new(HEAP_SIZE as u64);
+    pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
 }
 
 pub static PML4E_ADDR: Once<VirtAddr> = Once::new();
@@ -41,6 +41,10 @@ pub fn init() -> ! {
     p_configurator.map_frame_allocator();
 
     p_configurator.switch_paging();
+}
+
+pub fn init_heap() {
+    alloc::init();
 }
 
 #[cfg(feature = "test")]
