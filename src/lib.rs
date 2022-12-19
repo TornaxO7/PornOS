@@ -3,26 +3,23 @@
 #![feature(abi_x86_interrupt)]
 #![feature(int_roundings)]
 #![feature(strict_provenance)]
-// #![feature(alloc_error_handler)]
-
+#![feature(alloc_error_handler)]
 #![allow(non_snake_case)]
 
-// extern crate alloc;
+extern crate alloc;
 
-pub mod util;
 pub mod gdt;
 pub mod interrupt;
 pub mod io;
 pub mod memory;
-
-pub fn prolog_init() -> ! {
-    gdt::init();
-    interrupt::init();
-    memory::init();
-}
+pub mod util;
 
 pub fn init() -> ! {
-    println!("OK");
+    gdt::init();
+    interrupt::init();
+    memory::paging::init_heap();
+
+    println!("Entering infinity-loop...");
     hlt_loop();
 }
 
@@ -30,7 +27,6 @@ pub fn init() -> ! {
 pub fn tests() {
     memory::tests();
 }
-
 
 pub fn hlt_loop() -> ! {
     loop {

@@ -2,7 +2,7 @@
 use limine::LimineHhdmRequest;
 use x86_64::VirtAddr;
 
-use crate::print;
+use crate::println;
 
 pub mod paging;
 pub mod types;
@@ -20,7 +20,7 @@ lazy_static::lazy_static! {
 
 /// Setting up the memory stuff.
 pub fn init() -> ! {
-    print!("Init Memory ...");
+    println!("Init Memory ...");
     paging::init();
 }
 
