@@ -16,7 +16,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-use self::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper, virtual_mmap::{VMMMapper, VMMAPPER}};
+use self::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper, virtual_mmap::{VMMMapper, SIMP}};
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 

@@ -9,7 +9,11 @@ use crate::memory::{types::Bytes, HHDM};
 use super::{utils::table_wrapper::TableWrapper, PML4E_ADDR};
 
 lazy_static! {
-    pub static ref VMMAPPER: Mutex<Mapper> = Mutex::new(Mapper::new());
+    /// **S**uper **I**mpressive **M**a**p**per
+    ///
+    /// Yes, this is the mapper which maps page to page frames or in other
+    /// words: The ultimate ***SIMP***
+    pub static ref SIMP: Mutex<Mapper> = Mutex::new(Mapper::new());
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
