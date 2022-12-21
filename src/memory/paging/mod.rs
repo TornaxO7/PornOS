@@ -16,7 +16,11 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-use self::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper, virtual_mmap::{VMMMapper, SIMP}};
+use self::{
+    frame_allocator::FRAME_ALLOCATOR,
+    utils::table_wrapper::TableWrapper,
+    virtual_mmap::{VMMMapper, SIMP},
+};
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 
@@ -80,7 +84,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
         Self {
             size: PhantomData,
             p4_phys_addr,
-            p4_ptr: p4_phys_addr.as_u64() as * mut PageTable,
+            p4_ptr: p4_phys_addr.as_u64() as *mut PageTable,
         }
     }
 
@@ -113,11 +117,13 @@ impl<P: PageSize> KPagingConfigurator<P> {
     pub fn map_heap(&self) {
         let heap_page = Page::from_start_address(*HEAP_START).unwrap();
 
-        self.map_page(
-            heap_page,
-            None,
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-        );
+        unsafe {
+            SIMP.lock().map_page(
+                heap_page,
+                None,
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            )
+        };
     }
 
     /// Creates a new stack mapping for the kernel.
@@ -130,11 +136,13 @@ impl<P: PageSize> KPagingConfigurator<P> {
         for _page_num in 0..STACK_INIT_PAGES {
             let page = Page::from_start_address(addr.align_down(P::SIZE)).unwrap();
 
-            self.map_page(
-                page,
-                None,
-                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-            );
+            unsafe {
+                SIMP.lock().map_page(
+                    page,
+                    None,
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                )
+            };
 
             addr -= P::SIZE;
         }
@@ -149,11 +157,13 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 Page::from_start_address(page_addr).unwrap()
             };
 
-            self.map_page(
-                page,
-                Some(page_frame),
-                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-            );
+            unsafe {
+                SIMP.lock().map_page(
+                    page,
+                    Some(page_frame),
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                )
+            };
         }
     }
 }
@@ -196,6 +206,9 @@ impl<P: PageSize> KPagingConfigurator<P> {
             PhysFrame::from_start_address(phys_kernel_start + offset).unwrap()
         };
 
-        self.map_page_range(page, Some(page_frame), len, flags);
+        unsafe {
+            SIMP.lock()
+                .map_page_range(page, Some(page_frame), len, flags)
+        };
     }
 }
