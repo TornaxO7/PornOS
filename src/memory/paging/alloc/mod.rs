@@ -5,6 +5,9 @@ mod dummy;
 mod linked_list;
 
 pub fn init() {
+    #[cfg(feature = "global-allocator-dummy")]
+    dummy::init_heap();
+
     #[cfg(feature = "global-allocator-linked-list")]
     linked_list::init_heap();
 }
