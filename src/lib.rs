@@ -6,6 +6,8 @@
 #![feature(alloc_error_handler)]
 #![allow(non_snake_case)]
 
+use alloc::boxed::Box;
+
 extern crate alloc;
 
 pub mod gdt;
@@ -18,6 +20,8 @@ pub fn init() -> ! {
     gdt::init();
     interrupt::init();
     memory::paging::init_heap();
+
+    let _test = Box::new([0u8; 5000]);
 
     println!("Entering infinity-loop...");
     hlt_loop();
