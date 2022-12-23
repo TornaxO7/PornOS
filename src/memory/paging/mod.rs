@@ -3,23 +3,21 @@ mod alloc;
 mod frame_allocator;
 mod physical_mmap;
 mod utils;
-mod virtual_mmap;
+mod simp;
 
 use core::{arch::asm, marker::PhantomData, ops::Range};
 
 use spin::Once;
 use x86_64::{
     structures::paging::{
-        page_table::PageTableLevel, FrameAllocator, Page, PageSize, PageTable, PageTableFlags,
-        PhysFrame, Size4KiB,
+        FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
     },
     PhysAddr, VirtAddr,
 };
 
 use self::{
     frame_allocator::FRAME_ALLOCATOR,
-    utils::table_wrapper::TableWrapper,
-    virtual_mmap::{VMMMapper, SIMP},
+    simp::{VMMMapper, SIMP},
 };
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};

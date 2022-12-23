@@ -1,8 +1,8 @@
 use lazy_static::lazy_static;
 use spin::Mutex;
-use x86_64::structures::paging::{
+use x86_64::{structures::paging::{
     page_table::PageTableLevel, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
-};
+}, PhysAddr};
 
 use crate::memory::{types::Bytes, HHDM};
 
@@ -64,7 +64,34 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
     }
 
     unsafe fn unmap_page(&self, page: Page) -> Result<PhysFrame, ()> {
-        todo!()
+        let mut page_tables: [Option<* mut PageTable>; 3] = [None; 3];
+
+        let mut table_wrapper = TableWrapper::new(self.p4_ptr);
+        let mut level = PageTableLevel::Four;
+
+
+        while let Some(lower_level) = level.next_lower_level() {
+            let entry_index = match lower_level {
+                PageTableLevel::Three => page.start_address().p4_index(),
+                PageTableLevel::Two => page.start_address().p3_index(),
+                PageTableLevel::One => page.start_address().p2_index(),
+                _ => unreachable!("Ayo, '{:?}' shouldn't be here <.<", lower_level),
+            };
+            let table_entry = table_wrapper.get_entry(entry_index);
+
+            let next_table_ptr = {
+                if table_entry.is_unused() {
+                    Err(())
+                } else {
+                    let next_table_ptr = *HHDM + table_entry.addr().as_u64();
+                    Ok(next_table_ptr.as_mut_ptr() as * mut PageTable)
+                }
+            }?;
+
+            table_wrapper = TableWrapper::new(next_table_ptr);
+            level = lower_level;
+        }
+        Ok(PhysFrame::from_start_address(PhysAddr::zero()).unwrap())
     }
 
     /// Maps a range of pages in a romw.
@@ -101,6 +128,7 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
     }
 }
 
+/// A trait which each VM-Mapper should implement.
 pub unsafe trait VMMMapper<P: PageSize> {
     /// Maps a page to the given page_frame (if available) with the given flags.
     ///
