@@ -37,7 +37,11 @@ impl<P: PageSize> KernelData<P> {
             let section_addr = (&CODE_END as * const u8).addr() as u64;
 
             let start = VirtAddr::new(response.virtual_base);
-            let end = (start + (section_addr - start.as_u64())).align_up(P::SIZE);
+            let end = {
+                let section_size = section_addr - start.as_u64();
+                let end_addr = (start + section_size).align_up(P::SIZE);
+                end_addr - 1u64
+            };
             Range {
                 start,
                 end,
@@ -47,8 +51,8 @@ impl<P: PageSize> KernelData<P> {
         let read_only = {
             let section_addr = (&READ_ONLY_END as * const u8).addr() as u64;
 
-            let start = code.end;
-            let end = VirtAddr::new(section_addr).align_up(P::SIZE);
+            let start = code.end.align_up(P::SIZE);
+            let end = VirtAddr::new(section_addr).align_up(P::SIZE) - 1u64;
             Range {
                 start,
                 end,
@@ -58,8 +62,8 @@ impl<P: PageSize> KernelData<P> {
         let data = {
             let section_addr = (unsafe{&DATA_END as * const u8}).addr() as u64;
 
-            let start = read_only.end;
-            let end = VirtAddr::new(section_addr).align_up(P::SIZE);
+            let start = read_only.end.align_up(P::SIZE);
+            let end = VirtAddr::new(section_addr).align_up(P::SIZE) - 1u64;
 
             Range {
                 start,

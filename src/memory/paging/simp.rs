@@ -13,6 +13,8 @@ lazy_static! {
     ///
     /// Yes, this is the mapper which maps page to page frames or in other
     /// words: The ultimate ***SIMP***
+    ///
+    /// This is also known as the "Page-Mapper".
     pub static ref SIMP: Mutex<Mapper> = Mutex::new(Mapper::new());
 }
 

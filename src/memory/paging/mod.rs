@@ -2,16 +2,14 @@
 mod alloc;
 mod frame_allocator;
 mod physical_mmap;
-mod utils;
 mod simp;
+mod utils;
 
 use core::{arch::asm, marker::PhantomData, ops::Range};
 
 use spin::Once;
 use x86_64::{
-    structures::paging::{
-        FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
-    },
+    structures::paging::{FrameAllocator, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
@@ -70,7 +68,6 @@ pub fn tests() {
 #[derive(Debug, Clone)]
 pub struct KPagingConfigurator<P: PageSize> {
     size: PhantomData<P>,
-    p4_ptr: *mut PageTable,
     p4_phys_addr: PhysAddr,
 }
 
@@ -82,7 +79,6 @@ impl<P: PageSize> KPagingConfigurator<P> {
         Self {
             size: PhantomData,
             p4_phys_addr,
-            p4_ptr: p4_phys_addr.as_u64() as *mut PageTable,
         }
     }
 
@@ -127,8 +123,11 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// Creates a new stack mapping for the kernel.
     pub fn map_stack(&self) {
         // "- P::SIZE" to let the stack start in the allocated frame
-        STACK_START
-            .call_once(|| VirtAddr::new((HHDM.as_u64() - 1) & ((1 << 48) - 1)).align_down(4u64));
+        STACK_START.call_once(|| {
+            let mut stack_addr = (HHDM.as_u64() - 4u64) & ((1 << 48) - 1);
+            stack_addr -= P::SIZE;
+            VirtAddr::new(stack_addr).align_down(P::SIZE)
+        });
         let mut addr = *STACK_START.get().unwrap();
 
         for _page_num in 0..STACK_INIT_PAGES {
