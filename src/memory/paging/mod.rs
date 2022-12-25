@@ -2,7 +2,7 @@
 mod alloc;
 mod frame_allocator;
 mod physical_mmap;
-mod simp;
+mod virtual_mmap;
 mod utils;
 
 use core::{arch::asm, marker::PhantomData, ops::Range};
@@ -15,7 +15,7 @@ use x86_64::{
 
 use self::{
     frame_allocator::FRAME_ALLOCATOR,
-    simp::{VMMMapper, SIMP},
+    virtual_mmap::{SIMP, vmmap_traits::VMMapperMap},
 };
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};

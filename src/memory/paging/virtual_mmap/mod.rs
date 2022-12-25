@@ -1,8 +1,14 @@
+pub mod level_page_tables;
+pub mod vmmap_traits;
+
+mod unmap;
+
 use lazy_static::lazy_static;
 use spin::Mutex;
 use x86_64::{
     structures::paging::{
-        page, page_table::PageTableLevel, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
+        page_table::{PageTableEntry, PageTableLevel},
+        FrameAllocator, FrameDeallocator, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
         Size4KiB,
     },
     PhysAddr, VirtAddr,
@@ -10,7 +16,12 @@ use x86_64::{
 
 use crate::memory::{types::Bytes, HHDM};
 
-use super::{frame_allocator::FRAME_ALLOCATOR, utils::table_wrapper::TableWrapper, PML4E_ADDR};
+use self::{
+    level_page_tables::PTLevels,
+    vmmap_traits::{VMMMapper, VMMapperMap, VMmapperUnmap},
+};
+
+use super::{frame_allocator::FRAME_ALLOCATOR, PML4E_ADDR};
 
 lazy_static! {
     /// **S**uper **I**mpressive **M**a**p**per
@@ -43,8 +54,9 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
 
         let mapper = Self {
             start,
-            p4_ptr: PML4E_ADDR.get().unwrap().as_u64() as *mut PageTable,
+            p4_ptr: (start + PML4E_ADDR.get().unwrap().as_u64()).as_mut_ptr() as *mut PageTable,
         };
+
         unsafe {
             mapper.map_page_frame(
                 PhysFrame::from_start_address(*PML4E_ADDR.get().unwrap()).unwrap(),
@@ -58,9 +70,11 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
     fn translate_addr(&self, addr: PhysAddr) -> VirtAddr {
         self.start + addr.as_u64()
     }
+}
 
+unsafe impl VMMapperMap<Size4KiB> for Mapper {
     unsafe fn map_page(&self, page: Page, page_frame: Option<PhysFrame>, flags: PageTableFlags) {
-        let mut table_wrapper = TableWrapper::new(self.p4_ptr);
+        let mut pt_ptr = self.p4_ptr;
         let mut level = PageTableLevel::Four;
 
         while let Some(lower_level) = level.next_lower_level() {
@@ -70,24 +84,37 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
                 PageTableLevel::One => page.start_address().p2_index(),
                 _ => unreachable!("Ayo, '{:?}' shouldn't be here <.<", lower_level),
             };
-            let table_entry = table_wrapper.get_entry(entry_index);
 
-            let next_table_ptr = {
-                let next_table_vtr_ptr = if table_entry.is_unused() {
-                    let flags = PageTableFlags::WRITABLE | PageTableFlags::PRESENT;
-                    table_wrapper.set_page_frame(entry_index, None, flags);
-                    *HHDM + table_wrapper.get_entry(entry_index).addr().as_u64()
-                } else {
-                    *HHDM + table_entry.addr().as_u64()
-                };
-                next_table_vtr_ptr.as_mut_ptr() as *mut PageTable
-            };
+            let table_entry = &(*pt_ptr)[entry_index];
 
-            table_wrapper = TableWrapper::new(next_table_ptr);
             level = lower_level;
+            pt_ptr = {
+                let addr = if table_entry.is_unused() {
+                    let page_frame = { FRAME_ALLOCATOR.write().allocate_frame().unwrap() };
+                    self.map_page_frame(
+                        page_frame,
+                        PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                    );
+                    page_frame.start_address()
+                } else {
+                    table_entry.addr()
+                };
+                self.translate_addr(addr).as_mut_ptr() as *mut PageTable
+            }
         }
 
-        table_wrapper.set_page_frame(page.p1_index(), page_frame, flags);
+        let page_frame =
+            page_frame.unwrap_or_else(|| FRAME_ALLOCATOR.write().allocate_frame().unwrap());
+
+        let entry = {
+            let mut entry = PageTableEntry::new();
+            entry.set_addr(page_frame.start_address(), flags);
+            entry
+        };
+
+        unsafe {
+            (*pt_ptr)[page.p1_index()] = entry;
+        }
     }
 
     /// Maps the given page frame to the page which is calculated as follows:
@@ -135,13 +162,42 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
             self.map_page(page, page_frame, flags);
         }
     }
+}
 
-    unsafe fn unmap_page(&self, page: Page) -> Result<PhysFrame, ()> {
-        let mut page_tables: [Option<*mut PageTable>; 3] = [None; 3];
+unsafe impl VMmapperUnmap<Size4KiB> for Mapper {
+    unsafe fn unmap_page(&self, page: Page) -> Option<PhysFrame> {
+        let page_tables = self.get_page_tables(page)?;
+        let freed_page_frame = {
+            let p1 = page_tables.get_pt(PageTableLevel::One);
+            let p1_entry = (*p1)[page.p1_index()];
 
-        let mut table_wrapper = TableWrapper::new(self.p4_ptr);
+            (*p1)[page.p1_index()] = PageTableEntry::new();
+            PhysFrame::from_start_address(p1_entry.addr()).unwrap()
+        };
+
+        if page_tables.is_empty(PageTableLevel::One) {
+            // let p1 = page_tables.get_pt(PageTableLevel::One);
+            // let page = Page::from_start_address(VirtAddr::from_ptr(p1)).unwrap();
+            // let page_frame = self.unmap_page(page).unwrap();
+            // FRAME_ALLOCATOR.write().deallocate_frame(page_frame);
+            //
+            page_tables.free_pt(PageTableLevel::Two, PageTableLevel::One, page.p2_index());
+        }
+        if page_tables.is_empty(PageTableLevel::Two) {
+            page_tables.free_pt(PageTableLevel::Three, PageTableLevel::Two, page.p3_index());
+        }
+        if page_tables.is_empty(PageTableLevel::Three) {
+            page_tables.free_pt(PageTableLevel::Four, PageTableLevel::Three, page.p4_index());
+        }
+
+        Some(freed_page_frame)
+    }
+
+    unsafe fn get_page_tables(&self, page: Page) -> Option<PTLevels> {
+        let mut page_tables = PTLevels::new(self.p4_ptr);
+
+        let mut pt_ptr = self.p4_ptr;
         let mut level = PageTableLevel::Four;
-
         while let Some(lower_level) = level.next_lower_level() {
             let entry_index = match lower_level {
                 PageTableLevel::Three => page.start_address().p4_index(),
@@ -149,71 +205,21 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
                 PageTableLevel::One => page.start_address().p2_index(),
                 _ => unreachable!("Ayo, '{:?}' shouldn't be here <.<", lower_level),
             };
-            let table_entry = table_wrapper.get_entry(entry_index);
 
-            let next_table_ptr = {
-                if table_entry.is_unused() {
-                    Err(())
-                } else {
-                    let next_table_ptr = *HHDM + table_entry.addr().as_u64();
-                    Ok(next_table_ptr.as_mut_ptr() as *mut PageTable)
-                }
-            }?;
+            let table_entry = &(*pt_ptr)[entry_index];
+            if table_entry.is_unused() {
+                return None;
+            }
 
-            table_wrapper = TableWrapper::new(next_table_ptr);
             level = lower_level;
+            pt_ptr = {
+                let addr = table_entry.addr();
+                self.translate_addr(addr).as_mut_ptr() as *mut PageTable
+            };
+
+            page_tables.set_pt(pt_ptr, lower_level);
         }
-        Ok(PhysFrame::from_start_address(PhysAddr::zero()).unwrap())
+
+        Some(page_tables)
     }
-}
-
-/// A trait which each VM-Mapper should implement.
-pub unsafe trait VMMMapper<P: PageSize> {
-    fn new() -> Self;
-
-    /// Implements a standard translation function how the mapper translates the
-    /// givien physical address.
-    ///
-    /// * `addr`: the physical address which shoulud be translated into a
-    /// virtual address.
-    fn translate_addr(&self, addr: PhysAddr) -> VirtAddr;
-
-    /// Maps a page to the given page_frame (if available) with the given flags.
-    ///
-    /// * `page`: The page to be mapped.
-    /// * `page_frame`: If it's `Some`, then the page will be mapped to the given page frame,
-    ///                 otherwise a new page frame will ba allocated.
-    /// * `flags`: The flags for the given mapping.
-    unsafe fn map_page(&self, page: Page, page_frame: Option<PhysFrame>, flags: PageTableFlags);
-
-    /// Maps the given page frame by a standard-mapping implementation.
-    ///
-    /// * `page_frame`: The page frame which should be mapped.
-    /// * `flags`: The flags for the page.
-    unsafe fn map_page_frame(&self, page_frame: PhysFrame, flags: PageTableFlags);
-
-    /// Maps a range of pages in a romw.
-    ///
-    /// * `page`: The starting page which should be mapped.
-    /// * `page_frame`: The starting page frame (if available) which should be mapped.
-    ///                 If it's `None`, random page-frames are picked up then.
-    /// * `len`: The amount of bytes which should be mapped in a row.
-    /// * `flags`: The flags for each page.
-    ///
-    /// # Note
-    /// If `page_frame` is `Some(...)`, then you **have to** make sure that, the range, starting
-    /// from the given page frame until `start + len` is **a valid Physicall address range**!!!
-    unsafe fn map_page_range(
-        &self,
-        page: Page,
-        page_frame: Option<PhysFrame>,
-        len: Bytes,
-        flags: PageTableFlags,
-    );
-
-    /// Unmpas the given page and returns the unmapped page frame if everything
-    /// works fine.
-    ///
-    /// * `page`: The page which should be unmapped.
-    unsafe fn unmap_page(&self, page: Page) -> Result<PhysFrame, ()>;
 }
