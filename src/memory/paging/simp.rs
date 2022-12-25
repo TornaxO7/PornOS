@@ -55,6 +55,10 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
         mapper
     }
 
+    fn translate_addr(&self, addr: PhysAddr) -> VirtAddr {
+        self.start + addr.as_u64()
+    }
+
     unsafe fn map_page(&self, page: Page, page_frame: Option<PhysFrame>, flags: PageTableFlags) {
         let mut table_wrapper = TableWrapper::new(self.p4_ptr);
         let mut level = PageTableLevel::Four;
@@ -166,6 +170,13 @@ unsafe impl VMMMapper<Size4KiB> for Mapper {
 /// A trait which each VM-Mapper should implement.
 pub unsafe trait VMMMapper<P: PageSize> {
     fn new() -> Self;
+
+    /// Implements a standard translation function how the mapper translates the
+    /// givien physical address.
+    ///
+    /// * `addr`: the physical address which shoulud be translated into a
+    /// virtual address.
+    fn translate_addr(&self, addr: PhysAddr) -> VirtAddr;
 
     /// Maps a page to the given page_frame (if available) with the given flags.
     ///
