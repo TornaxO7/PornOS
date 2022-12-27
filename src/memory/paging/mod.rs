@@ -13,9 +13,11 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
+pub use virtual_mmap::{VMMapperMap, VMmapperUnmap};
+
 use self::{
     frame_allocator::FRAME_ALLOCATOR,
-    virtual_mmap::{SIMP, vmmap_traits::VMMapperMap},
+    virtual_mmap::SIMP,
 };
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};
