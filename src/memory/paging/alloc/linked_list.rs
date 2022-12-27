@@ -25,6 +25,10 @@ pub fn init_heap() {
     }
 }
 
+/// Some wrapper functions for the actual Global allocation.
+///
+/// # Safety
+/// Basically the same safety rules as for the GlobalAlloc.
 unsafe trait GlobalAllocWrapper<P: PageSize>: GlobalAlloc {
     unsafe fn wrap_alloc(&self, layout: Layout) -> *mut u8;
 

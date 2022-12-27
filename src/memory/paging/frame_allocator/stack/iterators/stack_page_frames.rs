@@ -7,7 +7,7 @@ impl Stack {
         StackPageFrames {
             index: 0,
             len: self.amount_used_page_frames as usize,
-            stack_page_frame_start: self.start.clone() + (POINTER_SIZE * self.capacity).as_u64(),
+            stack_page_frame_start: self.start + (POINTER_SIZE * self.capacity).as_u64(),
         }
     }
 }

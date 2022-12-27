@@ -22,7 +22,7 @@ pub use test::tests;
 type StackIndex = u64;
 
 use x86_64::{
-    structures::paging::{PageSize, Size4KiB, PhysFrame},
+    structures::paging::{PageSize, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
@@ -98,7 +98,6 @@ impl Stack {
     /// # WARNING
     /// You have to make sure that the given frame index ***is*** free! Otherwise Undefined
     /// Behaviour will be your OS.
-    #[must_use]
     pub fn push(&mut self, entry_value: PhysAddr) -> Result<(), StackPushError> {
         let exceeds_capacity = self.len >= self.capacity;
         if exceeds_capacity {
@@ -108,7 +107,10 @@ impl Stack {
         }
 
         self.len += 1;
-        self.set_entry_value(self.len - 1, PhysFrame::from_start_address(entry_value).unwrap());
+        self.set_entry_value(
+            self.len - 1,
+            PhysFrame::from_start_address(entry_value).unwrap(),
+        );
         Ok(())
     }
 
@@ -120,23 +122,21 @@ impl Stack {
     /// Returns the physical address, the value at the given index, if the index doesn't exceed the
     /// capacity of the stack.
     pub fn get_entry_value(&self, index: StackIndex) -> Option<PhysAddr> {
-        self.get_entry_virt_ptr(index)
-            .map(|entry_virt_ptr| {
-                let entry_ptr = entry_virt_ptr.as_mut_ptr() as * const u64;
-                let entry_value = unsafe {entry_ptr.read()};
-                PhysAddr::new(entry_value)
-            })
+        self.get_entry_virt_ptr(index).map(|entry_virt_ptr| {
+            let entry_ptr = entry_virt_ptr.as_mut_ptr() as *const u64;
+            let entry_value = unsafe { entry_ptr.read() };
+            PhysAddr::new(entry_value)
+        })
     }
 
     /// Sets the value at the given index in the stack to the starting address of the given page
     /// frame.
     pub fn set_entry_value(&self, index: StackIndex, page_frame: PhysFrame) {
-        self.get_entry_virt_ptr(index)
-            .map(|entry_virt_ptr|{
-                let entry_ptr = entry_virt_ptr.as_mut_ptr() as * mut u64;
-                let new_entry_value = page_frame.start_address();
-                unsafe {entry_ptr.write(new_entry_value.as_u64())};
-            });
+        if let Some(entry_virt_ptr) = self.get_entry_virt_ptr(index) {
+            let entry_ptr = entry_virt_ptr.as_mut_ptr() as *mut u64;
+            let new_entry_value = page_frame.start_address();
+            unsafe { entry_ptr.write(new_entry_value.as_u64()) };
+        }
     }
 
     /// Returns a pointer to the physical address of the entry with the given index in the stack.
