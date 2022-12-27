@@ -43,7 +43,7 @@ pub fn init() -> ! {
         .unwrap()
         .start_address();
 
-    PML4E_ADDR.call_once(|| pml4e_addr.clone());
+    PML4E_ADDR.call_once(|| pml4e_addr);
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
@@ -209,5 +209,11 @@ impl<P: PageSize> KPagingConfigurator<P> {
             SIMP.lock()
                 .map_page_range(page, Some(page_frame), len, flags)
         };
+    }
+}
+
+impl<P: PageSize> Default for KPagingConfigurator<P> {
+    fn default() -> Self {
+        Self::new()
     }
 }

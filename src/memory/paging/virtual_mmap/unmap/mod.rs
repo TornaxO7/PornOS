@@ -15,15 +15,21 @@ use self::page_tables::PageTables;
 
 use super::{Mapper, VMMapperGeneral};
 
+/// # Safety
+/// Make sure that you are not unmapping the wrong page!
 pub unsafe trait VMmapperUnmap<P: PageSize>: VMMapperGeneral<P> {
-    /// Unmpas the given page and returns the unmapped page frame if everything
+    /// Unmaps the given page and returns the unmapped page frame if everything
     /// works fine.
     ///
     /// * `page`: The page which should be unmapped.
     ///
     /// # Returns
-    /// - `Ok(addr)`: The page frame which was mapped by the given page.
-    /// - `Err(addr)`:
+    /// - `Some`: The mapped page frame of the given page (it's not freed!)
+    /// - `None`: If the given page wasn't mapped.
+    ///
+    /// # Safety
+    /// Make sure that the the `page` is correct and not any other page which
+    /// you currently use!!!
     unsafe fn unmap_page(&self, page: Page) -> Option<PhysFrame>;
 }
 

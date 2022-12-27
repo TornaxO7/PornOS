@@ -12,7 +12,7 @@ pub struct MemChunkIterator(Iter<'static, NonNullPtr<LimineMemmapEntry>>);
 
 impl MemChunkIterator {
     pub fn new() -> Self {
-        Self(super::get_mmaps().into_iter())
+        Self(super::get_mmaps().iter())
     }
 }
 

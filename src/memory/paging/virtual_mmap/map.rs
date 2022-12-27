@@ -11,6 +11,11 @@ use crate::memory::{
 
 use super::{Mapper, VMMapperGeneral};
 
+/// The trait which includes the functions to map pages to page frames.
+///
+/// # Safety
+/// You could mess this pretty much up by mapping a page to the wrong page
+/// frame, so keep an Eye on it, duh.
 pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
     /// Creates a new instance.
     ///
@@ -22,14 +27,22 @@ pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
     ///
     /// * `page`: The page to be mapped.
     /// * `page_frame`: If it's `Some`, then the page will be mapped to the given page frame,
-    ///                 otherwise a new page frame will ba allocated.
+    ///                 otherwise a new page frame is allocated and mapped by
+    ///                 `self.translate_addr`.
     /// * `flags`: The flags for the given mapping.
+    ///
+    /// # Safety
+    /// Make sure that the given page + page frame are valid otherwise you're
+    /// playing russian roulette with a shotgun. Have fun!
     unsafe fn map_page(&self, page: Page, page_frame: Option<PhysFrame>, flags: PageTableFlags);
 
     /// Maps the given page frame by a standard-mapping implementation.
     ///
     /// * `page_frame`: The page frame which should be mapped.
     /// * `flags`: The flags for the page.
+    ///
+    /// # Safety
+    /// The given page frame **must** be valid.
     unsafe fn map_page_frame(&self, page_frame: PhysFrame, flags: PageTableFlags) {
         let page = {
             let addr = self.translate_addr(page_frame.start_address());
@@ -47,9 +60,10 @@ pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
     /// * `len`: The amount of bytes which should be mapped in a row.
     /// * `flags`: The flags for each page.
     ///
-    /// # Note
-    /// If `page_frame` is `Some(...)`, then you **have to** make sure that, the range, starting
-    /// from the given page frame until `start + len` is **a valid Physicall address range**!!!
+    /// # Safety
+    /// If `page_frame` is `Some(...)`, then you **have to** make sure that, the
+    /// range, starting from the given page frame until `start + len`
+    /// (exclusive) **is** a **valid** Physicall address range!!!
     unsafe fn map_page_range(
         &self,
         page: Page,
