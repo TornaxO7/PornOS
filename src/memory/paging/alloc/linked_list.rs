@@ -11,10 +11,9 @@ use x86_64::structures::paging::PageTableFlags;
 use x86_64::structures::paging::Size4KiB;
 use x86_64::VirtAddr;
 
-use crate::memory::paging::frame_allocator::FRAME_ALLOCATOR;
-use crate::memory::paging::simp::VMMMapper;
-use crate::memory::paging::simp::SIMP;
-use crate::memory::paging::{HEAP_SIZE, HEAP_START};
+use crate::memory::paging::{
+    frame_allocator::FRAME_ALLOCATOR, virtual_mmap::SIMP, VMMapperMap, HEAP_SIZE, HEAP_START,
+};
 use crate::memory::types::Bytes;
 
 #[global_allocator]
@@ -54,7 +53,7 @@ impl Allocator {
 
     pub unsafe fn init(&self, heap_start: *mut u8, heap_size: usize) {
         let mut heap = self.0.lock();
-        heap.init(heap_start, heap_size);
+        unsafe { heap.init(heap_start, heap_size) };
     }
 }
 
@@ -68,9 +67,8 @@ unsafe impl GlobalAllocWrapper<Size4KiB> for Allocator {
                 let heap_top_addr = VirtAddr::new(heap.top() as u64);
                 heap_top_addr.align_down(Size4KiB::SIZE)
             };
-            let added_size = self.allocate_page_frame(heap_top_addr)
-                .unwrap();
-            heap.extend(added_size.as_usize());
+            let added_size = self.allocate_page_frame(heap_top_addr).unwrap();
+            unsafe { heap.extend(added_size.as_usize()) };
         }
 
         heap.allocate_first_fit(layout).unwrap().as_ptr()
@@ -82,7 +80,7 @@ unsafe impl GlobalAllocWrapper<Size4KiB> for Allocator {
         }
 
         let mut heap = self.0.lock();
-        heap.deallocate(NonNull::new(ptr).unwrap(), layout)
+        unsafe { heap.deallocate(NonNull::new(ptr).unwrap(), layout) }
     }
 
     /// Requests a new page frame from the page frame allocator and adds it to
@@ -109,10 +107,10 @@ unsafe impl GlobalAllocWrapper<Size4KiB> for Allocator {
 
 unsafe impl GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        self.wrap_alloc(layout)
+        unsafe { self.wrap_alloc(layout) }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        self.wrap_dealloc(ptr, layout)
+        unsafe { self.wrap_dealloc(ptr, layout) }
     }
 }

@@ -36,7 +36,7 @@ pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
             Page::from_start_address(addr).unwrap()
         };
 
-        self.map_page(page, Some(page_frame), flags);
+        unsafe { self.map_page(page, Some(page_frame), flags) };
     }
 
     /// Maps a range of pages in a romw.
@@ -95,16 +95,18 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
                 _ => unreachable!("Ayo, '{:?}' shouldn't be here <.<", lower_level),
             };
 
-            let table_entry = &(*pt_ptr)[entry_index];
+            let table_entry = unsafe { (*pt_ptr)[entry_index].clone() };
 
             level = lower_level;
             pt_ptr = {
                 let addr = if table_entry.is_unused() {
                     let page_frame = { FRAME_ALLOCATOR.write().allocate_frame().unwrap() };
-                    self.map_page_frame(
-                        page_frame,
-                        PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                    );
+                    unsafe {
+                        self.map_page_frame(
+                            page_frame,
+                            PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                        )
+                    };
                     page_frame.start_address()
                 } else {
                     table_entry.addr()
@@ -156,7 +158,7 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
                 PhysFrame::from_start_address(addr).unwrap()
             });
 
-            self.map_page(page, page_frame, flags);
+            unsafe { self.map_page(page, page_frame, flags) };
         }
     }
 }

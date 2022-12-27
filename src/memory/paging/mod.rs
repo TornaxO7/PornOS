@@ -76,7 +76,7 @@ pub struct KPagingConfigurator<P: PageSize> {
 impl<P: PageSize> KPagingConfigurator<P> {
     /// Creates a new pornos-paging-configurator
     pub fn new() -> Self {
-        let p4_phys_addr = PML4E_ADDR.get().unwrap().clone();
+        let p4_phys_addr = *PML4E_ADDR.get().unwrap();
 
         Self {
             size: PhantomData,

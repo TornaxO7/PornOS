@@ -9,7 +9,7 @@ pub struct PageTables([Option<*mut PageTable>; AMOUNT_PAGE_TABLES]);
 
 impl PageTables {
     pub fn new(p4_ptr: *mut PageTable) -> Self {
-        let page_tables = Self([None; AMOUNT_PAGE_TABLES]);
+        let mut page_tables = Self([None; AMOUNT_PAGE_TABLES]);
         page_tables.set_pt(p4_ptr, PageTableLevel::Four);
         page_tables
     }
@@ -40,7 +40,7 @@ impl PageTables {
     }
 }
 
-struct PageTablesPairIterator {
+pub struct PageTablesPairIterator {
     page_tables: [* mut PageTable; AMOUNT_PAGE_TABLES],
     parent_level: PageTableLevel,
 }
