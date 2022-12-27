@@ -4,12 +4,6 @@ use super::MemChunkIterator;
 
 pub struct KernelAndModulesIterator(MemChunkIterator);
 
-impl KernelAndModulesIterator {
-    pub fn new() -> Self {
-        Self(MemChunkIterator::new())
-    }
-}
-
 impl Iterator for KernelAndModulesIterator {
     type Item = &'static NonNullPtr<LimineMemmapEntry>;
 

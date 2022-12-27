@@ -9,16 +9,6 @@ pub fn ptl_to_index(level: PageTableLevel) -> usize {
     }
 }
 
-pub fn index_to_ptl(index: usize) -> Option<PageTableLevel> {
-    match index {
-        0 => Some(PageTableLevel::Four),
-        1 => Some(PageTableLevel::Two),
-        2 => Some(PageTableLevel::Three),
-        3 => Some(PageTableLevel::Four),
-        _ => None,
-    }
-}
-
 pub fn next_higher_level(level: PageTableLevel) -> Option<PageTableLevel> {
     match level {
         PageTableLevel::One => Some(PageTableLevel::Two),

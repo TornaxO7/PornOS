@@ -1,5 +1,5 @@
 //! Contains the type-safety implemenation of the index which points to the array of bits.
-use crate::memory::types::{Bytes, Byte};
+use crate::memory::types::Byte;
 
 const AMOUNT_BYTES: usize = 8;
 

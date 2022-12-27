@@ -3,8 +3,6 @@ use core::ops::Range;
 use crate::memory::paging::frame_allocator::stack::POINTER_SIZE;
 use crate::memory::paging::physical_mmap::{self, UseableMemChunkIterator};
 use crate::memory::HHDM;
-use crate::print;
-use crate::println;
 use x86_64::structures::paging::{PageSize, Size4KiB};
 use x86_64::PhysAddr;
 

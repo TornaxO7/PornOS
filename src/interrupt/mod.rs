@@ -46,6 +46,7 @@ lazy_static! {
         //         .set_stack_index(super::gdt::tss::DOUBLE_FAULT_IST_INDEX);
         // }
         idt.invalid_tss.set_handler_fn(invalid_tss::handler);
+        idt.security_exception.set_handler_fn(security_exception::handler);
         idt.segment_not_present.set_handler_fn(segment_not_present::handler);
         idt.stack_segment_fault.set_handler_fn(stack_segment_fault::handler);
         idt.general_protection_fault.set_handler_fn(general_protection_fault::handler);
