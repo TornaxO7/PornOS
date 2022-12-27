@@ -4,6 +4,8 @@
 #![feature(int_roundings)]
 #![feature(strict_provenance)]
 #![feature(alloc_error_handler)]
+
+#![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
 use alloc::boxed::Box;
