@@ -1,5 +1,3 @@
-pub mod tss;
-
 use lazy_static::lazy_static;
 use x86_64::{
     registers::segmentation::{Segment, CS, DS, ES, FS, GS, SS},
