@@ -2,8 +2,8 @@
 mod alloc;
 mod frame_allocator;
 mod physical_mmap;
-mod virtual_mmap;
 mod utils;
+mod virtual_mmap;
 
 use core::{arch::asm, marker::PhantomData, ops::Range};
 
@@ -15,10 +15,7 @@ use x86_64::{
 
 pub use virtual_mmap::{VMMapperMap, VMmapperUnmap};
 
-use self::{
-    frame_allocator::FRAME_ALLOCATOR,
-    virtual_mmap::SIMP,
-};
+use self::{frame_allocator::FRAME_ALLOCATOR, virtual_mmap::SIMP};
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 
@@ -36,14 +33,15 @@ pub static PML4E_ADDR: Once<PhysAddr> = Once::new();
 const STACK_INIT_PAGES: u64 = 16;
 pub static STACK_START: Once<VirtAddr> = Once::new();
 
+// TODO: Welp... map fails... yay.... fuck...
 pub fn init() -> ! {
-    let pml4e_addr = FRAME_ALLOCATOR
-        .write()
-        .allocate_frame()
-        .unwrap()
-        .start_address();
-
-    PML4E_ADDR.call_once(|| pml4e_addr);
+    PML4E_ADDR.call_once(|| {
+        FRAME_ALLOCATOR
+            .write()
+            .allocate_frame()
+            .unwrap()
+            .start_address()
+    });
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();

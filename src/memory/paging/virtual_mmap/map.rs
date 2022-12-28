@@ -1,6 +1,6 @@
 use x86_64::structures::paging::{
     page_table::{PageTableEntry, PageTableLevel},
-    FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+    FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
 };
 
 use crate::memory::{
@@ -73,15 +73,38 @@ pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
     );
 }
 
-unsafe impl VMMapperMap<Size4KiB> for Mapper {
-    fn new() -> Self {
-        let start = {
-            let pf_allocator_end_addr = *HHDM
-                + FRAME_ALLOCATOR.read().start.as_u64()
-                + FRAME_ALLOCATOR.read().get_size().as_u64();
-            pf_allocator_end_addr.align_up(Size4KiB::SIZE)
+impl Mapper {
+    /// Adds the given page frame to the givien page table.
+    ///
+    /// * `page_table`: The page which shoud get the page frame as the entry
+    ///                 value.
+    /// * `entry_index`: The index of the page table where to insert the value.
+    /// * `flags`: The flags for the entry.
+    ///
+    /// # Safety
+    /// You need to make sure that the pointer points to a avlid page table!
+    unsafe fn set_pt_entry(
+        &self,
+        page_table: *mut PageTable,
+        entry_index: PageTableIndex,
+        page_frame: PhysFrame,
+        flags: PageTableFlags,
+    ) {
+        let entry = {
+            let mut entry = PageTableEntry::new();
+            entry.set_addr(page_frame.start_address(), flags);
+            entry
         };
 
+        unsafe {
+            (*page_table)[entry_index] = entry;
+        }
+    }
+}
+
+unsafe impl VMMapperMap<Size4KiB> for Mapper {
+    fn new() -> Self {
+        let start = *HHDM;
         let mapper = Self {
             start,
             p4_ptr: (start + PML4E_ADDR.get().unwrap().as_u64()).as_mut_ptr() as *mut PageTable,
@@ -114,14 +137,16 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
             level = lower_level;
             pt_ptr = {
                 let addr = if table_entry.is_unused() {
-                    let page_frame = { FRAME_ALLOCATOR.write().allocate_frame().unwrap() };
+                    let page_table_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
                     unsafe {
-                        self.map_page_frame(
-                            page_frame,
+                        self.set_pt_entry(
+                            pt_ptr,
+                            entry_index,
+                            page_table_frame,
                             PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                        )
-                    };
-                    page_frame.start_address()
+                        );
+                    }
+                    page_table_frame.start_address()
                 } else {
                     table_entry.addr()
                 };
@@ -132,15 +157,7 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
         let page_frame =
             page_frame.unwrap_or_else(|| FRAME_ALLOCATOR.write().allocate_frame().unwrap());
 
-        let entry = {
-            let mut entry = PageTableEntry::new();
-            entry.set_addr(page_frame.start_address(), flags);
-            entry
-        };
-
-        unsafe {
-            (*pt_ptr)[page.p1_index()] = entry;
-        }
+        unsafe { self.set_pt_entry(pt_ptr, page.p1_index(), page_frame, flags) }
     }
 
     /// Maps a range of pages in a romw.

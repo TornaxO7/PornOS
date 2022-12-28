@@ -59,8 +59,8 @@ unsafe impl VMmapperUnmap<Size4KiB> for Mapper {
                 PageTableLevel::One => unreachable!("Ehhh this should be done before."),
             };
 
-            if unsafe{self.is_pt_empty(child_pt)} {
-                unsafe{self.free_pt(parent_pt, child_pt, entry_index)};
+            if unsafe { self.is_pt_empty(child_pt) } {
+                unsafe { self.free_pt(parent_pt, child_pt, entry_index) };
             }
         }
 
@@ -105,11 +105,11 @@ impl Mapper {
 
         let page_frame = {
             let addr = VirtAddr::from_ptr(child_pt);
-            let phys_addr = unsafe{self.detranslate_addr(addr)};
+            let phys_addr = unsafe { self.detranslate_addr(addr) };
             PhysFrame::from_start_address(phys_addr).unwrap()
         };
 
-        unsafe{FRAME_ALLOCATOR.write().deallocate_frame(page_frame)}
+        unsafe { FRAME_ALLOCATOR.write().deallocate_frame(page_frame) }
     }
 
     unsafe fn is_pt_empty(&self, pt: *const PageTable) -> bool {
