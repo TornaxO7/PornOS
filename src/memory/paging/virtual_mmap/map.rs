@@ -111,9 +111,13 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
         };
 
         unsafe {
-            mapper.map_page_frame(
-                PhysFrame::from_start_address(*PML4E_ADDR.get().unwrap()).unwrap(),
-                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            let pml4e_addr = *PML4E_ADDR.get().unwrap();
+            let page_frame = PhysFrame::from_start_address(pml4e_addr).unwrap();
+            let page = Page::from_start_address(mapper.start + pml4e_addr.as_u64()).unwrap();
+            mapper.map_page(
+                page,
+                Some(page_frame),
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE,
             );
         }
 
@@ -137,12 +141,25 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
             level = lower_level;
             pt_ptr = {
                 let addr = if table_entry.is_unused() {
+                    // let page_table_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
+                    // unsafe {
+                    //     self.set_pt_entry(
+                    //         pt_ptr,
+                    //         entry_index,
+                    //         page_table_frame,
+                    //         PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                    //     );
+                    // }
+                    // page_table_frame.start_address()
                     let page_table_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
+                    let page = {
+                        let addr = self.translate_addr(page_table_frame.start_address());
+                        Page::from_start_address(addr).unwrap()
+                    };
                     unsafe {
-                        self.set_pt_entry(
-                            pt_ptr,
-                            entry_index,
-                            page_table_frame,
+                        self.map_page(
+                            page,
+                            Some(page_table_frame),
                             PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
                         );
                     }

@@ -15,7 +15,7 @@ use x86_64::{
 
 pub use virtual_mmap::{VMMapperMap, VMmapperUnmap};
 
-use self::{frame_allocator::FRAME_ALLOCATOR, virtual_mmap::SIMP};
+pub use self::{frame_allocator::FRAME_ALLOCATOR, virtual_mmap::SIMP};
 
 use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 
@@ -115,7 +115,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
             SIMP.lock().map_page(
                 heap_page,
                 None,
-                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE,
             )
         };
     }
@@ -137,7 +137,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 SIMP.lock().map_page(
                     page,
                     None,
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE,
                 )
             };
 
@@ -158,7 +158,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 SIMP.lock().map_page(
                     page,
                     Some(page_frame),
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE,
                 )
             };
         }

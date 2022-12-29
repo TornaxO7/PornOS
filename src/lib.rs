@@ -4,11 +4,16 @@
 #![feature(int_roundings)]
 #![feature(strict_provenance)]
 #![feature(alloc_error_handler)]
-
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
-use alloc::boxed::Box;
+use alloc::{boxed::Box, string::String};
+use x86_64::{
+    structures::paging::{FrameAllocator, Page, PageTableFlags},
+    VirtAddr,
+};
+
+use crate::memory::paging::{VMMapperMap, FRAME_ALLOCATOR, SIMP};
 
 extern crate alloc;
 
@@ -23,7 +28,19 @@ pub fn init() -> ! {
     interrupt::init();
     memory::paging::init_heap();
 
-    let _test = Box::new([0u8; 5000]);
+    {
+        let page_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
+        let page = Page::from_start_address(VirtAddr::new(0x2000)).unwrap();
+        unsafe {
+            SIMP.lock().map_page(
+                page,
+                Some(page_frame),
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            );
+        }
+    }
+
+    // let _test = Box::new([0u8; 5000]);
 
     println!("Entering infinity-loop...");
     hlt_loop();

@@ -101,7 +101,7 @@ unsafe impl GlobalAllocWrapper<Size4KiB> for Allocator {
             SIMP.lock().map_page(
                 page,
                 Some(page_frame),
-                PageTableFlags::WRITABLE | PageTableFlags::PRESENT,
+                PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::NO_CACHE,
             );
         }
 
