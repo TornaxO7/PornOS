@@ -66,10 +66,7 @@ pub struct Stack(pub VirtAddr);
 
 impl Stack {
     pub fn new(page_size: Bytes) -> Self {
-        const STACK_ALIGNENT: u64 = 4;
-
-        let addr = MEM_STRUCTURE.kstart - 1u64;
-        Self(addr.align_down(STACK_ALIGNENT))
+        Self(MEM_STRUCTURE.kstart)
     }
 }
 

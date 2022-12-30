@@ -7,7 +7,7 @@ mod virtual_mmap;
 use core::{
     arch::asm,
     marker::PhantomData,
-    ops::{Range, SubAssign},
+    ops::Range,
 };
 
 use x86_64::{
@@ -114,7 +114,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
         let needed_bytes = Bytes::new(AMOUNT_STACK_PAGES * P::SIZE);
 
         let mut start_addr = {
-            let addr = MEM_STRUCTURE.stack.get().unwrap().0.align_up(P::SIZE);
+            let addr = MEM_STRUCTURE.stack.get().unwrap().0;
             addr - needed_bytes.as_u64()
         };
 

@@ -22,9 +22,9 @@ pub fn init() -> ! {
     interrupt::init();
     memory::paging::init_heap();
 
-    Box::new(69);
+    Box::new([0u8; 5000]);
 
-    println!("Yay");
+    println!("Why dude");
 
     hlt_loop();
 }

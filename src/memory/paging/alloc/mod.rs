@@ -1,14 +1,14 @@
 #[cfg(feature = "global-allocator-dummy")]
 mod dummy;
 
-#[cfg(feature = "global-allocator-linked-list")]
+#[cfg(feature = "global-allocator-linked-list-allocator-crate")]
 mod linked_list;
 
 pub fn init() {
     #[cfg(feature = "global-allocator-dummy")]
     dummy::init_heap();
 
-    #[cfg(feature = "global-allocator-linked-list")]
+    #[cfg(feature = "global-allocator-linked-list-allocator-crate")]
     linked_list::init_heap();
 }
 
