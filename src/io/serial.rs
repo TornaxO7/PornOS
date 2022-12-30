@@ -1,8 +1,6 @@
 //! Credits to Phillop Oppermann (<https://os.phil-opp.com/testing/>)
 
-use lazy_static::lazy_static;
-use spin::Mutex;
-use uart_16550::SerialPort;
+use {lazy_static::lazy_static, spin::Mutex, uart_16550::SerialPort};
 
 use super::PornosWriter;
 
@@ -10,7 +8,7 @@ pub static PORNOS_WRITER: Mutex<Writer> = Mutex::new(Writer);
 
 lazy_static! {
     static ref SERIAL1: Mutex<SerialPort> = {
-        let mut serial_port = unsafe {SerialPort::new(0x3F8)};
+        let mut serial_port = unsafe { SerialPort::new(0x3F8) };
         serial_port.init();
         Mutex::new(serial_port)
     };

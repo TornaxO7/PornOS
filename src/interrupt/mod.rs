@@ -19,10 +19,12 @@ mod stack_segment_fault;
 mod vmm_communication_exception;
 mod x87_floating_point;
 
-use lazy_static::lazy_static;
-use x86_64::{
-    set_general_handler,
-    structures::idt::{InterruptDescriptorTable, InterruptStackFrame},
+use {
+    lazy_static::lazy_static,
+    x86_64::{
+        set_general_handler,
+        structures::idt::{InterruptDescriptorTable, InterruptStackFrame},
+    },
 };
 
 use crate::{print, println};
@@ -41,11 +43,9 @@ lazy_static! {
         idt.bound_range_exceeded.set_handler_fn(bound_range_exceeded::handler);
         idt.invalid_opcode.set_handler_fn(invalid_opcode::handler);
         idt.device_not_available.set_handler_fn(device_not_available::handler);
-        // unsafe {
         idt.double_fault.set_handler_fn(double_fault::handler);
-        //         .set_stack_index(super::gdt::tss::DOUBLE_FAULT_IST_INDEX);
-        // }
         idt.invalid_tss.set_handler_fn(invalid_tss::handler);
+        idt.security_exception.set_handler_fn(security_exception::handler);
         idt.segment_not_present.set_handler_fn(segment_not_present::handler);
         idt.stack_segment_fault.set_handler_fn(stack_segment_fault::handler);
         idt.general_protection_fault.set_handler_fn(general_protection_fault::handler);

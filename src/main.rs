@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
-use pornos::{println, hlt_loop};
+use pornos::{hlt_loop, println};
 
 /// Kernel Entry Point
 ///

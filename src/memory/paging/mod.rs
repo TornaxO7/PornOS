@@ -1,55 +1,43 @@
 //! Includes the different paging implementation.
 mod alloc;
-mod frame_allocator;
+mod mem_structure;
 mod physical_mmap;
-mod utils;
-mod simp;
+mod virtual_mmap;
 
 use core::{arch::asm, marker::PhantomData, ops::Range};
 
-use spin::Once;
 use x86_64::{
-    structures::paging::{
-        FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB,
-    },
+    structures::paging::{Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
 use self::{
-    frame_allocator::FRAME_ALLOCATOR,
-    simp::{VMMMapper, SIMP},
+    mem_structure::{Heap, Pml4, Stack, MEM_STRUCTURE},
+    physical_mmap::{
+        frame_allocator::FRAME_ALLOCATOR, kernel_info::KernelData,
+        limine::iterators::UseableMemChunkIterator,
+    },
+    virtual_mmap::{VMMapperGeneral, VMMapperMap, SIMP},
 };
-
-use crate::memory::{paging::physical_mmap::KernelData, HHDM};
 
 use super::types::Bytes;
 
-pub const HEAP_SIZE: usize = 0x1000;
-lazy_static::lazy_static! {
-    pub static ref HEAP_START: VirtAddr = VirtAddr::new(0x1000);
-}
-
-pub static PML4E_ADDR: Once<PhysAddr> = Once::new();
-
-/// The amount of pages which should be used in the beginning for the stack.
-/// == 64KiB
-const STACK_INIT_PAGES: u64 = 16;
-pub static STACK_START: Once<VirtAddr> = Once::new();
-
 pub fn init() -> ! {
-    let pml4e_addr = FRAME_ALLOCATOR
-        .write()
-        .allocate_frame()
-        .unwrap()
-        .start_address();
-
-    PML4E_ADDR.call_once(|| pml4e_addr.clone());
+    // NOTE: Page Frame Allocator is automatically initialised!
+    MEM_STRUCTURE.pml4.call_once(Pml4::new);
+    MEM_STRUCTURE
+        .heap
+        .call_once(|| Heap::new(Bytes::new(Size4KiB::SIZE)));
+    MEM_STRUCTURE
+        .stack
+        .call_once(|| Stack::new(Bytes::new(Size4KiB::SIZE)));
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
     p_configurator.map_heap();
     p_configurator.map_stack();
     p_configurator.map_frame_allocator();
+    p_configurator.map_page_frames();
 
     p_configurator.switch_paging();
 }
@@ -59,9 +47,7 @@ pub fn init_heap() {
 }
 
 #[cfg(feature = "test")]
-pub fn tests() {
-    frame_allocator::tests();
-}
+pub fn tests() {}
 
 /// The paging configurator which sets up the different paging levels.
 ///
@@ -70,26 +56,22 @@ pub fn tests() {
 #[derive(Debug, Clone)]
 pub struct KPagingConfigurator<P: PageSize> {
     size: PhantomData<P>,
-    p4_ptr: *mut PageTable,
-    p4_phys_addr: PhysAddr,
+    p4: PhysAddr,
 }
 
 impl<P: PageSize> KPagingConfigurator<P> {
     /// Creates a new pornos-paging-configurator
     pub fn new() -> Self {
-        let p4_phys_addr = PML4E_ADDR.get().unwrap().clone();
-
         Self {
             size: PhantomData,
-            p4_phys_addr,
-            p4_ptr: p4_phys_addr.as_u64() as *mut PageTable,
+            p4: MEM_STRUCTURE.pml4.get().unwrap().phys,
         }
     }
 
     /// This maps the kernel and its modules to the same virtual address as the given virtual
     /// address of limine.
     pub fn map_kernel(&self) {
-        let data = KernelData::<P>::new();
+        let data = KernelData::<P>::from_limine();
 
         self.map_kernel_part(
             data.start_phys,
@@ -113,7 +95,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// Map a heap for the kernel.
     pub fn map_heap(&self) {
-        let heap_page = Page::from_start_address(*HEAP_START).unwrap();
+        let heap = MEM_STRUCTURE.heap.get().unwrap();
+        let heap_page = Page::from_start_address(heap.start).unwrap();
 
         unsafe {
             SIMP.lock().map_page(
@@ -126,32 +109,32 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// Creates a new stack mapping for the kernel.
     pub fn map_stack(&self) {
-        // "- P::SIZE" to let the stack start in the allocated frame
-        STACK_START
-            .call_once(|| VirtAddr::new((HHDM.as_u64() - 1) & ((1 << 48) - 1)).align_down(4u64));
-        let mut addr = *STACK_START.get().unwrap();
+        const AMOUNT_STACK_PAGES: u64 = 16;
+        let needed_bytes = Bytes::new(AMOUNT_STACK_PAGES * P::SIZE);
 
-        for _page_num in 0..STACK_INIT_PAGES {
-            let page = Page::from_start_address(addr.align_down(P::SIZE)).unwrap();
+        let mut start_addr = {
+            let addr = MEM_STRUCTURE.stack.get().unwrap().0;
+            addr - needed_bytes.as_u64()
+        };
 
-            unsafe {
-                SIMP.lock().map_page(
-                    page,
-                    None,
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                )
-            };
+        let starting_page = Page::from_start_address(start_addr).unwrap();
 
-            addr -= P::SIZE;
+        unsafe {
+            SIMP.lock().map_page_range(
+                starting_page,
+                None,
+                needed_bytes,
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            );
         }
     }
 
-    /// Maps the pages of the frame allocator.
+    /// Maps the pages which the page frame allocator uses.
     pub fn map_frame_allocator(&self) {
         let stack_page_frames = { FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() };
         for page_frame in stack_page_frames {
             let page: Page = {
-                let page_addr = *HHDM + page_frame.start_address().as_u64();
+                let page_addr = SIMP.lock().translate_addr(page_frame.start_address());
                 Page::from_start_address(page_addr).unwrap()
             };
 
@@ -159,9 +142,37 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 SIMP.lock().map_page(
                     page,
                     Some(page_frame),
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                    PageTableFlags::PRESENT
+                        | PageTableFlags::WRITABLE
+                        | PageTableFlags::NO_CACHE
+                        | PageTableFlags::NO_EXECUTE,
                 )
             };
+        }
+    }
+
+    /// Identity maps the page frames to the HHDM.
+    pub fn map_page_frames(&self) {
+        for mem_chunk in UseableMemChunkIterator::new() {
+            let starting_page = {
+                let addr = { SIMP.lock().translate_addr(PhysAddr::new(mem_chunk.base)) };
+
+                Page::from_start_address(addr).unwrap()
+            };
+            let starting_page_frame = {
+                let addr = PhysAddr::new(mem_chunk.base);
+                PhysFrame::from_start_address(addr).unwrap()
+            };
+            let len = Bytes::new(mem_chunk.len);
+
+            unsafe {
+                SIMP.lock().map_page_range(
+                    starting_page,
+                    Some(starting_page_frame),
+                    len,
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE,
+                );
+            }
         }
     }
 }
@@ -169,8 +180,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
 impl<P: PageSize> KPagingConfigurator<P> {
     /// Switches the page-tables of limine with the custom one.
     pub fn switch_paging(&self) -> ! {
-        let p4_phys_addr = self.p4_phys_addr.as_u64();
-        let stack_start = STACK_START.get().unwrap().as_u64();
+        let p4_phys_addr = self.p4.as_u64();
+        let stack_start = MEM_STRUCTURE.stack.get().unwrap().0.as_u64();
         unsafe {
             asm! {
                 "mov r9, {1}",
@@ -208,5 +219,11 @@ impl<P: PageSize> KPagingConfigurator<P> {
             SIMP.lock()
                 .map_page_range(page, Some(page_frame), len, flags)
         };
+    }
+}
+
+impl<P: PageSize> Default for KPagingConfigurator<P> {
+    fn default() -> Self {
+        Self::new()
     }
 }
