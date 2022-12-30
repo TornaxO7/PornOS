@@ -2,19 +2,13 @@ use {
     lazy_static::lazy_static,
     limine::LimineHhdmRequest,
     spin::Once,
-    x86_64::{
-        structures::paging::{FrameAllocator, PageSize},
-        PhysAddr, VirtAddr,
-    },
+    x86_64::{structures::paging::FrameAllocator, PhysAddr, VirtAddr},
 };
 
 use crate::memory::types::Bytes;
 
 use super::{
-    physical_mmap::{
-        frame_allocator::FRAME_ALLOCATOR,
-        limine::{get_mmaps, iterators::UseableMemChunkIterator},
-    },
+    physical_mmap::{frame_allocator::FRAME_ALLOCATOR, limine::iterators::UseableMemChunkIterator},
     virtual_mmap::{VMMapperGeneral, SIMP},
 };
 
@@ -48,13 +42,15 @@ pub struct Heap(pub VirtAddr);
 
 impl Heap {
     pub fn new(page_size: Bytes) -> Self {
-        let mut last_useable_addr = {
-            let last_useable = UseableMemChunkIterator::new().last().unwrap();
-            let addr = PhysAddr::new(last_useable.base);
+        let last_useable = UseableMemChunkIterator::new().last().unwrap();
+
+        let addr = {
+            let last_addr = last_useable.base + last_useable.len + 1u64;
+            let mut addr = PhysAddr::new(last_addr);
+            addr.align_up(page_size.as_u64());
             SIMP.lock().translate_addr(addr)
         };
 
-        let addr = last_useable_addr.align_up(page_size.as_u64());
         Self(addr)
     }
 }
