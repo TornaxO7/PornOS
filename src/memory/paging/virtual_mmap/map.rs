@@ -163,7 +163,7 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
         unsafe { self.set_pt_entry(pt_ptr, page.p1_index(), page_frame, flags) }
     }
 
-    /// Maps a range of pages in a romw.
+    /// Maps a range of pages in a row.
     ///
     /// * `page`: The starting page which should be mapped.
     /// * `page_frame`: The starting page frame (if available) which should be mapped.

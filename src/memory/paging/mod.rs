@@ -4,7 +4,11 @@ mod mem_structure;
 mod physical_mmap;
 mod virtual_mmap;
 
-use core::{arch::asm, marker::PhantomData, ops::Range};
+use core::{
+    arch::asm,
+    marker::PhantomData,
+    ops::{Range, SubAssign},
+};
 
 use x86_64::{
     structures::paging::{Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
@@ -106,16 +110,24 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// Creates a new stack mapping for the kernel.
     pub fn map_stack(&self) {
-        let mut start_addr = MEM_STRUCTURE.stack.get().unwrap().0;
-        let stack_page = Page::from_start_address(start_addr.align_down(P::SIZE)).unwrap();
+        const AMOUNT_STACK_PAGES: u64 = 16;
+        let needed_bytes = Bytes::new(AMOUNT_STACK_PAGES * P::SIZE);
+
+        let mut start_addr = {
+            let addr = MEM_STRUCTURE.stack.get().unwrap().0.align_up(P::SIZE);
+            addr - needed_bytes.as_u64()
+        };
+
+        let starting_page = Page::from_start_address(start_addr).unwrap();
 
         unsafe {
-            SIMP.lock().map_page(
-                stack_page,
+            SIMP.lock().map_page_range(
+                starting_page,
                 None,
+                needed_bytes,
                 PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-            )
-        };
+            );
+        }
     }
 
     /// Maps the pages which the page frame allocator uses.
