@@ -43,10 +43,7 @@ lazy_static! {
         idt.bound_range_exceeded.set_handler_fn(bound_range_exceeded::handler);
         idt.invalid_opcode.set_handler_fn(invalid_opcode::handler);
         idt.device_not_available.set_handler_fn(device_not_available::handler);
-        // unsafe {
         idt.double_fault.set_handler_fn(double_fault::handler);
-        //         .set_stack_index(super::gdt::tss::DOUBLE_FAULT_IST_INDEX);
-        // }
         idt.invalid_tss.set_handler_fn(invalid_tss::handler);
         idt.security_exception.set_handler_fn(security_exception::handler);
         idt.segment_not_present.set_handler_fn(segment_not_present::handler);

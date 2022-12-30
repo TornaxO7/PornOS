@@ -107,7 +107,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
     /// Creates a new stack mapping for the kernel.
     pub fn map_stack(&self) {
         let mut start_addr = MEM_STRUCTURE.stack.get().unwrap().0;
-        let stack_page = Page::from_start_address(start_addr).unwrap();
+        let stack_page = Page::from_start_address(start_addr.align_down(P::SIZE)).unwrap();
 
         unsafe {
             SIMP.lock().map_page(

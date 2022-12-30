@@ -6,8 +6,8 @@ use x86_64::{
 };
 
 use crate::memory::paging::{
+    mem_structure::MEM_STRUCTURE,
     physical_mmap::{self, limine::iterators::UseableMemChunkIterator},
-    virtual_mmap::{VMMapperGeneral, SIMP},
 };
 
 use super::{Stack, StackIndex, POINTER_SIZE};
@@ -36,7 +36,7 @@ impl Stack {
     /// Fills the stack with pointers to the page frames.
     /// WORKS:
     fn add_useable_page_frames(&mut self) {
-        let mut entry_virt_addr = { SIMP.lock().translate_addr(self.start) };
+        let mut entry_virt_addr = MEM_STRUCTURE.hhdm + self.start.as_u64();
 
         for mmap in UseableMemChunkIterator::new() {
             for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE.as_usize()) {
@@ -65,11 +65,11 @@ impl Stack {
         if stack_range.end < self.len {
             let mut stack_entry_virt_addr = {
                 let entry_phys_addr = self.start + (*POINTER_SIZE) * (stack_range.end - 1);
-                SIMP.lock().translate_addr(entry_phys_addr)
+                MEM_STRUCTURE.hhdm + entry_phys_addr.as_u64()
             };
             let mut entry_switch_virt_addr = {
                 let entry_phys_addr = self.start + (*POINTER_SIZE) * (self.len - 1);
-                SIMP.lock().translate_addr(entry_phys_addr)
+                MEM_STRUCTURE.hhdm + entry_phys_addr.as_u64()
             };
 
             for _ in 0..self.amount_used_page_frames {

@@ -46,8 +46,8 @@ impl Heap {
 
         let addr = {
             let last_addr = last_useable.base + last_useable.len + 1u64;
-            let mut addr = PhysAddr::new(last_addr);
-            addr.align_up(page_size.as_u64());
+            let addr = PhysAddr::new(last_addr);
+            let addr = addr.align_up(page_size.as_u64());
             SIMP.lock().translate_addr(addr)
         };
 
@@ -60,8 +60,10 @@ pub struct Stack(pub VirtAddr);
 
 impl Stack {
     pub fn new(page_size: Bytes) -> Self {
-        let mut stack_addr: VirtAddr = MEM_STRUCTURE.kstart - 1u64;
-        Self(stack_addr.align_down(page_size.as_u64()))
+        const STACK_ALIGNENT: u64 = 4;
+
+        let addr = MEM_STRUCTURE.kstart - 1u64;
+        Self(addr.align_down(STACK_ALIGNENT))
     }
 }
 
