@@ -38,20 +38,26 @@ pub struct MemStructure {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Heap(pub VirtAddr);
+pub struct Heap {
+    pub start: VirtAddr,
+    pub init_size: Bytes,
+}
 
 impl Heap {
     pub fn new(page_size: Bytes) -> Self {
         let last_useable = UseableMemChunkIterator::new().last().unwrap();
 
-        let addr = {
+        let start = {
             let last_addr = last_useable.base + last_useable.len + 1u64;
             let addr = PhysAddr::new(last_addr);
             let addr = addr.align_up(page_size.as_u64());
             SIMP.lock().translate_addr(addr)
         };
 
-        Self(addr)
+        Self {
+            start,
+            init_size: page_size,
+        }
     }
 }
 

@@ -21,11 +21,10 @@ use crate::memory::{
 #[global_allocator]
 static ALLOCATOR: Allocator = Allocator::new();
 
-pub const INIT_HEAP_SIZE: usize = 0x1000;
-
 pub fn init_heap() {
+    let heap = MEM_STRUCTURE.heap.get().unwrap();
     unsafe {
-        ALLOCATOR.init(MEM_STRUCTURE.heap.get().unwrap().0.as_mut_ptr(), INIT_HEAP_SIZE);
+        ALLOCATOR.init(heap.start.as_mut_ptr(), heap.init_size.as_usize());
     }
 }
 
@@ -88,7 +87,8 @@ unsafe impl GlobalAllocWrapper<Size4KiB> for Allocator {
         }
 
         let mut heap = self.0.lock();
-        unsafe { heap.deallocate(NonNull::new(ptr).unwrap(), layout) }
+        let wrapped_ptr = NonNull::new(ptr).unwrap();
+        unsafe { heap.deallocate(wrapped_ptr, layout) }
     }
 
     /// Requests a new page frame from the page frame allocator and adds it to

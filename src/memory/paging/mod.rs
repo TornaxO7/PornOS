@@ -96,8 +96,8 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// Map a heap for the kernel.
     pub fn map_heap(&self) {
-        let heap_addr = MEM_STRUCTURE.heap.get().unwrap().0;
-        let heap_page = Page::from_start_address(heap_addr).unwrap();
+        let heap = MEM_STRUCTURE.heap.get().unwrap();
+        let heap_page = Page::from_start_address(heap.start).unwrap();
 
         unsafe {
             SIMP.lock().map_page(

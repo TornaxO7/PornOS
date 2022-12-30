@@ -7,6 +7,7 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
+use alloc::boxed::Box;
 
 extern crate alloc;
 
@@ -19,6 +20,12 @@ pub mod util;
 pub fn init() -> ! {
     gdt::init();
     interrupt::init();
+    memory::paging::init_heap();
+
+    Box::new(69);
+
+    println!("Yay");
+
     hlt_loop();
 }
 
