@@ -1,17 +1,22 @@
 use core::ops::Range;
 
-use crate::memory::paging::frame_allocator::stack::POINTER_SIZE;
-use crate::memory::paging::physical_mmap::{self, UseableMemChunkIterator};
-use crate::memory::HHDM;
-use x86_64::structures::paging::{PageSize, Size4KiB};
-use x86_64::PhysAddr;
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr,
+};
 
-use super::{Stack, StackIndex};
+use crate::memory::paging::{
+    physical_mmap::{self, limine::iterators::UseableMemChunkIterator},
+    virtual_mmap::{VMMapperGeneral, SIMP},
+};
+
+use super::{Stack, StackIndex, POINTER_SIZE};
 
 impl Stack {
     /// Creates a new frame-stack with the given arguments.
     pub fn new() -> Self {
-        let amount_page_frames = physical_mmap::get_amount_useable_page_frames::<Size4KiB>();
+        let amount_page_frames =
+            physical_mmap::limine::get_amount_useable_page_frames::<Size4KiB>();
         let stack_start = get_stack_page_frame();
         let capacity = amount_page_frames;
 
@@ -31,7 +36,7 @@ impl Stack {
     /// Fills the stack with pointers to the page frames.
     /// WORKS:
     fn add_useable_page_frames(&mut self) {
-        let mut entry_virt_addr = *HHDM + self.start.as_u64();
+        let mut entry_virt_addr = { SIMP.lock().translate_addr(self.start) };
 
         for mmap in UseableMemChunkIterator::new() {
             for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE.as_usize()) {
@@ -60,11 +65,11 @@ impl Stack {
         if stack_range.end < self.len {
             let mut stack_entry_virt_addr = {
                 let entry_phys_addr = self.start + (*POINTER_SIZE) * (stack_range.end - 1);
-                *HHDM + entry_phys_addr.as_u64()
+                SIMP.lock().translate_addr(entry_phys_addr)
             };
             let mut entry_switch_virt_addr = {
                 let entry_phys_addr = self.start + (*POINTER_SIZE) * (self.len - 1);
-                *HHDM + entry_phys_addr.as_u64()
+                SIMP.lock().translate_addr(entry_phys_addr)
             };
 
             for _ in 0..self.amount_used_page_frames {
@@ -126,7 +131,7 @@ impl Stack {
 // FUTURE: It could happen, that we'll get the last frame because the other frames might
 // be too small....
 fn get_stack_page_frame() -> PhysAddr {
-    let amount_page_frames = physical_mmap::get_amount_useable_page_frames::<Size4KiB>();
+    let amount_page_frames = physical_mmap::limine::get_amount_useable_page_frames::<Size4KiB>();
     let needed_free_space = POINTER_SIZE * amount_page_frames;
 
     for mmap in UseableMemChunkIterator::new() {

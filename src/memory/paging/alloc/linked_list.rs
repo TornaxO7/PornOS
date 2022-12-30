@@ -1,27 +1,31 @@
-use core::alloc::GlobalAlloc;
-use core::alloc::Layout;
-use core::ptr::NonNull;
-
-use linked_list_allocator::Heap;
-use spin::Mutex;
-use x86_64::structures::paging::FrameAllocator;
-use x86_64::structures::paging::Page;
-use x86_64::structures::paging::PageSize;
-use x86_64::structures::paging::PageTableFlags;
-use x86_64::structures::paging::Size4KiB;
-use x86_64::VirtAddr;
-
-use crate::memory::paging::{
-    frame_allocator::FRAME_ALLOCATOR, virtual_mmap::SIMP, VMMapperMap, HEAP_SIZE, HEAP_START,
+use core::{
+    alloc::{GlobalAlloc, Layout},
+    ptr::NonNull,
 };
-use crate::memory::types::Bytes;
+
+use {
+    linked_list_allocator::Heap,
+    spin::Mutex,
+    x86_64::{
+        structures::paging::{FrameAllocator, Page, PageSize, PageTableFlags, Size4KiB},
+        VirtAddr,
+    },
+};
+
+use crate::memory::{
+    paging::{mem_structure::MEM_STRUCTURE, physical_mmap::frame_allocator::FRAME_ALLOCATOR, virtual_mmap::{SIMP, VMMapperMap}
+    },
+    types::Bytes,
+};
 
 #[global_allocator]
 static ALLOCATOR: Allocator = Allocator::new();
 
+pub const INIT_HEAP_SIZE: usize = 0x1000;
+
 pub fn init_heap() {
     unsafe {
-        ALLOCATOR.init(HEAP_START.as_mut_ptr(), HEAP_SIZE);
+        ALLOCATOR.init(MEM_STRUCTURE.heap.get().unwrap().0.as_mut_ptr(), INIT_HEAP_SIZE);
     }
 }
 

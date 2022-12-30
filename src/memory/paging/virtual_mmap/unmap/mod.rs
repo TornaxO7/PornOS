@@ -9,7 +9,7 @@ use x86_64::{
     VirtAddr,
 };
 
-use crate::memory::paging::frame_allocator::FRAME_ALLOCATOR;
+use crate::memory::paging::physical_mmap::frame_allocator::FRAME_ALLOCATOR;
 
 use self::page_tables::PageTables;
 

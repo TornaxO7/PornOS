@@ -14,7 +14,8 @@ mod page_frame_allocator;
 
 #[cfg(feature = "test")]
 mod test;
-use core::fmt::Debug;
+
+use core::mem::size_of;
 
 #[cfg(feature = "test")]
 pub use test::tests;
@@ -26,10 +27,10 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-use crate::memory::{types::Bytes, HHDM};
+use crate::memory::{paging::mem_structure::MEM_STRUCTURE, types::Bytes};
 
 /// The size of a pointer in bytes.
-const POINTER_SIZE: Bytes = Bytes::new(8);
+const POINTER_SIZE: Bytes = Bytes::new(size_of::<*const u8>() as u64);
 
 /// The different errors which can appear when you try to push a value onto the stack.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -156,6 +157,6 @@ impl Stack {
     /// * `index`: The entryz index to the entry where the pointer should point to.
     fn get_entry_virt_ptr(&self, index: StackIndex) -> Option<VirtAddr> {
         self.get_entry_phys_ptr(index)
-            .map(|entry_phys_ptr| *HHDM + entry_phys_ptr.as_u64())
+            .map(|entry_phys_ptr| MEM_STRUCTURE.hhdm + entry_phys_ptr.as_u64())
     }
 }

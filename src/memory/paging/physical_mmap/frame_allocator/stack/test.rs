@@ -1,6 +1,9 @@
 use x86_64::PhysAddr;
 
-use crate::{memory::{HHDM, paging::frame_allocator::stack::StackPushError}, print, println};
+use crate::{
+    memory::{paging::frame_allocator::stack::StackPushError, HHDM},
+    print, println,
+};
 
 use super::Stack;
 

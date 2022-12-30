@@ -4,11 +4,13 @@ mod general;
 mod map;
 mod unmap;
 
-use lazy_static::lazy_static;
-use spin::Mutex;
-use x86_64::{
-    structures::paging::{PageTable, Size4KiB},
-    VirtAddr,
+use {
+    lazy_static::lazy_static,
+    spin::Mutex,
+    x86_64::{
+        structures::paging::{PageTable, Size4KiB},
+        VirtAddr,
+    },
 };
 
 use self::vmmap_traits::VMMapper;

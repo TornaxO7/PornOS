@@ -1,12 +1,10 @@
 use x86_64::structures::paging::{
     page_table::{PageTableEntry, PageTableLevel},
-    FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
+    Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB, FrameAllocator,
 };
 
 use crate::memory::{
-    paging::{frame_allocator::FRAME_ALLOCATOR, PML4E_ADDR},
-    types::Bytes,
-    HHDM,
+    types::Bytes, paging::{mem_structure::MEM_STRUCTURE, physical_mmap::frame_allocator::FRAME_ALLOCATOR},
 };
 
 use super::{Mapper, VMMapperGeneral};
@@ -104,16 +102,17 @@ impl Mapper {
 
 unsafe impl VMMapperMap<Size4KiB> for Mapper {
     fn new() -> Self {
-        let start = *HHDM;
+        let start = MEM_STRUCTURE.hhdm;
+        let pml4e = MEM_STRUCTURE.pml4.get().unwrap();
+
         let mapper = Self {
             start,
-            p4_ptr: (start + PML4E_ADDR.get().unwrap().as_u64()).as_mut_ptr() as *mut PageTable,
+            p4_ptr: pml4e.virt.as_mut_ptr() as *mut PageTable,
         };
 
         unsafe {
-            let pml4e_addr = *PML4E_ADDR.get().unwrap();
-            let page_frame = PhysFrame::from_start_address(pml4e_addr).unwrap();
-            let page = Page::from_start_address(mapper.start + pml4e_addr.as_u64()).unwrap();
+            let page_frame = PhysFrame::from_start_address(pml4e.phys).unwrap();
+            let page = Page::from_start_address(pml4e.virt).unwrap();
             mapper.map_page(
                 page,
                 Some(page_frame),
@@ -141,25 +140,12 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
             level = lower_level;
             pt_ptr = {
                 let addr = if table_entry.is_unused() {
-                    // let page_table_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
-                    // unsafe {
-                    //     self.set_pt_entry(
-                    //         pt_ptr,
-                    //         entry_index,
-                    //         page_table_frame,
-                    //         PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                    //     );
-                    // }
-                    // page_table_frame.start_address()
                     let page_table_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
-                    let page = {
-                        let addr = self.translate_addr(page_table_frame.start_address());
-                        Page::from_start_address(addr).unwrap()
-                    };
                     unsafe {
-                        self.map_page(
-                            page,
-                            Some(page_table_frame),
+                        self.set_pt_entry(
+                            pt_ptr,
+                            entry_index,
+                            page_table_frame,
                             PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
                         );
                     }

@@ -14,7 +14,7 @@ mod frame_array;
 mod frame_index;
 mod frame_stack;
 
-use crate::memory::paging::{PhysLinearAddr, PhysMemMap, PageSize};
+use crate::memory::paging::{PageSize, PhysLinearAddr, PhysMemMap};
 
 use self::{frame_array::FrameArray, frame_stack::FrameStack};
 
@@ -49,7 +49,6 @@ impl ArrayStack {
 }
 
 impl FrameManager for ArrayStack {
-
     fn get_free_frame(&mut self) -> VirtAddr {
         todo!()
     }

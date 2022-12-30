@@ -19,10 +19,12 @@ mod stack_segment_fault;
 mod vmm_communication_exception;
 mod x87_floating_point;
 
-use lazy_static::lazy_static;
-use x86_64::{
-    set_general_handler,
-    structures::idt::{InterruptDescriptorTable, InterruptStackFrame},
+use {
+    lazy_static::lazy_static,
+    x86_64::{
+        set_general_handler,
+        structures::idt::{InterruptDescriptorTable, InterruptStackFrame},
+    },
 };
 
 use crate::{print, println};

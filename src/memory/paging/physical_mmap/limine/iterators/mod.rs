@@ -1,12 +1,11 @@
-mod useable;
 mod kernel_and_modules;
+mod useable;
 
 use core::slice::Iter;
 
 use limine::{LimineMemmapEntry, NonNullPtr};
 
-pub use useable::UseableMemChunkIterator;
-pub use kernel_and_modules::KernelAndModulesIterator;
+pub use {kernel_and_modules::KernelAndModulesIterator, useable::UseableMemChunkIterator};
 
 pub struct MemChunkIterator(Iter<'static, NonNullPtr<LimineMemmapEntry>>);
 

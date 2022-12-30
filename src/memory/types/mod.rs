@@ -2,5 +2,4 @@
 mod byte;
 mod bytes;
 
-pub use byte::Byte;
-pub use bytes::Bytes;
+pub use {byte::Byte, bytes::Bytes};

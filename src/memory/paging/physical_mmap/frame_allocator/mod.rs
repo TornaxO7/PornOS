@@ -21,8 +21,3 @@ lazy_static::lazy_static! {
     /// The good old page frame allocator.
     pub static ref FRAME_ALLOCATOR: RwLock<Stack> = RwLock::new(Stack::new());
 }
-
-#[cfg(feature = "test")]
-pub fn tests<>() {
-    stack::tests();
-}

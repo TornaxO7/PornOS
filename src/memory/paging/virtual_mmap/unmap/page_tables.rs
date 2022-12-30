@@ -1,6 +1,6 @@
-use x86_64::structures::paging::{PageTable, page_table::PageTableLevel};
+use x86_64::structures::paging::{page_table::PageTableLevel, PageTable};
 
-use super::utils::{ptl_to_index, next_higher_level};
+use super::utils::{next_higher_level, ptl_to_index};
 
 const AMOUNT_PAGE_TABLES: usize = 4;
 
@@ -28,7 +28,7 @@ impl PageTables {
         self.0[index]
     }
 
-    pub fn pairs(&self)-> Option<PageTablesPairIterator> {
+    pub fn pairs(&self) -> Option<PageTablesPairIterator> {
         if self.0.iter().any(|page_table| page_table.is_none()) {
             return None;
         }
@@ -41,16 +41,17 @@ impl PageTables {
 }
 
 pub struct PageTablesPairIterator {
-    page_tables: [* mut PageTable; AMOUNT_PAGE_TABLES],
+    page_tables: [*mut PageTable; AMOUNT_PAGE_TABLES],
     parent_level: PageTableLevel,
 }
 
 impl Iterator for PageTablesPairIterator {
-    type Item = (* mut PageTable, * mut PageTable, PageTableLevel);
+    type Item = (*mut PageTable, *mut PageTable, PageTableLevel);
 
     fn next(&mut self) -> Option<Self::Item> {
         let parent_pt = self.page_tables[ptl_to_index(self.parent_level)];
-        let child_pt = self.page_tables[ptl_to_index(self.parent_level.next_lower_level().unwrap())];
+        let child_pt =
+            self.page_tables[ptl_to_index(self.parent_level.next_lower_level().unwrap())];
         let parent_pt_level = self.parent_level;
 
         self.parent_level = next_higher_level(self.parent_level).unwrap();

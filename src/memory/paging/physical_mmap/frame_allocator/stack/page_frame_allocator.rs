@@ -1,4 +1,4 @@
-use x86_64::structures::paging::{FrameAllocator, Size4KiB, PhysFrame, FrameDeallocator};
+use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size4KiB};
 
 use super::Stack;
 

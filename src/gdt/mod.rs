@@ -1,7 +1,9 @@
-use lazy_static::lazy_static;
-use x86_64::{
-    registers::segmentation::{Segment, CS, DS, ES, FS, GS, SS},
-    structures::gdt::{Descriptor, DescriptorFlags, GlobalDescriptorTable, SegmentSelector},
+use {
+    lazy_static::lazy_static,
+    x86_64::{
+        registers::segmentation::{Segment, CS, DS, ES, FS, GS, SS},
+        structures::gdt::{Descriptor, DescriptorFlags, GlobalDescriptorTable, SegmentSelector},
+    },
 };
 
 use crate::{print, println};

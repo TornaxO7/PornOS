@@ -1,4 +1,7 @@
-use x86_64::{structures::paging::{PageSize, Size4KiB}, PhysAddr, VirtAddr};
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr, VirtAddr,
+};
 
 use super::Mapper;
 

@@ -1,4 +1,8 @@
-use core::{borrow::{BorrowMut, Borrow}, ops::{DerefMut, Deref, Add, Mul, Sub, AddAssign}, fmt::Debug};
+use core::{
+    borrow::{Borrow, BorrowMut},
+    fmt::Debug,
+    ops::{Add, AddAssign, Deref, DerefMut, Mul, Sub},
+};
 
 /// Just a simple type-safety struct which should represent
 /// the amount of bytes.

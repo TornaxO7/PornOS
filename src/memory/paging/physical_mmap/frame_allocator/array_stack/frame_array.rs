@@ -7,12 +7,12 @@
 //! ```
 //! You need to imagine the array as a bit-array rather than a `u8`-array.
 //! Each bitflag marks the frame as used or not.
-//! 
+//!
 //! # Example
 //! If the `8th` bit is 1 then the `8th` frame is already used.
 use crate::memory::{
     paging::{PageSize, PhysLinearAddr, PhysMemMap},
-    types::{Bytes, Byte},
+    types::{Byte, Bytes},
     VirtAddr,
 };
 
