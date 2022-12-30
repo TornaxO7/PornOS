@@ -22,10 +22,6 @@ pub fn init() -> ! {
     interrupt::init();
     memory::paging::init_heap();
 
-    Box::new([0u8; 5000]);
-
-    println!("Why dude");
-
     hlt_loop();
 }
 

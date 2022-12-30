@@ -4,11 +4,7 @@ mod mem_structure;
 mod physical_mmap;
 mod virtual_mmap;
 
-use core::{
-    arch::asm,
-    marker::PhantomData,
-    ops::Range,
-};
+use core::{arch::asm, marker::PhantomData, ops::Range};
 
 use x86_64::{
     structures::paging::{Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
@@ -17,7 +13,10 @@ use x86_64::{
 
 use self::{
     mem_structure::{Heap, Pml4, Stack, MEM_STRUCTURE},
-    physical_mmap::{frame_allocator::FRAME_ALLOCATOR, kernel_info::KernelData},
+    physical_mmap::{
+        frame_allocator::FRAME_ALLOCATOR, kernel_info::KernelData,
+        limine::iterators::UseableMemChunkIterator,
+    },
     virtual_mmap::{VMMapperGeneral, VMMapperMap, SIMP},
 };
 
@@ -153,7 +152,29 @@ impl<P: PageSize> KPagingConfigurator<P> {
     }
 
     /// Identity maps the page frames to the HHDM.
-    pub fn map_page_frames(&self) {}
+    pub fn map_page_frames(&self) {
+        for mem_chunk in UseableMemChunkIterator::new() {
+            let starting_page = {
+                let addr = { SIMP.lock().translate_addr(PhysAddr::new(mem_chunk.base)) };
+
+                Page::from_start_address(addr).unwrap()
+            };
+            let starting_page_frame = {
+                let addr = PhysAddr::new(mem_chunk.base);
+                PhysFrame::from_start_address(addr).unwrap()
+            };
+            let len = Bytes::new(mem_chunk.len);
+
+            unsafe {
+                SIMP.lock().map_page_range(
+                    starting_page,
+                    Some(starting_page_frame),
+                    len,
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE,
+                );
+            }
+        }
+    }
 }
 
 impl<P: PageSize> KPagingConfigurator<P> {
