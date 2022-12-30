@@ -7,7 +7,7 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
-use alloc::boxed::Box;
+use alloc::{boxed::Box, vec};
 
 extern crate alloc;
 
