@@ -17,7 +17,7 @@ use self::{
         frame_allocator::FRAME_ALLOCATOR, kernel_info::KernelData,
         limine::iterators::UseableMemChunkIterator,
     },
-    virtual_mmap::{VMMapperGeneral, VMMapperMap, SIMP},
+    virtual_mmap::{VMMapperMap, SIMP},
 };
 
 use super::types::Bytes;
@@ -30,7 +30,7 @@ pub fn init() -> ! {
         .call_once(|| Heap::new(Bytes::new(Size4KiB::SIZE)));
     MEM_STRUCTURE
         .stack
-        .call_once(|| Stack::new(Bytes::new(Size4KiB::SIZE)));
+        .call_once(Stack::new);
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
@@ -112,7 +112,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
         const AMOUNT_STACK_PAGES: u64 = 16;
         let needed_bytes = Bytes::new(AMOUNT_STACK_PAGES * P::SIZE);
 
-        let mut start_addr = {
+        let start_addr = {
             let addr = MEM_STRUCTURE.stack.get().unwrap().0;
             addr - needed_bytes.as_u64()
         };
@@ -134,7 +134,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
         let stack_page_frames = { FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() };
         for page_frame in stack_page_frames {
             let page: Page = {
-                let page_addr = SIMP.lock().translate_addr(page_frame.start_address());
+                let page_addr = virtual_mmap::translate_addr(page_frame.start_address());
                 Page::from_start_address(page_addr).unwrap()
             };
 
@@ -155,7 +155,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
     pub fn map_page_frames(&self) {
         for mem_chunk in UseableMemChunkIterator::new() {
             let starting_page = {
-                let addr = { SIMP.lock().translate_addr(PhysAddr::new(mem_chunk.base)) };
+                let addr = { virtual_mmap::translate_addr(PhysAddr::new(mem_chunk.base)) };
 
                 Page::from_start_address(addr).unwrap()
             };

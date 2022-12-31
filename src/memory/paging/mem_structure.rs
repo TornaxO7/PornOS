@@ -7,9 +7,8 @@ use {
 
 use crate::memory::types::Bytes;
 
-use super::{
-    physical_mmap::{frame_allocator::FRAME_ALLOCATOR, limine::iterators::UseableMemChunkIterator},
-    virtual_mmap::{VMMapperGeneral, SIMP},
+use super::physical_mmap::{
+    frame_allocator::FRAME_ALLOCATOR, limine::iterators::UseableMemChunkIterator,
 };
 
 static HHDM_REQUEST: LimineHhdmRequest = LimineHhdmRequest::new(0);
@@ -51,7 +50,7 @@ impl Heap {
             let last_addr = last_useable.base + last_useable.len + 1u64;
             let addr = PhysAddr::new(last_addr);
             let addr = addr.align_up(page_size.as_u64());
-            SIMP.lock().translate_addr(addr)
+            super::virtual_mmap::translate_addr(addr)
         };
 
         Self {
@@ -65,7 +64,7 @@ impl Heap {
 pub struct Stack(pub VirtAddr);
 
 impl Stack {
-    pub fn new(page_size: Bytes) -> Self {
+    pub fn new() -> Self {
         Self(MEM_STRUCTURE.kstart)
     }
 }

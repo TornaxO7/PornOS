@@ -1,20 +1,21 @@
 use x86_64::structures::paging::{
     page_table::{PageTableEntry, PageTableLevel},
-    Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB, FrameAllocator,
+    FrameAllocator, Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
 };
 
 use crate::memory::{
-    types::Bytes, paging::{mem_structure::MEM_STRUCTURE, physical_mmap::frame_allocator::FRAME_ALLOCATOR},
+    paging::{mem_structure::MEM_STRUCTURE, physical_mmap::frame_allocator::FRAME_ALLOCATOR},
+    types::Bytes,
 };
 
-use super::{Mapper, VMMapperGeneral};
+use super::Mapper;
 
 /// The trait which includes the functions to map pages to page frames.
 ///
 /// # Safety
 /// You could mess this pretty much up by mapping a page to the wrong page
 /// frame, so keep an Eye on it, duh.
-pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
+pub unsafe trait VMMapperMap<P: PageSize> {
     /// Creates a new instance.
     ///
     /// # Note
@@ -43,7 +44,7 @@ pub unsafe trait VMMapperMap<P: PageSize>: VMMapperGeneral<P> {
     /// The given page frame **must** be valid.
     unsafe fn map_page_frame(&self, page_frame: PhysFrame, flags: PageTableFlags) {
         let page = {
-            let addr = self.translate_addr(page_frame.start_address());
+            let addr = super::translate_addr(page_frame.start_address());
             Page::from_start_address(addr).unwrap()
         };
 
@@ -153,7 +154,7 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
                 } else {
                     table_entry.addr()
                 };
-                self.translate_addr(addr).as_mut_ptr() as *mut PageTable
+                super::translate_addr(addr).as_mut_ptr() as *mut PageTable
             }
         }
 
