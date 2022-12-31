@@ -69,13 +69,6 @@ impl Default for Stack {
 }
 
 impl Stack {
-    /// Returns the amount of bytes which the stack uses.
-    pub fn get_size(&self) -> Bytes {
-        POINTER_SIZE * (self.capacity + self.amount_used_page_frames)
-    }
-}
-
-impl Stack {
     pub const PAGE_SIZE: Bytes = Bytes::new(Size4KiB::SIZE);
 
     /// # Returns

@@ -13,11 +13,11 @@ use crate::memory::paging::physical_mmap::frame_allocator::FRAME_ALLOCATOR;
 
 use self::page_tables::PageTables;
 
-use super::{Mapper, VMMapperGeneral};
+use super::Mapper;
 
 /// # Safety
 /// Make sure that you are not unmapping the wrong page!
-pub unsafe trait VMmapperUnmap<P: PageSize>: VMMapperGeneral<P> {
+pub unsafe trait VMmapperUnmap<P: PageSize> {
     /// Unmaps the given page and returns the unmapped page frame if everything
     /// works fine.
     ///
@@ -88,7 +88,7 @@ impl Mapper {
             }
 
             level = lower_level;
-            pt_ptr = self.translate_addr(table_entry.addr()).as_mut_ptr() as *mut PageTable;
+            pt_ptr = super::translate_addr(table_entry.addr()).as_mut_ptr() as *mut PageTable;
             page_tables.set_pt(pt_ptr, level);
         }
 
@@ -105,7 +105,7 @@ impl Mapper {
 
         let page_frame = {
             let addr = VirtAddr::from_ptr(child_pt);
-            let phys_addr = unsafe { self.detranslate_addr(addr) };
+            let phys_addr = super::detranslate_addr(addr);
             PhysFrame::from_start_address(phys_addr).unwrap()
         };
 
