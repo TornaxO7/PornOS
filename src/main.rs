@@ -27,7 +27,7 @@ pub extern "C" fn pornos_entry() -> ! {
 
 #[panic_handler]
 fn rust_panic(info: &core::panic::PanicInfo) -> ! {
-    println!("==== KERNEL PANIC ====");
+    println!("==== STEP BRO I'M STUCK ====");
     println!("{}", info);
     hlt_loop();
 }
