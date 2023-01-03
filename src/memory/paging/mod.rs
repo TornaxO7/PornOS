@@ -1,4 +1,4 @@
-//! Includes the different paging implementation.
+//! This modules holds the implemenation of paging.
 mod alloc;
 mod mem_structure;
 mod physical_mmap;
