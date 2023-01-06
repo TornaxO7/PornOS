@@ -13,7 +13,6 @@ pub mod gdt;
 pub mod interrupt;
 pub mod io;
 pub mod memory;
-pub mod util;
 
 pub fn init() -> ! {
     gdt::init();
