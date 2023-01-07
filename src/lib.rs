@@ -7,6 +7,8 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
+use kasync::Task;
+
 extern crate alloc;
 
 pub mod kasync;
@@ -29,7 +31,9 @@ pub fn init() -> ! {
     interrupt::init();
     memory::paging::init_heap();
 
-    test_get_async();
+    let mut executor = kasync::executer::init();
+    executor.add_task(Task::new(test_async()));
+    executor.run();
 
     hlt_loop();
 }
