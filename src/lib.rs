@@ -18,31 +18,12 @@ pub mod interrupt;
 pub mod io;
 pub mod memory;
 
-async fn test3() {
-    println!("Blyatiful");
-}
-
-async fn test2() {
-    println!("Yes");
-}
-
-async fn test1() {
-    println!("Are you winning son?");
-    let yes = test2();
-    let no = test3();
-
-    no.await;
-    yes.await;
-    println!("*pat pat*");
-}
-
 pub fn init() -> ! {
     gdt::init();
     interrupt::init();
     memory::paging::init_heap();
 
     let mut runtime = kasync::AsyncRuntime::new();
-    runtime.add(test1());
     runtime.run();
 }
 
