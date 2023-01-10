@@ -30,6 +30,11 @@ impl Task {
 ///
 /// # Safety
 /// Panics if all IDs have been used.
+///
+/// # Other notes
+/// This one is inspired by [os.phil-opp].
+///
+/// [os.phil-opp]: https://os.phil-opp.com/async-await/#task-id
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TaskId(u64);
 
