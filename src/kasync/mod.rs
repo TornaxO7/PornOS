@@ -1,5 +1,4 @@
 //! This module contains the Async-Runtime of the kernel.
-
 mod task;
 mod waker;
 
@@ -17,7 +16,10 @@ use self::{
 /// The async runtime which executes the async functions.
 #[derive(Default)]
 pub struct AsyncRuntime {
+    /// Holds all tasks which are currently in the runtime.
     tasks: Mutex<BTreeMap<TaskId, Task>>,
+
+    /// The ready queue which holds the id's of the tasks which can be run next.
     ready_queue: Arc<Mutex<BTreeSet<TaskId>>>,
 }
 
@@ -54,12 +56,13 @@ impl AsyncRuntime {
 
         let id = TaskId::new();
         let task = Task::new(id, future_fn);
-        self.tasks.lock().insert(id, task);
-        self.ready_queue.lock().insert(id);
+        assert!(self.tasks.lock().insert(id, task).is_none());
+        assert!(self.ready_queue.lock().insert(id));
 
         true
     }
 
+    /// Starts the async environment.
     pub fn run(&mut self) -> ! {
         loop {
             while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
