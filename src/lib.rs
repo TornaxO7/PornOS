@@ -10,9 +10,11 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
+use scheduling::cooperative::kasync::AsyncRuntime;
+
 extern crate alloc;
 
-pub mod kasync;
+pub mod scheduling;
 pub mod gdt;
 pub mod interrupt;
 pub mod io;
@@ -23,7 +25,7 @@ pub fn init() -> ! {
     interrupt::init();
     memory::paging::init_heap();
 
-    let mut runtime = kasync::AsyncRuntime::new();
+    let mut runtime = AsyncRuntime::new();
     runtime.run();
 }
 
