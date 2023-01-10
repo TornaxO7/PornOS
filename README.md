@@ -2,6 +2,12 @@
 I'm sorry if expected to find some p*rn here. This is a [kernel] for educational
 reasons!
 
+## How to run
+You'll need `cargo`, `rustc` and `qemu` (x86 emulation) in order to run this.
+
+1. Clone this repo
+2. Execute `cargo run` and you're good to go
+
 ## FAQ
 ### Why this name?
 Well, because this is the dumbest name I could find. Imagine a discussion
