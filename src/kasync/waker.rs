@@ -27,6 +27,6 @@ impl TaskWaker {
 
 impl Wake for TaskWaker {
     fn wake(self: Arc<Self>) {
-        self.ready_queue.lock().insert(self.task_id);
+        assert!(self.ready_queue.lock().insert(self.task_id));
     }
 }
