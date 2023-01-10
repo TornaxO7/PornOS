@@ -20,7 +20,7 @@ impl TaskWaker {
     /// * `task_id`: The ID of the task which should be waked up.
     /// * `ready_queue`: The ready queue where the task should be added if it
     /// should "wake up".
-    pub fn new(task_id: TaskId, ready_queue: Arc<Mutex<BTreeSet<TaskId>>>) -> Waker {
+    pub fn create(task_id: TaskId, ready_queue: Arc<Mutex<BTreeSet<TaskId>>>) -> Waker {
         Waker::from(Arc::new(Self { task_id, ready_queue }))
     }
 }

@@ -69,7 +69,7 @@ impl AsyncRuntime {
                 let mut tasks = self.tasks.lock();
                 let task = tasks.get_mut(task_id).unwrap();
 
-                let waker = TaskWaker::new(task.id, self.ready_queue.clone());
+                let waker = TaskWaker::create(task.id, self.ready_queue.clone());
                 let mut ctx = Context::from_waker(&waker);
 
                 match task.future_fn.as_mut().poll(&mut ctx) {
