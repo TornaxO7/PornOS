@@ -1,27 +1,25 @@
 use core::task::Waker;
 
-use alloc::{task::Wake, sync::Arc};
-use crossbeam::queue::ArrayQueue;
-use spin::Mutex;
+use {
+    alloc::{collections::BTreeSet, sync::Arc, task::Wake},
+    spin::Mutex,
+};
 
-use super::{task::Task, AsyncRuntime};
+use super::task::TaskId;
 
 pub struct TaskWaker {
-    task: Arc<Mutex<Task>>,
-    ready_queue: Arc<Mutex<ArrayQueue<Arc<Mutex<Task>>>>>,
+    task_id: TaskId,
+    ready_queue: Arc<Mutex<BTreeSet<TaskId>>>,
 }
 
 impl TaskWaker {
-    pub fn new(task: Arc<Mutex<Task>>, ready_queue: Arc<Mutex<ArrayQueue<Arc<Mutex<Task>>>>>) -> Waker {
-        Waker::from(Arc::new(Self {
-            task,
-            ready_queue,
-        }))
+    pub fn new(task_id: TaskId, ready_queue: Arc<Mutex<BTreeSet<TaskId>>>) -> Waker {
+        Waker::from(Arc::new(Self { task_id, ready_queue }))
     }
 }
 
 impl Wake for TaskWaker {
     fn wake(self: Arc<Self>) {
-        self.ready_queue.lock().push(self.task.clone()).unwrap_or_else(|_| panic!("{}", AsyncRuntime::FULL_READY));
+        self.ready_queue.lock().insert(self.task_id);
     }
 }

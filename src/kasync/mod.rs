@@ -1,60 +1,81 @@
+//! This module contains the Async-Runtime of the kernel.
+
 mod task;
 mod waker;
 
-use {alloc::sync::Arc, crossbeam::queue::ArrayQueue, futures::Future, spin::Mutex};
+use {alloc::sync::Arc, futures::Future, spin::Mutex};
 
-use core::task::{Poll, Context, Waker};
+use core::task::{Context, Poll};
 
-use self::{task::Task, waker::TaskWaker};
+use alloc::collections::{BTreeMap, BTreeSet};
 
+use self::{
+    task::{Task, TaskId},
+    waker::TaskWaker,
+};
+
+/// The async runtime which executes the async functions.
+#[derive(Default)]
 pub struct AsyncRuntime {
-    ready_queue: Arc<Mutex<ArrayQueue<Arc<Mutex<Task>>>>>,
-    waiting_queue: Arc<Mutex<ArrayQueue<Arc<Mutex<Task>>>>>,
+    tasks: Mutex<BTreeMap<TaskId, Task>>,
+    ready_queue: Arc<Mutex<BTreeSet<TaskId>>>,
 }
 
+/// Holds some general implementations of the environment.
 impl AsyncRuntime {
-    pub const FULL_READY: &str = "Ready-Queue is full.";
-    pub const FULL_WAITING: &str = "Waiting-Queue is full.";
+    /// Returns the amount of registered tasks.
+    pub fn get_amount_tasks(&self) -> usize {
+        self.tasks.lock().len()
+    }
+}
 
-    /// The maximal amount of tasks which can run in parallel.
+/// Holds the relevant functions to actually interact with the runtime.
+impl AsyncRuntime {
+    /// The maximal amount of tasks which the environment can take.
     pub const MAX_AMOUNT_PROCESSES: usize = 69;
 
+    /// Creates a new async-runtime environment.
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn add(&mut self, future_fn: impl Future<Output = ()> + 'static + Send + Sync) {
-        let task = Task::new(future_fn);
-        self.ready_queue
-            .lock()
-            .push(Arc::new(Mutex::new(task)))
-            .unwrap_or_else(|_| panic!("{}", Self::FULL_READY));
+    /// Add an async function to the runtime.
+    ///
+    /// * `future_fn`: The async function which should be added to the runtime.
+    ///
+    /// # Returns
+    /// - `true`: If the given future could be added to the runtime
+    /// - `false`: If `future_fn` couldn't be added to the runtime, because
+    /// the runtime is already full.
+    pub fn add(&mut self, future_fn: impl Future<Output = ()> + 'static + Send + Sync) -> bool {
+        if self.get_amount_tasks() >= Self::MAX_AMOUNT_PROCESSES {
+            return false;
+        }
+
+        let id = TaskId::new();
+        let task = Task::new(id, future_fn);
+        self.tasks.lock().insert(id, task);
+        self.ready_queue.lock().insert(id);
+
+        true
     }
 
     pub fn run(&mut self) -> ! {
         loop {
-            while let Some(task) = { self.ready_queue.lock().pop() } {
-                let waker = Waker::from(TaskWaker::new(task.clone(), self.ready_queue.clone()));
+            while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
+                let mut tasks = self.tasks.lock();
+                let task = tasks.get_mut(task_id).unwrap();
+
+                let waker = TaskWaker::new(task.id, self.ready_queue.clone());
                 let mut ctx = Context::from_waker(&waker);
 
-                match task.clone().lock().future_fn.as_mut().poll(&mut ctx) {
-                    Poll::Pending => self
-                        .waiting_queue
-                        .lock()
-                        .push(task.clone())
-                        .unwrap_or_else(|_| panic!("{}", Self::FULL_READY)),
-                    Poll::Ready(()) => {}
+                match task.future_fn.as_mut().poll(&mut ctx) {
+                    Poll::Pending => {}
+                    Poll::Ready(()) => {
+                        tasks.remove(task_id);
+                    }
                 };
             }
-        }
-    }
-}
-
-impl Default for AsyncRuntime {
-    fn default() -> Self {
-        Self {
-            ready_queue: Arc::new(Mutex::new(ArrayQueue::new(Self::MAX_AMOUNT_PROCESSES))),
-            waiting_queue: Arc::new(Mutex::new(ArrayQueue::new(Self::MAX_AMOUNT_PROCESSES))),
         }
     }
 }
