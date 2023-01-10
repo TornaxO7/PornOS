@@ -49,6 +49,7 @@ impl AsyncRuntime {
     /// - `true`: If the given future could be added to the runtime
     /// - `false`: If `future_fn` couldn't be added to the runtime, because
     /// the runtime is already full.
+    #[must_use]
     pub fn add(&mut self, future_fn: impl Future<Output = ()> + 'static + Send + Sync) -> bool {
         if self.get_amount_tasks() >= Self::MAX_AMOUNT_PROCESSES {
             return false;
