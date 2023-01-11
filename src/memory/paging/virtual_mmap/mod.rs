@@ -26,7 +26,6 @@ lazy_static! {
     pub static ref SIMP: Mutex<Mapper> = Mutex::new(Mapper::new());
 }
 
-// TODO: The functions from the general traits don't need a lock.
 // Create an extra layer for that with an attritbute with a mutex to lock the
 // actual unsafe mappings.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
