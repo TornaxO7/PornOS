@@ -2,11 +2,13 @@
 mod task;
 mod waker;
 
-use {alloc::sync::Arc, futures::Future, spin::Mutex};
+use {alloc::sync::Arc, futures::Future};
 
 use core::task::{Context, Poll};
 
 use alloc::collections::{BTreeMap, BTreeSet};
+
+use crate::klib::lock::spinlock::Spinlock;
 
 use self::{
     task::{Task, TaskId},
@@ -17,10 +19,10 @@ use self::{
 #[derive(Default)]
 pub struct AsyncRuntime {
     /// Holds all tasks which are currently in the runtime.
-    tasks: Mutex<BTreeMap<TaskId, Task>>,
+    tasks: Spinlock<BTreeMap<TaskId, Task>>,
 
     /// The ready queue which holds the id's of the tasks which can be run next.
-    ready_queue: Arc<Mutex<BTreeSet<TaskId>>>,
+    ready_queue: Arc<Spinlock<BTreeSet<TaskId>>>,
 }
 
 /// Holds some general implementations of the environment.

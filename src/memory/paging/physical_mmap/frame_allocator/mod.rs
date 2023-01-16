@@ -13,11 +13,11 @@ mod phys_frame_index;
 
 pub use phys_frame_index::PhysFrameIndex;
 
-use spin::RwLock;
+use crate::klib::lock::spinlock::Spinlock;
 
 pub use self::stack::Stack;
 
 lazy_static::lazy_static! {
     /// The good old page frame allocator.
-    pub static ref FRAME_ALLOCATOR: RwLock<Stack> = RwLock::new(Stack::new());
+    pub static ref FRAME_ALLOCATOR: Spinlock<Stack> = Spinlock::new(Stack::new());
 }

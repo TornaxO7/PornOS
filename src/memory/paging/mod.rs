@@ -131,7 +131,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
 
     /// Maps the pages which the page frame allocator uses.
     pub fn map_frame_allocator(&self) {
-        let stack_page_frames = { FRAME_ALLOCATOR.read().get_frame_allocator_page_frames() };
+        let stack_page_frames = { FRAME_ALLOCATOR.lock().get_frame_allocator_page_frames() };
         for page_frame in stack_page_frames {
             let page: Page = {
                 let page_addr = virtual_mmap::translate_addr(page_frame.start_address());

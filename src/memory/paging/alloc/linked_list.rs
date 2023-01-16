@@ -5,18 +5,22 @@ use core::{
 
 use {
     linked_list_allocator::Heap,
-    spin::Mutex,
     x86_64::{
-        structures::paging::{FrameAllocator, Page, PageSize, PageTableFlags, Size4KiB},
+        structures::paging::{Page, PageSize, PageTableFlags, Size4KiB},
         VirtAddr,
     },
 };
 
-use crate::memory::{
-    paging::{mem_structure::MEM_STRUCTURE, physical_mmap::frame_allocator::FRAME_ALLOCATOR, virtual_mmap::{SIMP, VMMapperMap}
+use x86_64::structures::paging::FrameAllocator;
+
+use crate::{memory::{
+    paging::{
+        mem_structure::MEM_STRUCTURE,
+        physical_mmap::frame_allocator::FRAME_ALLOCATOR,
+        virtual_mmap::{VMMapperMap, SIMP},
     },
     types::Bytes,
-};
+}, klib::lock::spinlock::Spinlock};
 
 #[global_allocator]
 static ALLOCATOR: Allocator = Allocator::new();
@@ -47,15 +51,15 @@ pub enum AllocationPageFrameError {
 
 /// The allocator for linked list.
 //
-// It has a `Mutex<LockedHeap>` because we need another lock since before
+// It has a `Spinlock<LockedHeap>` because we need another lock since before
 // allocating memory, we want to check first if there's even enough space in the
 // linked list to allocated. Instead of getting a page fault, we want to
 // allocate new memory first for the heap.
-pub struct Allocator(Mutex<Heap>);
+pub struct Allocator(Spinlock<Heap>);
 
 impl Allocator {
     pub const fn new() -> Self {
-        Self(Mutex::new(Heap::empty()))
+        Self(Spinlock::new(Heap::empty()))
     }
 
     pub unsafe fn init(&self, heap_start: *mut u8, heap_size: usize) {
@@ -95,7 +99,7 @@ unsafe impl GlobalAllocWrapper<Size4KiB> for Allocator {
     /// the heap. *Stonks*
     fn allocate_page_frame(&self, heap_top: VirtAddr) -> Result<Bytes, AllocationPageFrameError> {
         let page_frame = FRAME_ALLOCATOR
-            .write()
+            .lock()
             .allocate_frame()
             .ok_or(AllocationPageFrameError::NoFreeFrame)?;
 

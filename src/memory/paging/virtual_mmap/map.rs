@@ -141,7 +141,7 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
             level = lower_level;
             pt_ptr = {
                 let addr = if table_entry.is_unused() {
-                    let page_table_frame = FRAME_ALLOCATOR.write().allocate_frame().unwrap();
+                    let page_table_frame = FRAME_ALLOCATOR.lock().allocate_frame().unwrap();
                     unsafe {
                         self.set_pt_entry(
                             pt_ptr,
@@ -159,7 +159,7 @@ unsafe impl VMMapperMap<Size4KiB> for Mapper {
         }
 
         let page_frame =
-            page_frame.unwrap_or_else(|| FRAME_ALLOCATOR.write().allocate_frame().unwrap());
+            page_frame.unwrap_or_else(|| FRAME_ALLOCATOR.lock().allocate_frame().unwrap());
 
         unsafe { self.set_pt_entry(pt_ptr, page.p1_index(), page_frame, flags) }
     }

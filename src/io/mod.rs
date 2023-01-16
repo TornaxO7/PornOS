@@ -3,9 +3,9 @@ mod serial;
 
 use core::fmt::{self, Write};
 
-use spin::Mutex;
+use crate::klib::lock::spinlock::Spinlock;
 
-static PORNOS_TERMINAL: Mutex<TerminalOutput> = Mutex::new(TerminalOutput::Serial);
+static PORNOS_TERMINAL: Spinlock<TerminalOutput> = Spinlock::new(TerminalOutput::Serial);
 
 /// The output type which you can choose.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

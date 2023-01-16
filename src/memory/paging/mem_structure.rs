@@ -1,9 +1,10 @@
 use {
     lazy_static::lazy_static,
     limine::LimineHhdmRequest,
-    spin::Once,
-    x86_64::{structures::paging::FrameAllocator, PhysAddr, VirtAddr},
+    x86_64::{PhysAddr, VirtAddr},
 };
+
+use x86_64::structures::paging::FrameAllocator;
 
 use crate::memory::types::Bytes;
 
@@ -78,7 +79,7 @@ pub struct Pml4 {
 impl Pml4 {
     pub fn new() -> Self {
         let phys = FRAME_ALLOCATOR
-            .write()
+            .lock()
             .allocate_frame()
             .unwrap()
             .start_address();

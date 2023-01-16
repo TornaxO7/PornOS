@@ -3,7 +3,6 @@ mod unmap;
 
 use {
     lazy_static::lazy_static,
-    spin::Mutex,
     x86_64::{
         structures::paging::{PageTable, Size4KiB},
         VirtAddr,
@@ -11,6 +10,8 @@ use {
 };
 
 use x86_64::{structures::paging::PageSize, PhysAddr};
+
+use crate::klib::lock::spinlock::Spinlock;
 
 pub use self::{map::VMMapperMap, unmap::VMmapperUnmap};
 
@@ -23,7 +24,7 @@ lazy_static! {
     /// words: The ultimate ***SIMP***
     ///
     /// This is also known as the "Page-Mapper".
-    pub static ref SIMP: Mutex<Mapper> = Mutex::new(Mapper::new());
+    pub static ref SIMP: Spinlock<Mapper> = Spinlock::new(Mapper::new());
 }
 
 // Create an extra layer for that with an attritbute with a mutex to lock the
