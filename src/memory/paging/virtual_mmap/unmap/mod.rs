@@ -109,7 +109,7 @@ impl Mapper {
             PhysFrame::from_start_address(phys_addr).unwrap()
         };
 
-        unsafe { FRAME_ALLOCATOR.write().deallocate_frame(page_frame) }
+        unsafe { FRAME_ALLOCATOR.lock().deallocate_frame(page_frame) }
     }
 
     unsafe fn is_pt_empty(&self, pt: *const PageTable) -> bool {

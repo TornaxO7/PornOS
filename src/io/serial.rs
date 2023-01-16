@@ -1,16 +1,18 @@
 //! Credits to Phillop Oppermann (<https://os.phil-opp.com/testing/>)
 
-use {lazy_static::lazy_static, spin::Mutex, uart_16550::SerialPort};
+use {lazy_static::lazy_static, uart_16550::SerialPort};
+
+use crate::klib::lock::spinlock::Spinlock;
 
 use super::PornosWriter;
 
-pub static PORNOS_WRITER: Mutex<Writer> = Mutex::new(Writer);
+pub static PORNOS_WRITER: Spinlock<Writer> = Spinlock::new(Writer);
 
 lazy_static! {
-    static ref SERIAL1: Mutex<SerialPort> = {
+    static ref SERIAL1: Spinlock<SerialPort> = {
         let mut serial_port = unsafe { SerialPort::new(0x3F8) };
         serial_port.init();
-        Mutex::new(serial_port)
+        Spinlock::new(serial_port)
     };
 }
 
