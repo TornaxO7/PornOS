@@ -6,7 +6,8 @@
 #![feature(strict_provenance)]
 #![feature(alloc_error_handler)]
 #![feature(type_alias_impl_trait)]
-#![feature(return_position_impl_trait_in_trait)]
+// #![featuwlqanre(return_position_impl_trait_in_trait)]
+#![feature(const_maybe_uninit_zeroed)]
 
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
@@ -27,8 +28,6 @@ pub fn init() -> ! {
     gdt::init();
     interrupt::init();
     memory::paging::init_heap();
-
-    println!("Pornos ftw");
 
     let mut runtime = AsyncRuntime::new();
     runtime.run();

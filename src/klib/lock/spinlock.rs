@@ -6,7 +6,7 @@ use core::{
 
 #[derive(Debug, Default)]
 pub struct Spinlock<T> {
-    lock: AtomicBool,
+    is_locked: AtomicBool,
     value: UnsafeCell<T>,
 }
 
@@ -14,28 +14,34 @@ unsafe impl<T> Sync for Spinlock<T> {}
 unsafe impl<T> Send for Spinlock<T> {}
 
 impl<'a, T> Spinlock<T> {
-    const OPEN_LOCK: bool = false;
-    const CLOSED_LOCK: bool = true;
+    const IS_OPEN: bool = false;
+    const IS_CLOSED: bool = true;
 
     pub const fn new(value: T) -> Self {
         Self {
-            lock: AtomicBool::new(false),
+            is_locked: AtomicBool::new(false),
             value: UnsafeCell::new(value),
         }
     }
 
     pub fn lock(&'a self) -> LockGuard<'a, T> {
-        while self
-            .lock
-            .compare_exchange(
-                Self::OPEN_LOCK,
-                Self::CLOSED_LOCK,
-                Ordering::Acquire,
-                Ordering::Relaxed,
-            )
-            .is_err()
-        {
-            core::hint::spin_loop();
+        loop {
+            if self
+                .is_locked
+                .compare_exchange_weak(
+                    Self::IS_OPEN,
+                    Self::IS_CLOSED,
+                    Ordering::Acquire,
+                    Ordering::Relaxed,
+                )
+                .is_ok()
+            {
+                break;
+            }
+
+            while self.is_locked.load(Ordering::Acquire) {
+                core::hint::spin_loop();
+            }
         }
 
         LockGuard { lock: &self }
@@ -64,7 +70,7 @@ impl<'a, T> DerefMut for LockGuard<'a, T> {
 impl<'a, T> Drop for LockGuard<'a, T> {
     fn drop(&mut self) {
         self.lock
-            .lock
-            .store(Spinlock::<T>::OPEN_LOCK, Ordering::Release);
+            .is_locked
+            .store(Spinlock::<T>::IS_OPEN, Ordering::Release);
     }
 }

@@ -6,7 +6,7 @@ use {
 
 use x86_64::structures::paging::FrameAllocator;
 
-use crate::memory::types::Bytes;
+use crate::{memory::types::Bytes, klib::lock::once::Once};
 
 use super::physical_mmap::{
     frame_allocator::FRAME_ALLOCATOR, limine::iterators::UseableMemChunkIterator,
