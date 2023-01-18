@@ -66,22 +66,23 @@ impl AsyncRuntime {
     }
 
     /// Starts the async environment.
-    pub fn run(&mut self) -> ! {
-        loop {
-            while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
-                let mut tasks = self.tasks.lock();
-                let task = tasks.get_mut(task_id).unwrap();
+    ///
+    /// # Returns
+    /// Returns if tall tasks have been processed.
+    pub fn run(&mut self) {
+        while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
+            let mut tasks = self.tasks.lock();
+            let task = tasks.get_mut(task_id).unwrap();
 
-                let waker = TaskWaker::create(task.id, self.ready_queue.clone());
-                let mut ctx = Context::from_waker(&waker);
+            let waker = TaskWaker::create(task.id, self.ready_queue.clone());
+            let mut ctx = Context::from_waker(&waker);
 
-                match task.future_fn.as_mut().poll(&mut ctx) {
-                    Poll::Pending => {}
-                    Poll::Ready(()) => {
-                        tasks.remove(task_id);
-                    }
-                };
-            }
+            match task.future_fn.as_mut().poll(&mut ctx) {
+                Poll::Pending => {}
+                Poll::Ready(()) => {
+                    tasks.remove(task_id);
+                }
+            };
         }
     }
 }

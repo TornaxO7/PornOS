@@ -31,6 +31,8 @@ pub fn init() -> ! {
 
     let mut runtime = AsyncRuntime::new();
     runtime.run();
+
+    hlt_loop();
 }
 
 #[cfg(feature = "test")]
