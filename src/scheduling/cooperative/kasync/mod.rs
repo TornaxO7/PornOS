@@ -1,6 +1,7 @@
 //! This module contains the Async-Runtime of the kernel.
 mod task;
 mod waker;
+mod mutex_waker;
 
 use {alloc::sync::Arc, futures::Future};
 

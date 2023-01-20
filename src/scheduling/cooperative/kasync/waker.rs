@@ -1,9 +1,7 @@
 //! Holds the waker of a task.
 use core::task::Waker;
 
-use {
-    alloc::{collections::BTreeSet, sync::Arc, task::Wake},
-};
+use alloc::{collections::BTreeSet, sync::Arc, task::Wake};
 
 use crate::klib::lock::spinlock::Spinlock;
 
@@ -22,7 +20,10 @@ impl TaskWaker {
     /// * `ready_queue`: The ready queue where the task should be added if it
     /// should "wake up".
     pub fn create(task_id: TaskId, ready_queue: Arc<Spinlock<BTreeSet<TaskId>>>) -> Waker {
-        Waker::from(Arc::new(Self { task_id, ready_queue }))
+        Waker::from(Arc::new(Self {
+            task_id,
+            ready_queue,
+        }))
     }
 }
 

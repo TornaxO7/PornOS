@@ -15,7 +15,4 @@ impl<T> Mutex<T> {
             value: UnsafeCell::new(data),
         }
     }
-
-    pub fn lock(&self) {
-    }
 }
