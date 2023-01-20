@@ -1,14 +1,11 @@
 #![no_std]
 #![no_main]
-
 #![feature(abi_x86_interrupt)]
 #![feature(int_roundings)]
 #![feature(strict_provenance)]
 #![feature(alloc_error_handler)]
 #![feature(type_alias_impl_trait)]
-// #![featuwlqanre(return_position_impl_trait_in_trait)]
 #![feature(const_maybe_uninit_zeroed)]
-
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
@@ -16,14 +13,15 @@ use scheduling::cooperative::kasync::{AsyncRuntime, Mutex};
 
 extern crate alloc;
 
-pub mod klib;
-pub mod scheduling;
 pub mod gdt;
 pub mod interrupt;
 pub mod io;
+pub mod klib;
 pub mod memory;
+pub mod scheduling;
 
-async fn test_lock<'a>(mutex: &'a Mutex<'a, i32>) {
+async fn test_lock() {
+    let mutex = Mutex::new(69);
     let yes = mutex.lock().await;
     println!("{}", *yes);
 }
@@ -35,7 +33,7 @@ pub fn init() -> ! {
     memory::paging::init_heap();
 
     let mut runtime = AsyncRuntime::new();
-    runtime.add(async {println!("ja");});
+    runtime.add(test_lock());
     runtime.run();
 
     hlt_loop();

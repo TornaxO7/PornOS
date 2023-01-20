@@ -46,7 +46,7 @@ impl<'a, T> Spinlock<T> {
             }
         }
 
-        LockGuard { lock: &self }
+        LockGuard { lock: self }
     }
 }
 
