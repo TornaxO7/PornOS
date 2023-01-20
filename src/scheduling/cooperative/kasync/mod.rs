@@ -1,7 +1,9 @@
 //! This module contains the Async-Runtime of the kernel.
 mod task;
 mod waker;
-mod mutex_waker;
+mod mutex;
+
+pub use mutex::{Mutex, MutexLockGuard};
 
 use {alloc::sync::Arc, futures::Future};
 
@@ -13,7 +15,7 @@ use crate::klib::lock::spinlock::Spinlock;
 
 use self::{
     task::{Task, TaskId},
-    waker::TaskWaker,
+    waker::{TaskWaker, PornosWaker},
 };
 
 /// The async runtime which executes the async functions.
@@ -60,6 +62,7 @@ impl AsyncRuntime {
 
         let id = TaskId::new();
         let task = Task::new(id, future_fn);
+
         assert!(self.tasks.lock().insert(id, task).is_none());
         assert!(self.ready_queue.lock().insert(id));
 

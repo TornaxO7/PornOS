@@ -12,7 +12,7 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
-use scheduling::cooperative::kasync::AsyncRuntime;
+use scheduling::cooperative::kasync::{AsyncRuntime, Mutex};
 
 extern crate alloc;
 
@@ -23,6 +23,11 @@ pub mod interrupt;
 pub mod io;
 pub mod memory;
 
+async fn test_lock<'a>(mutex: &'a Mutex<'a, i32>) {
+    let yes = mutex.lock().await;
+    println!("{}", *yes);
+}
+
 /// Initialises the kernel after loading the page tables of Pornos.
 pub fn init() -> ! {
     gdt::init();
@@ -30,6 +35,7 @@ pub fn init() -> ! {
     memory::paging::init_heap();
 
     let mut runtime = AsyncRuntime::new();
+    runtime.add(async {println!("ja");});
     runtime.run();
 
     hlt_loop();
