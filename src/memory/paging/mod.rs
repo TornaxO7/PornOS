@@ -28,9 +28,7 @@ pub fn init() -> ! {
     MEM_STRUCTURE
         .heap
         .call_once(|| Heap::new(Bytes::new(Size4KiB::SIZE)));
-    MEM_STRUCTURE
-        .stack
-        .call_once(Stack::new);
+    MEM_STRUCTURE.stack.call_once(Stack::new);
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
@@ -195,6 +193,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 inout("r9") 0 => _,
             }
         }
+
         crate::init();
     }
 }
@@ -225,5 +224,14 @@ impl<P: PageSize> KPagingConfigurator<P> {
 impl<P: PageSize> Default for KPagingConfigurator<P> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(feature = "test")]
+pub mod tests {
+    use super::*;
+
+    pub fn main() {
+        physical_mmap::tests::main();
     }
 }

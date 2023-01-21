@@ -1,6 +1,6 @@
 use x86_64::{structures::paging::PhysFrame, PhysAddr};
 
-use crate::memory::paging::physical_mmap::frame_allocator::{Stack, stack::POINTER_SIZE};
+use crate::memory::paging::physical_mmap::frame_allocator::{stack::POINTER_SIZE, Stack};
 
 impl Stack {
     pub fn get_frame_allocator_page_frames(&self) -> StackPageFrames {

@@ -37,24 +37,34 @@ lazy_static! {
 
         idt.divide_error.set_handler_fn(divide_error::handler);
         idt.debug.set_handler_fn(debug::handler);
-        idt.non_maskable_interrupt.set_handler_fn(non_maskable_interrupt::handler);
+        idt.non_maskable_interrupt
+            .set_handler_fn(non_maskable_interrupt::handler);
         idt.breakpoint.set_handler_fn(breakpoint::handler);
         idt.overflow.set_handler_fn(overflow::handler);
-        idt.bound_range_exceeded.set_handler_fn(bound_range_exceeded::handler);
+        idt.bound_range_exceeded
+            .set_handler_fn(bound_range_exceeded::handler);
         idt.invalid_opcode.set_handler_fn(invalid_opcode::handler);
-        idt.device_not_available.set_handler_fn(device_not_available::handler);
+        idt.device_not_available
+            .set_handler_fn(device_not_available::handler);
         idt.double_fault.set_handler_fn(double_fault::handler);
         idt.invalid_tss.set_handler_fn(invalid_tss::handler);
-        idt.security_exception.set_handler_fn(security_exception::handler);
-        idt.segment_not_present.set_handler_fn(segment_not_present::handler);
-        idt.stack_segment_fault.set_handler_fn(stack_segment_fault::handler);
-        idt.general_protection_fault.set_handler_fn(general_protection_fault::handler);
+        idt.security_exception
+            .set_handler_fn(security_exception::handler);
+        idt.segment_not_present
+            .set_handler_fn(segment_not_present::handler);
+        idt.stack_segment_fault
+            .set_handler_fn(stack_segment_fault::handler);
+        idt.general_protection_fault
+            .set_handler_fn(general_protection_fault::handler);
         idt.page_fault.set_handler_fn(page_fault::handler);
-        idt.x87_floating_point.set_handler_fn(x87_floating_point::handler);
+        idt.x87_floating_point
+            .set_handler_fn(x87_floating_point::handler);
         idt.alignment_check.set_handler_fn(alignment_check::handler);
         idt.machine_check.set_handler_fn(machine_check::handler);
-        idt.simd_floating_point.set_handler_fn(simd_floating_point::handler);
-        idt.vmm_communication_exception.set_handler_fn(vmm_communication_exception::handler);
+        idt.simd_floating_point
+            .set_handler_fn(simd_floating_point::handler);
+        idt.vmm_communication_exception
+            .set_handler_fn(vmm_communication_exception::handler);
 
         idt
     };

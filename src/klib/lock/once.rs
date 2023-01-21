@@ -42,7 +42,8 @@ impl<T> Once<T> {
                 *self.data.get() = value();
             }
 
-            self.status.store(Status::Initialised as u8, Ordering::Release);
+            self.status
+                .store(Status::Initialised as u8, Ordering::Release);
         }
     }
 }

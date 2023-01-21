@@ -13,14 +13,17 @@ use {
 
 use x86_64::structures::paging::FrameAllocator;
 
-use crate::{memory::{
-    paging::{
-        mem_structure::MEM_STRUCTURE,
-        physical_mmap::frame_allocator::FRAME_ALLOCATOR,
-        virtual_mmap::{VMMapperMap, SIMP},
+use crate::{
+    klib::lock::spinlock::Spinlock,
+    memory::{
+        paging::{
+            mem_structure::MEM_STRUCTURE,
+            physical_mmap::frame_allocator::FRAME_ALLOCATOR,
+            virtual_mmap::{VMMapperMap, SIMP},
+        },
+        types::Bytes,
     },
-    types::Bytes,
-}, klib::lock::spinlock::Spinlock};
+};
 
 #[global_allocator]
 static ALLOCATOR: Allocator = Allocator::new();

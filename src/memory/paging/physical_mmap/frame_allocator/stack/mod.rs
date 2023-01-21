@@ -12,13 +12,7 @@ mod init;
 mod iterators;
 mod page_frame_allocator;
 
-#[cfg(feature = "test")]
-mod test;
-
 use core::mem::size_of;
-
-#[cfg(feature = "test")]
-pub use test::tests;
 
 type StackIndex = u64;
 
