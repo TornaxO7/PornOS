@@ -56,9 +56,11 @@ pub mod tests {
     use super::*;
 
     pub fn main() {
+        println!("{0} TEST-MODE {0}", "=".repeat(5));
+
         memory::tests::main();
         scheduling::tests::main();
 
-        println!("All testes passed! Hooray!");
+        println!("\nAll testes passed! Hooray!");
     }
 }
