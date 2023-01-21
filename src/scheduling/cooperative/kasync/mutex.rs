@@ -1,3 +1,8 @@
+//! This module holds the implementation of the [mutex] in PornOS with
+//! cooperative scheduling.
+//!
+//! [mutex]: https://en.wikipedia.org/wiki/Mutual_exclusion
+
 use core::{
     cell::UnsafeCell,
     ops::{Deref, DerefMut},
@@ -10,8 +15,34 @@ use futures::Future;
 
 use alloc::collections::VecDeque;
 
-use crate::{klib::lock::spinlock::Spinlock, println};
+use crate::klib::lock::spinlock::Spinlock;
 
+/// The `Mutex` struct which can be used in a cooperative environment.
+///
+/// # Example
+/// ```rust
+/// # use pornos::scheduling::cooperative::kasync::mutex::Mutex;
+/// # use pornos::scheduling::cooperative::kasync::AsyncRuntime;
+/// # use pornos::println;
+///
+/// async fn interesting() {
+///     // *This* mutex struct can be only used in a cooperative environment.
+///     // In rust, that will be the async-environment.
+///     let mutex = Mutex::new(48);
+///     let guard = mutex.lock().await;
+///
+///     println!("My num: {}", *guard);
+///
+///     // guard will be dropped afterwards
+/// }
+///
+/// fn main() {
+///     let mut runtime = Runtime::new();
+///     assert!(runtime.add(interesting()));
+///     runtime.run();
+/// }
+///
+/// ```
 pub struct Mutex<T> {
     value: UnsafeCell<T>,
     is_locked: AtomicBool,
@@ -22,6 +53,7 @@ unsafe impl<'a, T> Send for Mutex<T> {}
 unsafe impl<'a, T> Sync for Mutex<T> {}
 
 impl<'a, T> Mutex<T> {
+    /// Creates a new mutex with the given data.
     pub fn new(data: T) -> Self {
         Self {
             is_locked: AtomicBool::new(false),
@@ -30,19 +62,13 @@ impl<'a, T> Mutex<T> {
         }
     }
 
+    /// Returns a future-lock-guard which can be aquired, if you're await it.
     pub fn lock(&'a self) -> FutureMutexLockGuard<T> {
         FutureMutexLockGuard { mutex: self }
     }
 }
 
-impl<T> Drop for Mutex<T> {
-    fn drop(&mut self) {
-        while let Some(waker) = { self.sleeping_threads.lock().pop_front() } {
-            waker.wake();
-        }
-    }
-}
-
+/// The mutex lock guard.
 pub struct MutexLockGuard<'a, T> {
     mutex: &'a Mutex<T>,
 }
@@ -61,6 +87,8 @@ impl<'a, T> DerefMut for MutexLockGuard<'a, T> {
     }
 }
 
+/// When the lock-guard is dropped, it'll wake up the next thread (if it exists)
+/// which requested the data from the lock.
 impl<'a, T> Drop for MutexLockGuard<'a, T> {
     fn drop(&mut self) {
         self.mutex.is_locked.store(false, Ordering::Release);
@@ -70,6 +98,7 @@ impl<'a, T> Drop for MutexLockGuard<'a, T> {
     }
 }
 
+/// A helper struct which represents the future-lock guard.
 pub struct FutureMutexLockGuard<'a, T> {
     mutex: &'a Mutex<T>,
 }
