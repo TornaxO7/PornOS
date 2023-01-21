@@ -1,7 +1,7 @@
 //! This module contains the Async-Runtime of the kernel.
+mod mutex;
 mod task;
 mod waker;
-mod mutex;
 
 pub use mutex::{Mutex, MutexLockGuard};
 
@@ -15,8 +15,14 @@ use crate::klib::lock::spinlock::Spinlock;
 
 use self::{
     task::{Task, TaskId},
-    waker::{TaskWaker, PornosWaker},
+    waker::{PornosWaker, TaskWaker},
 };
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum AsyncRuntimeExitErrStatus {
+    /// The are still tasks but the ready queue is empty.
+    UnfinishedTasks,
+}
 
 /// The async runtime which executes the async functions.
 #[derive(Default)]
@@ -73,7 +79,17 @@ impl AsyncRuntime {
     ///
     /// # Returns
     /// Returns if tall tasks have been processed.
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), AsyncRuntimeExitErrStatus> {
+        self.run_runtime_loop();
+
+        if !self.tasks.lock().is_empty() {
+            Err(AsyncRuntimeExitErrStatus::UnfinishedTasks)
+        } else {
+            Ok(())
+        }
+    }
+
+    fn run_runtime_loop(&mut self) {
         while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
             let mut tasks = self.tasks.lock();
             let task = tasks.get_mut(task_id).unwrap();
@@ -88,5 +104,41 @@ impl AsyncRuntime {
                 }
             };
         }
+    }
+}
+
+#[cfg(feature = "test")]
+pub mod tests {
+    use super::{AsyncRuntime, mutex};
+
+    pub fn main() {
+        test_async_runtime();
+
+        mutex::tests::main();
+    }
+
+    fn test_async_runtime() {
+        let mut runtime = AsyncRuntime::new();
+        runtime.add(test1());
+        runtime.add(test2());
+        assert!(runtime.run().is_ok());
+    }
+
+    async fn test1() {
+        let async1 = async { true };
+        let async2 = async { 69 };
+
+        assert_eq!(async2.await, 69);
+        assert!(async1.await);
+    }
+
+    async fn test2() {
+        let async1 = async {
+            let value = async { true };
+
+            value.await
+        };
+
+        assert!(async1.await);
     }
 }

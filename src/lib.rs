@@ -20,18 +20,6 @@ pub mod klib;
 pub mod memory;
 pub mod scheduling;
 
-async fn test_lock() {
-    let mutex = Mutex::new(69);
-    let yes = mutex.lock();
-    let no = mutex.lock();
-    {
-        println!("{}", *yes.await);
-    }
-    {
-        println!("{}", *no.await);
-    }
-}
-
 /// Initialises the kernel after loading the page tables of Pornos.
 pub fn init() -> ! {
     gdt::init();
@@ -39,15 +27,17 @@ pub fn init() -> ! {
     memory::paging::init_heap();
 
     let mut runtime = AsyncRuntime::new();
-    runtime.add(test_lock());
-    runtime.run();
+    assert!(runtime.run().is_ok());
 
     hlt_loop();
 }
 
 #[cfg(feature = "test")]
 pub fn tests() {
-    memory::tests();
+    memory::tests::main();
+    scheduling::tests::main();
+
+    println!("All testes passed! Hooray!");
 }
 
 /// A simple function which let's the kernel loop forever.

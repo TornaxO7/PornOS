@@ -227,3 +227,12 @@ impl<P: PageSize> Default for KPagingConfigurator<P> {
         Self::new()
     }
 }
+
+#[cfg(feature = "test")]
+pub mod tests {
+    use super::*;
+
+    pub fn main() {
+        physical_mmap::tests::main();
+    }
+}
