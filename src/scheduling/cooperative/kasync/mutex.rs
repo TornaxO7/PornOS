@@ -37,7 +37,6 @@ impl<'a, T> Mutex<T> {
 
 impl<T> Drop for Mutex<T> {
     fn drop(&mut self) {
-        println!("RIP Mutex");
         while let Some(waker) = { self.sleeping_threads.lock().pop_front() } {
             waker.wake();
         }
