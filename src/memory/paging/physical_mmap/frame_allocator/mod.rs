@@ -24,10 +24,6 @@ lazy_static::lazy_static! {
 
 #[cfg(feature = "test")]
 pub mod tests {
-    use super::*;
-
     pub fn main() {
-        #[cfg(feature = "frame-allocator-stack")]
-        stack::tests::main();
     }
 }

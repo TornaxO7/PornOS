@@ -19,7 +19,7 @@ pub extern "C" fn pornos_entry() -> ! {
 #[no_mangle]
 pub extern "C" fn pornos_entry() -> ! {
     println!("=== TEST MODE ===");
-    pornos::tests();
+    pornos::tests::main();
 
     println!("=== TESTS DONE ===");
     hlt_loop()

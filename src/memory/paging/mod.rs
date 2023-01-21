@@ -195,6 +195,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 inout("r9") 0 => _,
             }
         }
+
         crate::init();
     }
 }

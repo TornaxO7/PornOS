@@ -96,28 +96,36 @@ impl<'a, T> Future for FutureMutexLockGuard<'a, T> {
 
 #[cfg(feature = "test")]
 pub mod tests {
-    use crate::scheduling::cooperative::kasync::{AsyncRuntime, AsyncRuntimeExitErrStatus};
+    use crate::{scheduling::cooperative::kasync::{AsyncRuntime, AsyncRuntimeExitErrStatus}, print, println};
 
     use super::Mutex;
 
     pub fn main() {
-        test1();
-        test2();
+        test_mutex_success();
+        test_mutex_deadlock();
     }
 
-    fn test1() {
+    fn test_mutex_success() {
+        print!("test_mutex_success ... ");
+
         let mut runtime = AsyncRuntime::new();
-        runtime.add(test_common_lock_usage());
+        assert!(runtime.add(test_common_lock_usage()));
         assert!(runtime.run().is_ok());
+
+        println!("OK");
     }
 
-    fn test2() {
+    fn test_mutex_deadlock() {
+        print!("test_mutex_deadlock ... ");
+
         let mut runtime = AsyncRuntime::new();
-        runtime.add(test_deadlock());
+        assert!(runtime.add(deadlock_fn()));
         assert_eq!(
             runtime.run(),
             Err(AsyncRuntimeExitErrStatus::UnfinishedTasks)
         );
+
+        println!("OK");
     }
 
     async fn test_common_lock_usage() {
@@ -134,9 +142,9 @@ pub mod tests {
         }
     }
 
-    async fn test_deadlock() {
+    async fn deadlock_fn() {
         let mutex = Mutex::new(69);
-        let lock1 = mutex.lock().await;
+        let _lock1 = mutex.lock().await;
         let lock2 = mutex.lock();
 
         lock2.await;

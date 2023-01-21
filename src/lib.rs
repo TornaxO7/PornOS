@@ -9,6 +9,8 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
+use core::arch::asm;
+
 use scheduling::cooperative::kasync::{AsyncRuntime, Mutex};
 
 extern crate alloc;
@@ -26,18 +28,19 @@ pub fn init() -> ! {
     interrupt::init();
     memory::paging::init_heap();
 
-    let mut runtime = AsyncRuntime::new();
-    assert!(runtime.run().is_ok());
+    #[cfg(not(feature = "test"))]
+    start_pornos();
+
+    #[cfg(feature = "test")]
+    tests::main();
 
     hlt_loop();
 }
 
-#[cfg(feature = "test")]
-pub fn tests() {
-    memory::tests::main();
-    scheduling::tests::main();
-
-    println!("All testes passed! Hooray!");
+#[cfg(not(feature = "test"))]
+fn start_pornos() {
+    let mut runtime = AsyncRuntime::new();
+    assert!(runtime.run().is_ok());
 }
 
 /// A simple function which let's the kernel loop forever.
@@ -45,5 +48,17 @@ pub fn hlt_loop() -> ! {
     println!("Entering halting loop...");
     loop {
         x86_64::instructions::hlt();
+    }
+}
+
+#[cfg(feature = "test")]
+pub mod tests {
+    use super::*;
+
+    pub fn main() {
+        memory::tests::main();
+        scheduling::tests::main();
+
+        println!("All testes passed! Hooray!");
     }
 }

@@ -109,6 +109,8 @@ impl AsyncRuntime {
 
 #[cfg(feature = "test")]
 pub mod tests {
+    use crate::{print, println};
+
     use super::{AsyncRuntime, mutex};
 
     pub fn main() {
@@ -118,10 +120,14 @@ pub mod tests {
     }
 
     fn test_async_runtime() {
+        print!("test_async_runtime ... ");
+
         let mut runtime = AsyncRuntime::new();
-        runtime.add(test1());
-        runtime.add(test2());
+        assert!(runtime.add(test1()));
+        assert!(runtime.add(test2()));
         assert!(runtime.run().is_ok());
+
+        println!("OK");
     }
 
     async fn test1() {
