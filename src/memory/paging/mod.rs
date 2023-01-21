@@ -195,6 +195,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 inout("r9") 0 => _,
             }
         }
+
         crate::init();
     }
 }
@@ -225,5 +226,14 @@ impl<P: PageSize> KPagingConfigurator<P> {
 impl<P: PageSize> Default for KPagingConfigurator<P> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(feature = "test")]
+pub mod tests {
+    use super::*;
+
+    pub fn main() {
+        physical_mmap::tests::main();
     }
 }

@@ -21,3 +21,9 @@ lazy_static::lazy_static! {
     /// The good old page frame allocator.
     pub static ref FRAME_ALLOCATOR: Spinlock<Stack> = Spinlock::new(Stack::new());
 }
+
+#[cfg(feature = "test")]
+pub mod tests {
+    pub fn main() {
+    }
+}

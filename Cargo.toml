@@ -7,7 +7,7 @@ edition = "2021"
 
 [features]
 default = ["frame-allocator-stack",
-"global-allocator-linked-list-allocator-crate", "async-executor-dummy"]
+"global-allocator-linked-list-allocator-crate", "async-executor-dummy", "test"]
 
 # frame allocators
 frame-allocator-array-stack = []

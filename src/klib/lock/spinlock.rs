@@ -1,9 +1,11 @@
+//! Holds the spinlock implementation.
 use core::{
     cell::UnsafeCell,
     ops::{Deref, DerefMut},
     sync::atomic::{AtomicBool, Ordering},
 };
 
+/// The Spinlock structure
 #[derive(Debug, Default)]
 pub struct Spinlock<T> {
     is_locked: AtomicBool,

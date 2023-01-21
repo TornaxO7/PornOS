@@ -1,6 +1,9 @@
 //! This module contains the Async-Runtime of the kernel.
+mod mutex;
 mod task;
 mod waker;
+
+pub use mutex::{Mutex, MutexLockGuard};
 
 use {alloc::sync::Arc, futures::Future};
 
@@ -12,8 +15,14 @@ use crate::klib::lock::spinlock::Spinlock;
 
 use self::{
     task::{Task, TaskId},
-    waker::TaskWaker,
+    waker::{PornosWaker, TaskWaker},
 };
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum AsyncRuntimeExitErrStatus {
+    /// The are still tasks but the ready queue is empty.
+    UnfinishedTasks,
+}
 
 /// The async runtime which executes the async functions.
 #[derive(Default)]
@@ -59,6 +68,7 @@ impl AsyncRuntime {
 
         let id = TaskId::new();
         let task = Task::new(id, future_fn);
+
         assert!(self.tasks.lock().insert(id, task).is_none());
         assert!(self.ready_queue.lock().insert(id));
 
@@ -66,22 +76,75 @@ impl AsyncRuntime {
     }
 
     /// Starts the async environment.
-    pub fn run(&mut self) -> ! {
-        loop {
-            while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
-                let mut tasks = self.tasks.lock();
-                let task = tasks.get_mut(task_id).unwrap();
+    ///
+    /// # Returns
+    /// Returns if tall tasks have been processed.
+    pub fn run(&mut self) -> Result<(), AsyncRuntimeExitErrStatus> {
+        self.run_runtime_loop();
 
-                let waker = TaskWaker::create(task.id, self.ready_queue.clone());
-                let mut ctx = Context::from_waker(&waker);
-
-                match task.future_fn.as_mut().poll(&mut ctx) {
-                    Poll::Pending => {}
-                    Poll::Ready(()) => {
-                        tasks.remove(task_id);
-                    }
-                };
-            }
+        if !self.tasks.lock().is_empty() {
+            Err(AsyncRuntimeExitErrStatus::UnfinishedTasks)
+        } else {
+            Ok(())
         }
+    }
+
+    fn run_runtime_loop(&mut self) {
+        while let Some(ref task_id) = { self.ready_queue.lock().pop_first() } {
+            let mut tasks = self.tasks.lock();
+            let task = tasks.get_mut(task_id).unwrap();
+
+            let waker = TaskWaker::create(task.id, self.ready_queue.clone());
+            let mut ctx = Context::from_waker(&waker);
+
+            match task.future_fn.as_mut().poll(&mut ctx) {
+                Poll::Pending => {}
+                Poll::Ready(()) => {
+                    tasks.remove(task_id);
+                }
+            };
+        }
+    }
+}
+
+#[cfg(feature = "test")]
+pub mod tests {
+    use crate::{print, println};
+
+    use super::{AsyncRuntime, mutex};
+
+    pub fn main() {
+        test_async_runtime();
+
+        mutex::tests::main();
+    }
+
+    fn test_async_runtime() {
+        print!("test_async_runtime ... ");
+
+        let mut runtime = AsyncRuntime::new();
+        assert!(runtime.add(test1()));
+        assert!(runtime.add(test2()));
+        assert!(runtime.run().is_ok());
+
+        println!("OK");
+    }
+
+    async fn test1() {
+        let async1 = async { true };
+        let async2 = async { 69 };
+
+        assert_eq!(async2.await, 69);
+        assert!(async1.await);
+    }
+
+    async fn test2() {
+        let async1 = async {
+            let value = async { true };
+
+            value.await
+        };
+
+        assert!(async1.await);
     }
 }
