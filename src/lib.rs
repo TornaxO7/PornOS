@@ -22,8 +22,14 @@ pub mod scheduling;
 
 async fn test_lock() {
     let mutex = Mutex::new(69);
-    let yes = mutex.lock().await;
-    println!("{}", *yes);
+    let yes = mutex.lock();
+    let no = mutex.lock();
+    {
+        println!("{}", *yes.await);
+    }
+    {
+        println!("{}", *no.await);
+    }
 }
 
 /// Initialises the kernel after loading the page tables of Pornos.

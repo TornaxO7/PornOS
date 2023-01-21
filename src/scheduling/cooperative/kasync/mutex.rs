@@ -3,7 +3,7 @@ use core::{
     ops::{Deref, DerefMut},
     pin::Pin,
     sync::atomic::{AtomicBool, Ordering},
-    task::{Context, Poll},
+    task::{Context, Poll, Waker},
 };
 
 use futures::Future;
@@ -13,16 +13,16 @@ use alloc::collections::VecDeque;
 use crate::klib::lock::spinlock::Spinlock;
 
 #[derive(Default)]
-pub struct Mutex<'a, T> {
+pub struct Mutex<T> {
     value: UnsafeCell<T>,
     is_locked: AtomicBool,
-    sleeping_threads: Spinlock<VecDeque<&'a Mutex<'a, T>>>,
+    sleeping_threads: Spinlock<VecDeque<Waker>>,
 }
 
-unsafe impl<'a, T> Send for Mutex<'a, T> {}
-unsafe impl<'a, T> Sync for Mutex<'a, T> {}
+unsafe impl<'a, T> Send for Mutex<T> {}
+unsafe impl<'a, T> Sync for Mutex<T> {}
 
-impl<'a, T> Mutex<'a, T> {
+impl<'a, T> Mutex<T> {
     pub fn new(data: T) -> Self {
         Self {
             is_locked: AtomicBool::new(false),
@@ -37,7 +37,7 @@ impl<'a, T> Mutex<'a, T> {
 }
 
 pub struct MutexLockGuard<'a, T> {
-    mutex: &'a Mutex<'a, T>,
+    mutex: &'a Mutex<T>,
 }
 
 impl<'a, T> Deref for MutexLockGuard<'a, T> {
@@ -56,18 +56,21 @@ impl<'a, T> DerefMut for MutexLockGuard<'a, T> {
 
 impl<'a, T> Drop for MutexLockGuard<'a, T> {
     fn drop(&mut self) {
-        self.mutex.sleeping_threads.lock().pop_front();
+        self.mutex.is_locked.store(false, Ordering::Release);
+        if let Some(waker) = {self.mutex.sleeping_threads.lock().pop_front()} {
+            waker.wake();
+        }
     }
 }
 
 pub struct FutureMutexLockGuard<'a, T> {
-    mutex: &'a Mutex<'a, T>,
+    mutex: &'a Mutex<T>,
 }
 
 impl<'a, T> Future for FutureMutexLockGuard<'a, T> {
     type Output = MutexLockGuard<'a, T>;
 
-    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self
             .mutex
             .is_locked
@@ -76,7 +79,8 @@ impl<'a, T> Future for FutureMutexLockGuard<'a, T> {
         {
             Poll::Ready(MutexLockGuard { mutex: self.mutex })
         } else {
-            self.mutex.sleeping_threads.lock().push_back(self.mutex);
+            let waker = cx.waker().clone();
+            self.mutex.sleeping_threads.lock().push_back(waker);
             Poll::Pending
         }
     }
