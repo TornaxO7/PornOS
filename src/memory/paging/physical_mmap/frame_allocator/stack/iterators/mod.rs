@@ -1,8 +1,8 @@
-use x86_64::{PhysAddr, structures::paging::PhysFrame};
+use x86_64::{structures::paging::PhysFrame, PhysAddr};
 
 use crate::memory::paging::mem_structure::MEM_STRUCTURE;
 
-use super::{POINTER_SIZE, Stack};
+use super::{Stack, POINTER_SIZE};
 
 mod stack_page_frames;
 
@@ -18,7 +18,8 @@ impl Iterator for StackIterator {
     fn next(&mut self) -> Option<Self::Item> {
         if self.index < self.len {
             let return_value = {
-                let entry_addr = MEM_STRUCTURE.hhdm + self.start.as_u64() + (POINTER_SIZE * self.index).as_u64();
+                let entry_addr =
+                    MEM_STRUCTURE.hhdm + self.start.as_u64() + (POINTER_SIZE * self.index).as_u64();
                 let entry_ptr = entry_addr.as_ptr() as *const u64;
                 let entry_value = unsafe { entry_ptr.read() };
 

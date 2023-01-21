@@ -2,7 +2,6 @@
 //! cooperative scheduling.
 //!
 //! [mutex]: https://en.wikipedia.org/wiki/Mutual_exclusion
-
 use core::{
     cell::UnsafeCell,
     ops::{Deref, DerefMut},
@@ -124,7 +123,10 @@ impl<'a, T> Future for FutureMutexLockGuard<'a, T> {
 
 #[cfg(feature = "test")]
 pub mod tests {
-    use crate::{scheduling::cooperative::kasync::{AsyncRuntime, AsyncRuntimeExitErrStatus}, print, println};
+    use crate::{
+        print, println,
+        scheduling::cooperative::kasync::{AsyncRuntime, AsyncRuntimeExitErrStatus},
+    };
 
     use super::Mutex;
 

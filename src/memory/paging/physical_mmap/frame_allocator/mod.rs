@@ -24,6 +24,5 @@ lazy_static::lazy_static! {
 
 #[cfg(feature = "test")]
 pub mod tests {
-    pub fn main() {
-    }
+    pub fn main() {}
 }

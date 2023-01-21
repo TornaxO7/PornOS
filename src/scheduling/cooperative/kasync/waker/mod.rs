@@ -1,11 +1,7 @@
 //! Holds the waker of a task.
 use core::task::Waker;
 
-use alloc::{
-    collections::BTreeSet,
-    sync::Arc,
-    task::Wake,
-};
+use alloc::{collections::BTreeSet, sync::Arc, task::Wake};
 
 use crate::klib::lock::spinlock::Spinlock;
 

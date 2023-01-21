@@ -1,8 +1,10 @@
 //! Holds the implementation of a task from the async-environment.
-use core::{pin::Pin, sync::atomic::{AtomicU64, Ordering}};
+use core::{
+    pin::Pin,
+    sync::atomic::{AtomicU64, Ordering},
+};
 
-use alloc::boxed::Box;
-use futures::Future;
+use {alloc::boxed::Box, futures::Future};
 
 /// Represents a task from the async-environment.
 pub struct Task {

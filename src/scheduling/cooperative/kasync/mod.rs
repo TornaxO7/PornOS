@@ -111,7 +111,7 @@ impl AsyncRuntime {
 pub mod tests {
     use crate::{print, println};
 
-    use super::{AsyncRuntime, mutex};
+    use super::{mutex, AsyncRuntime};
 
     pub fn main() {
         test_async_runtime();

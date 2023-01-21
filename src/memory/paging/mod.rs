@@ -28,9 +28,7 @@ pub fn init() -> ! {
     MEM_STRUCTURE
         .heap
         .call_once(|| Heap::new(Bytes::new(Size4KiB::SIZE)));
-    MEM_STRUCTURE
-        .stack
-        .call_once(Stack::new);
+    MEM_STRUCTURE.stack.call_once(Stack::new);
 
     let p_configurator = KPagingConfigurator::<Size4KiB>::new();
     p_configurator.map_kernel();
