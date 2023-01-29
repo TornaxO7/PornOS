@@ -9,10 +9,6 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 
-use core::arch::asm;
-
-use scheduling::cooperative::kasync::{AsyncRuntime, Mutex};
-
 extern crate alloc;
 
 pub mod gdt;
@@ -39,6 +35,8 @@ pub fn init() -> ! {
 
 #[cfg(not(feature = "test"))]
 fn start_pornos() {
+    use scheduling::cooperative::kasync::AsyncRuntime;
+
     let mut runtime = AsyncRuntime::new();
     assert!(runtime.run().is_ok());
 }
