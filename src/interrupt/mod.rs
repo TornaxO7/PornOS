@@ -95,13 +95,40 @@ impl Default for GateOptions {
 struct Gate {
     offset1: u16,
     segment_selector: u16,
+    options: GateOptions,
+    offset2: u16,
+    offset3: u32,
+    reserved: u32,
 }
 
 /// Alignment recommended by the intel manual (Volume 3, Page 201)
 #[repr(C, align(8))]
-struct IDT {}
+struct InterruptDiscriptorTable {
+    divide_error: Gate,
+    debug_exception: Gate,
+    nmi_interrupt: Gate,
+    breakpoint: Gate,
+    overflow: Gate,
+    bound_range_exceeded: Gate,
+    invalid_opcode: Gate,
+    device_not_available: Gate,
+    double_fault: Gate,
+    invalid_TSS: Gate,
+    segment_not_present: Gate,
+    stack_segment_fault: Gate,
+    general_protection: Gate,
+    page_fault: Gate,
+    reserved1: Gate,
+    x87_FPU_floating_point_error: Gate,
+    alignment_check: Gate,
+    machine_check: Gate,
+    simd_floating_point_exception: Gate,
+    virtualization_exception: Gate,
+    control_protection_exception: Gate,
+    reserved2: [Gate; 31 - 22],
+}
 
-impl IDT {
+impl InterruptDiscriptorTable {
     pub fn new() -> Self {
         todo!()
     }
@@ -120,6 +147,5 @@ impl IDT {
 
 pub fn init() {
     print!("IDT ... ");
-
     println!("OK");
 }
