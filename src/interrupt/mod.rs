@@ -24,11 +24,12 @@ enum GateType {
     TrapGate32,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 struct GateOptions(u16);
 
 impl GateOptions {
-    pub fn new() -> Self {
+    pub fn none() -> Self {
         Self::default()
     }
 
@@ -87,10 +88,11 @@ impl GateOptions {
 
 impl Default for GateOptions {
     fn default() -> Self {
-        Self(0)
+        Self::none()
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 #[repr(C)]
 struct Gate {
     offset1: u16,
@@ -101,7 +103,14 @@ struct Gate {
     reserved: u32,
 }
 
+impl Gate {
+    pub fn empty() -> Self {
+        Gate::default()
+    }
+}
+
 /// Alignment recommended by the intel manual (Volume 3, Page 201)
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 #[repr(C, align(8))]
 struct InterruptDiscriptorTable {
     divide_error: Gate,
@@ -130,7 +139,7 @@ struct InterruptDiscriptorTable {
 
 impl InterruptDiscriptorTable {
     pub fn new() -> Self {
-        todo!()
+        Self::default()
     }
 
     pub unsafe fn load(&self) {
