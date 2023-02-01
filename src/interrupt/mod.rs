@@ -1,27 +1,41 @@
-use core::{arch::asm, marker::PhantomData};
+use core::arch::asm;
 
-use x86_64::VirtAddr;
+use crate::{print, println};
 
-use crate::{memory::types::Bytes, print, println};
+lazy_static::lazy_static! {
+}
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub fn init() {
+    print!("IDT ... ");
+    println!("OK");
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum GateType {
-    Reserved1,
-    TSS16Available,
-    LDT,
-    TSS16Busy,
-    CallGate16,
-    TaskGate,
-    InterruptGate16,
-    TrapGate16,
-    Reserved2,
-    TSS32Available,
-    Reserved3,
-    TSS32Busy,
-    CallGate32,
-    Reserved4,
-    InterruptGate32,
-    TrapGate32,
+    Reserved1       = 0b0000,
+    TSS16Available  = 0b0001,
+    LDT             = 0b0010,
+    TSS16Busy       = 0b0011,
+    CallGate16      = 0b0100,
+    TaskGate        = 0b0101,
+    InterruptGate16 = 0b0110,
+    TrapGate16      = 0b0111,
+    Reserved2       = 0b1000,
+    TSS32Available  = 0b1001,
+    Reserved3       = 0b1010,
+    TSS32Busy       = 0b1011,
+    CallGate32      = 0b1100,
+    Reserved4       = 0b1101,
+    InterruptGate32 = 0b1110,
+    TrapGate32      = 0b1111,
+}
+
+impl GateType {
+    /// Converts itself into the bits which can then be simply ORed with the
+    /// bits of GateOptions.
+    pub fn to_gate_option_bits(self) -> u16 {
+        u16::from((self as u8) << 8)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -47,30 +61,7 @@ impl GateOptions {
 
     pub fn set_type(&mut self, gate_type: GateType) {
         self.0 &= !(0b1111 << 8);
-        self.0 |= {
-            #[rustfmt::skip]
-            let bitmap = match gate_type {
-                // clear already happened above
-                GateType::Reserved1       => 0b0000,
-                GateType::TSS16Available  => 0b0001,
-                GateType::LDT             => 0b0010,
-                GateType::TSS16Busy       => 0b0011,
-                GateType::CallGate16      => 0b0100,
-                GateType::TaskGate        => 0b0101,
-                GateType::InterruptGate16 => 0b0110,
-                GateType::TrapGate16      => 0b0111,
-                GateType::Reserved2       => 0b1000,
-                GateType::TSS32Available  => 0b1001,
-                GateType::Reserved3       => 0b1010,
-                GateType::TSS32Busy       => 0b1011,
-                GateType::CallGate32      => 0b1100,
-                GateType::Reserved4       => 0b1101,
-                GateType::InterruptGate32 => 0b1110,
-                GateType::TrapGate32      => 0b1111,
-            };
-
-            bitmap << 8
-        };
+        self.0 |= gate_type.to_gate_option_bits();
     }
 
     pub unsafe fn set_ist(&mut self, index: u8) {
@@ -152,9 +143,4 @@ impl InterruptDiscriptorTable {
             }
         }
     }
-}
-
-pub fn init() {
-    print!("IDT ... ");
-    println!("OK");
 }
