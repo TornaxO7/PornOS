@@ -79,6 +79,7 @@ impl AsyncRuntime {
     ///
     /// # Returns
     /// Returns if tall tasks have been processed.
+    #[must_use]
     pub fn run(&mut self) -> Result<(), AsyncRuntimeExitErrStatus> {
         self.run_runtime_loop();
 
