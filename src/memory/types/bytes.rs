@@ -94,3 +94,9 @@ impl Mul<usize> for Bytes {
         Self(self.0 * rhs_u64)
     }
 }
+
+impl From<u16> for Bytes {
+    fn from(value: u16) -> Self {
+        Self(u64::from(value))
+    }
+}

@@ -48,8 +48,8 @@ pub struct Mutex<T> {
     sleeping_threads: Spinlock<VecDeque<Waker>>,
 }
 
-unsafe impl<'a, T> Send for Mutex<T> {}
-unsafe impl<'a, T> Sync for Mutex<T> {}
+unsafe impl<T> Send for Mutex<T> {}
+unsafe impl<T> Sync for Mutex<T> {}
 
 impl<'a, T> Mutex<T> {
     /// Creates a new mutex with the given data.
