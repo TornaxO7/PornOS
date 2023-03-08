@@ -77,6 +77,7 @@ pub fn init() {
 }
 
 fn general_handler(_stack_frame: InterruptStackFrame, _index: u8, _error_code: Option<u64>) {
+    println!("Called general interrupt handler");
     loop {
         x86_64::instructions::hlt();
     }

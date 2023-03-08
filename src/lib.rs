@@ -39,6 +39,8 @@ pub fn init() -> ! {
 
 #[cfg(not(feature = "test"))]
 fn start_pornos() {
+    x86_64::instructions::interrupts::enable();
+
     let mut runtime = AsyncRuntime::new();
     assert!(runtime.run().is_ok());
 }
