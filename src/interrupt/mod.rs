@@ -9,6 +9,7 @@ use crate::{print, println};
 lazy_static::lazy_static! {
     static ref IDT: InterruptDiscriptorTable = {
         let mut idt = InterruptDiscriptorTable::new();
+        idt.debug_exception_handler(&debug_exception_handler);
         idt
     };
 }
@@ -75,4 +76,12 @@ impl InterruptDiscriptorTable {
         // return address
         todo!();
     }
+}
+
+impl InterruptDiscriptorTable {
+    pub fn debug_exception_handler(&mut self, handler: impl Fn() -> ()) {
+    }
+}
+
+fn debug_exception_handler() {
 }

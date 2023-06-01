@@ -87,4 +87,3 @@ impl Gate {
         Gate::default()
     }
 }
-
