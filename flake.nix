@@ -1,9 +1,11 @@
 {
   description = "PornOS - A custom kernel. What did you though?";
 
-  inputs = { };
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  };
 
-  outputs = { ... }:
+  outputs = { nixpkgs, ... }:
     let
       forAllSystems = function:
         nixpkgs.lib.genAttrs [
