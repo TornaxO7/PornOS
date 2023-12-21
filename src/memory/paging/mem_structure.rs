@@ -1,6 +1,6 @@
 use {
     lazy_static::lazy_static,
-    limine::LimineHhdmRequest,
+    limine::HhdmRequest,
     x86_64::{PhysAddr, VirtAddr},
 };
 
@@ -12,7 +12,7 @@ use super::physical_mmap::{
     frame_allocator::FRAME_ALLOCATOR, limine::iterators::UseableMemChunkIterator,
 };
 
-static HHDM_REQUEST: LimineHhdmRequest = LimineHhdmRequest::new(0);
+static HHDM_REQUEST: HhdmRequest = HhdmRequest::new(0);
 
 lazy_static! {
     pub static ref MEM_STRUCTURE: MemStructure = MemStructure {

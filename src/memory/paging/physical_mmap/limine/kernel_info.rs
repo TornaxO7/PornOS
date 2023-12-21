@@ -3,7 +3,7 @@
 use core::{marker::PhantomData, ops::Range};
 
 use {
-    limine::LimineKernelAddressRequest,
+    limine::KernelAddressRequest,
     x86_64::{structures::paging::PageSize, PhysAddr, VirtAddr},
 };
 
@@ -11,7 +11,7 @@ use crate::memory::paging::physical_mmap::kernel_info::{
     KernelData, CODE_END, DATA_END, READ_ONLY_END,
 };
 
-static KERNEL_ADDRESS_REQUEST: LimineKernelAddressRequest = LimineKernelAddressRequest::new(0);
+static KERNEL_ADDRESS_REQUEST: KernelAddressRequest = KernelAddressRequest::new(0);
 
 impl<P: PageSize> KernelData<P> {
     pub fn from_limine() -> Self {

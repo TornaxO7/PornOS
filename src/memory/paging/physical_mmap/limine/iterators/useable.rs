@@ -1,4 +1,4 @@
-use limine::{LimineMemmapEntry, LimineMemoryMapEntryType, NonNullPtr};
+use limine::{MemmapEntry, MemoryMapEntryType, NonNullPtr};
 
 use core::iter::Iterator;
 
@@ -13,11 +13,11 @@ impl UseableMemChunkIterator {
 }
 
 impl Iterator for UseableMemChunkIterator {
-    type Item = &'static NonNullPtr<LimineMemmapEntry>;
+    type Item = &'static NonNullPtr<MemmapEntry>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0
             .by_ref()
-            .find(|&mmap| mmap.typ == LimineMemoryMapEntryType::Usable)
+            .find(|&mmap: &Self::Item| mmap.typ == MemoryMapEntryType::Usable)
     }
 }
