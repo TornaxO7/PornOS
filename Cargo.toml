@@ -6,7 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["frame-allocator-stack", "global-allocator-linked-list-allocator-crate", "async-executor-dummy"]
+default = [
+  "frame-allocator-stack",
+  "global-allocator-linked-list-allocator-crate",
+  "async-executor-dummy",
+]
 
 # frame allocators
 frame-allocator-array-stack = []
@@ -25,10 +29,10 @@ async-executor-dummy = []
 test = []
 
 [dependencies]
-limine = "0.1.9"
-x86_64 = "0.14.10"
-lazy_static = {version = "1.4.0", features = ["spin_no_std"]}
-bitflags = "1.3.2"
-linked_list_allocator = "0.10.4"
-uart_16550 = "0.2.18"
-futures = {version = "0.3.25", default-features = false, features = ["alloc"]}
+limine = "0.1"
+x86_64 = "0.14"
+lazy_static = { version = "1.4", features = ["spin_no_std"] }
+bitflags = "1.3"
+linked_list_allocator = "0.10"
+uart_16550 = "0.2"
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
