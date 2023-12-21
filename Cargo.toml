@@ -34,5 +34,5 @@ x86_64 = "0.14"
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 bitflags = "2.4"
 linked_list_allocator = "0.10"
-uart_16550 = "0.2"
+uart_16550 = "0.3"
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
