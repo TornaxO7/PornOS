@@ -29,7 +29,7 @@ async-executor-dummy = []
 test = []
 
 [dependencies]
-limine = "0.1"
+limine = "0.2"
 x86_64 = "0.14"
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 bitflags = "2.4"
