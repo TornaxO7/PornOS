@@ -30,7 +30,7 @@ test = []
 
 [dependencies]
 limine = "0.2"
-x86_64 = "0.14"
+x86_64 = "0.15"
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 bitflags = "2.4"
 linked_list_allocator = "0.10"
