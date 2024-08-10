@@ -11,7 +11,8 @@ KERNEL=$1
 
 # Clone the `limine` repository if we don't have it yet.
 if [ ! -d target/limine ]; then
-    git clone $LIMINE_GIT_URL --depth=1 --branch v3.0-branch-binary target/limine
+    # git clone $LIMINE_GIT_URL --depth=1 --branch v3.0-branch-binary target/limine
+    git clone $LIMINE_GIT_URL --depth=1 --branch v8.x-binary target/limine
 fi
 
 # Make sure we have an up-to-date version of the bootloader.

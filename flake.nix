@@ -32,6 +32,8 @@
               git
               qemu
               libisoburn
+              just
+              gnumake
             ] ++ [ rust-toolchain ];
           };
       };
