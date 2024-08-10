@@ -161,7 +161,7 @@ impl<P: PageSize> KPagingConfigurator<P> {
                 let addr = PhysAddr::new(mem_chunk.base);
                 PhysFrame::from_start_address(addr).unwrap()
             };
-            let len = Bytes::new(mem_chunk.len);
+            let len = Bytes::new(mem_chunk.length);
 
             unsafe {
                 SIMP.lock().map_page_range(

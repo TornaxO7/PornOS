@@ -3,7 +3,7 @@
 use core::{marker::PhantomData, ops::Range};
 
 use {
-    limine::KernelAddressRequest,
+    limine::request::KernelAddressRequest,
     x86_64::{structures::paging::PageSize, PhysAddr, VirtAddr},
 };
 
@@ -11,15 +11,15 @@ use crate::memory::paging::physical_mmap::kernel_info::{
     KernelData, CODE_END, DATA_END, READ_ONLY_END,
 };
 
-static KERNEL_ADDRESS_REQUEST: KernelAddressRequest = KernelAddressRequest::new(0);
+static KERNEL_ADDRESS_REQUEST: KernelAddressRequest = KernelAddressRequest::new();
 
 impl<P: PageSize> KernelData<P> {
     pub fn from_limine() -> Self {
-        let response = KERNEL_ADDRESS_REQUEST.get_response().get().unwrap();
+        let response = KERNEL_ADDRESS_REQUEST.get_response().unwrap();
         let code = {
             let section_addr = (&CODE_END as *const u8).addr() as u64;
 
-            let start = VirtAddr::new(response.virtual_base);
+            let start = VirtAddr::new(response.virtual_base());
             let end = {
                 let section_size = section_addr - start.as_u64();
                 let end_addr = (start + section_size).align_up(P::SIZE);
@@ -46,8 +46,8 @@ impl<P: PageSize> KernelData<P> {
         };
 
         Self {
-            start_phys: PhysAddr::new(response.physical_base),
-            start_virt: VirtAddr::new(response.virtual_base),
+            start_phys: PhysAddr::new(response.physical_base()),
+            start_virt: VirtAddr::new(response.virtual_base()),
             code,
             read_only,
             data,

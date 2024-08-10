@@ -39,6 +39,8 @@ pub fn init() -> ! {
 fn start_pornos() {
     x86_64::instructions::interrupts::enable();
 
+    println!("Hello from PornOS");
+
     let mut runtime = AsyncRuntime::new();
     assert!(runtime.run().is_ok());
 }

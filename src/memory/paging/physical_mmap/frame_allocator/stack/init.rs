@@ -39,7 +39,7 @@ impl Stack {
         let mut entry_virt_addr = MEM_STRUCTURE.hhdm + self.start.as_u64();
 
         for mmap in UseableMemChunkIterator::new() {
-            for frame_offset in (0..mmap.len).step_by(Self::PAGE_SIZE.as_usize()) {
+            for frame_offset in (0..mmap.length).step_by(Self::PAGE_SIZE.as_usize()) {
                 let frame_addr = PhysAddr::new(mmap.base + frame_offset);
 
                 {
@@ -135,7 +135,7 @@ fn get_stack_page_frame() -> PhysAddr {
     let needed_free_space = POINTER_SIZE * amount_page_frames;
 
     for mmap in UseableMemChunkIterator::new() {
-        let has_enough_space = mmap.len >= needed_free_space.as_u64();
+        let has_enough_space = mmap.length >= needed_free_space.as_u64();
         if has_enough_space {
             return PhysAddr::new(mmap.base);
         }

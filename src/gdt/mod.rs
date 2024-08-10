@@ -18,7 +18,7 @@ lazy_static! {
             | DescriptorFlags::ACCESSED
             | DescriptorFlags::EXECUTABLE)
             .bits();
-        gdt.add_entry(Descriptor::UserSegment(code_16bit));
+        gdt.append(Descriptor::UserSegment(code_16bit));
 
         let data_16bit = (DescriptorFlags::USER_SEGMENT
             | DescriptorFlags::PRESENT
@@ -26,19 +26,19 @@ lazy_static! {
             | DescriptorFlags::ACCESSED
             | DescriptorFlags::WRITABLE)
             .bits();
-        gdt.add_entry(Descriptor::UserSegment(data_16bit));
+        gdt.append(Descriptor::UserSegment(data_16bit));
 
         let code_32bit = DescriptorFlags::KERNEL_CODE32.bits();
-        gdt.add_entry(Descriptor::UserSegment(code_32bit));
+        gdt.append(Descriptor::UserSegment(code_32bit));
 
         let data_32bit = DescriptorFlags::KERNEL_DATA.bits();
-        gdt.add_entry(Descriptor::UserSegment(data_32bit));
+        gdt.append(Descriptor::UserSegment(data_32bit));
 
         let code_64bit = DescriptorFlags::KERNEL_CODE64.bits();
-        let kcode_seg = gdt.add_entry(Descriptor::UserSegment(code_64bit));
+        let kcode_seg = gdt.append(Descriptor::UserSegment(code_64bit));
 
         let data_64bit = DescriptorFlags::KERNEL_DATA.bits();
-        let kdata_seg = gdt.add_entry(Descriptor::UserSegment(data_64bit));
+        let kdata_seg = gdt.append(Descriptor::UserSegment(data_64bit));
 
         (
             gdt,

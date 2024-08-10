@@ -1,10 +1,9 @@
 use {
     lazy_static::lazy_static,
-    limine::HhdmRequest,
     x86_64::{PhysAddr, VirtAddr},
 };
 
-use x86_64::structures::paging::FrameAllocator;
+use {limine::request::HhdmRequest, x86_64::structures::paging::FrameAllocator};
 
 use crate::{klib::lock::once::Once, memory::types::Bytes};
 
@@ -12,11 +11,11 @@ use super::physical_mmap::{
     frame_allocator::FRAME_ALLOCATOR, limine::iterators::UseableMemChunkIterator,
 };
 
-static HHDM_REQUEST: HhdmRequest = HhdmRequest::new(0);
+static HHDM_REQUEST: HhdmRequest = HhdmRequest::new();
 
 lazy_static! {
     pub static ref MEM_STRUCTURE: MemStructure = MemStructure {
-        hhdm: VirtAddr::new(HHDM_REQUEST.get_response().get().unwrap().offset),
+        hhdm: VirtAddr::new(HHDM_REQUEST.get_response().unwrap().offset()),
         kstart: VirtAddr::new(0xffffffff80000000),
         heap: Once::new(),
         stack: Once::new(),
@@ -48,7 +47,7 @@ impl Heap {
         let last_useable = UseableMemChunkIterator::new().last().unwrap();
 
         let start = {
-            let last_addr = last_useable.base + last_useable.len + 1u64;
+            let last_addr = last_useable.base + last_useable.length + 1u64;
             let addr = PhysAddr::new(last_addr);
             let addr = addr.align_up(page_size.as_u64());
             super::virtual_mmap::translate_addr(addr)
