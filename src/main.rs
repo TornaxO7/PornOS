@@ -5,6 +5,7 @@ use core::arch::asm;
 
 use limine::request::FramebufferRequest;
 use limine::BaseRevision;
+use pornos::serial_println;
 
 /// Sets the base revision to the latest revision supported by the crate.
 /// See specification for further info.
@@ -24,6 +25,8 @@ unsafe extern "C" fn kmain() -> ! {
     // removed by the linker.
     assert!(BASE_REVISION.is_supported());
 
+    serial_println!("PornOS booted");
+
     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response() {
         if let Some(framebuffer) = framebuffer_response.framebuffers().next() {
             for i in 0..100_u64 {
@@ -37,15 +40,15 @@ unsafe extern "C" fn kmain() -> ! {
         }
     }
 
-    hcf();
+    halt_loop();
 }
 
 #[panic_handler]
 fn rust_panic(_info: &core::panic::PanicInfo) -> ! {
-    hcf();
+    halt_loop();
 }
 
-fn hcf() -> ! {
+fn halt_loop() -> ! {
     unsafe {
         asm!("cli");
         loop {

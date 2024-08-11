@@ -13,6 +13,17 @@ build:
 run: image
     qemu-system-x86_64 -M q35 -m 4G -cdrom {{IMAGE_NAME}}.iso -boot d
 
+# run the kernel but in debug mode with no window and only serial output
+debug: image
+    qemu-system-x86_64 \
+        -M q35 \
+        -m 4G \
+        -cdrom {{IMAGE_NAME}}.iso \
+        -boot d \
+        -serial stdio \
+        -display none \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04
+
 # "download" limine
 limine:
     rm -rf {{LIMINE_DIR}}
