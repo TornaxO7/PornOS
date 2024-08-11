@@ -3,10 +3,10 @@ I'm sorry if expected to find some p*rn here. This is a [kernel] for educational
 reasons!
 
 ## How to run
-You'll need `cargo`, `rustc` and `qemu` (x86 emulation) in order to run this.
+There's a nix-flake so you just need to execute `nix develop` and have all dependencies installed!
+Otherwise you'll need `just`, `make`, `libisoburn` and `qemu`.
 
-1. Clone this repo
-2. Execute `cargo run` and you're good to go
+Afterwards just execute `just run`.
 
 ## FAQ
 ### Why this name?

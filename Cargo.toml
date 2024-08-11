@@ -1,38 +1,8 @@
 [package]
 name = "pornos"
+authors = ["TornaxO7 <tornax@pm.me>"]
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[features]
-default = [
-  "frame-allocator-stack",
-  "global-allocator-linked-list-allocator-crate",
-  "async-executor-dummy",
-]
-
-# frame allocators
-frame-allocator-array-stack = []
-frame-allocator-bitflag = []
-frame-allocator-stack = []
-
-# global allocators
-global-allocator-dummy = []
-global-allocator-linked-list-allocator-crate = []
-
-# async executor
-async-executor-dummy = []
-
-# since `cargo test` doesn't work (*sad pika noises*) I will add tests as a
-# feature
-test = []
-
 [dependencies]
 limine = "0.2"
-x86_64 = "0.15"
-lazy_static = { version = "1.4", features = ["spin_no_std"] }
-bitflags = "2.4"
-linked_list_allocator = "0.10"
-uart_16550 = "0.3"
-futures = { version = "0.3", default-features = false, features = ["alloc"] }
