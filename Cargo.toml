@@ -8,3 +8,5 @@ edition = "2021"
 limine = "0.2"
 spin = "0.9"
 uart_16550 = "0.3"
+x86_64 = "0.14"
+good_memory_allocator = { version = "0.1", features = ["allocator"] }

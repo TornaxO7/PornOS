@@ -4,6 +4,8 @@ IMAGE_NAME := "pornos"
 LIMINE_DIR := BUILD_DIR / "limine"
 ISO_ROOT := BUILD_DIR / "iso_root"
 
+default: debug
+
 # build the kernel
 build:
     cargo build
