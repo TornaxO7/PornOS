@@ -26,7 +26,7 @@ pub struct FrameManager {
 impl FrameManager {
     pub fn new() -> Self {
         let fak_entry = get_fak_entry();
-        let all_entries = super::get_entries();
+        let mut all_entries = super::get_free_entries();
         let capacity = fak_entry.length as usize / core::mem::size_of::<PhysFrame>();
         let mut fak = {
             let base_ptr = VirtAddr::new(fak_entry.base).as_mut_ptr::<PhysFrame>();
@@ -35,7 +35,7 @@ impl FrameManager {
             Self { ptr, length: 0 }
         };
 
-        for entry in all_entries {
+        while let Some(entry) = all_entries.next() {
             if fak.length >= capacity {
                 break;
             }
@@ -90,8 +90,15 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
 
 /// Returns the entry, where the frame allocator should be and all other entries (inclusive the entry of the frame allocator)
 fn get_fak_entry() -> &'static Entry {
-    super::get_entries()
-        .iter()
-        .min_by(|a, b| a.length.cmp(&b.length))
-        .unwrap()
+    let mut entries = super::get_free_entries();
+    let mut min_entry = entries.next().unwrap();
+
+    while let Some(entry) = entries.next() {
+        if entry.length < min_entry.length {
+            min_entry = entry;
+        }
+    }
+
+    entries.fak = Some(min_entry);
+    min_entry
 }
