@@ -1,4 +1,4 @@
-use spin::Once;
+use spin::{Mutex, Once};
 use x86_64::{
     registers::control::Cr3,
     structures::paging::{OffsetPageTable, PageTable},
@@ -8,7 +8,7 @@ use x86_64::{
 use crate::{serial_print, serial_println};
 
 /// **S**uper **i**mpressive **m**a**p**per
-pub static SIMP: Once<OffsetPageTable> = Once::new();
+pub static SIMP: Once<Mutex<OffsetPageTable>> = Once::new();
 
 pub fn init() {
     serial_print!("SIMP... ");
@@ -24,7 +24,7 @@ pub fn init() {
             unsafe { &mut *ptr }
         };
 
-        unsafe { OffsetPageTable::new(page_table, VirtAddr::new(hhdm)) }
+        Mutex::new(unsafe { OffsetPageTable::new(page_table, VirtAddr::new(hhdm)) })
     });
 
     serial_println!("OK");
