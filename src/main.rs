@@ -26,9 +26,9 @@ unsafe extern "C" fn kmain() -> ! {
 
     serial_println!("Starting PornOS...");
 
-    memory::frame_allocator::init();
     memory::mapper::init();
-    // heap::init();
+    // memory::heap::init();
+    memory::frame_allocator::init();
 
     exit_qemu(QemuExitCode::Success);
     halt_loop();

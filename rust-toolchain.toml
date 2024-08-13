@@ -1,4 +1,4 @@
 [toolchain]
 channel = "nightly-2024-08-11"
 targets = ["x86_64-unknown-none"]
-components = ["rust-analyzer"]
+components = ["rust-src", "rust-analyzer"]

@@ -1,14 +1,10 @@
-use limine::{memory_map::Entry, request::MemoryMapRequest};
+use limine::memory_map::Entry;
 use x86_64::{
     structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
 use crate::{serial_print, serial_println};
-
-#[used]
-#[link_section = ".requests"]
-static MMAP_REQUEST: MemoryMapRequest = MemoryMapRequest::new();
 
 static mut FAK: Option<FrameManager> = None;
 
@@ -29,7 +25,8 @@ pub struct FrameManager {
 
 impl FrameManager {
     pub fn new() -> Self {
-        let (fak_entry, all_entries) = get_fak_entries();
+        let fak_entry = get_fak_entry();
+        let all_entries = super::get_entries();
         let capacity = fak_entry.length as usize / core::mem::size_of::<PhysFrame>();
         let mut fak = {
             let base_ptr = VirtAddr::new(fak_entry.base).as_mut_ptr::<PhysFrame>();
@@ -91,13 +88,10 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
     }
 }
 
-fn get_fak_entries() -> (&'static Entry, &'static [&'static Entry]) {
-    let entries = MMAP_REQUEST.get_response().unwrap().entries();
-
-    let fak_entry = entries
+/// Returns the entry, where the frame allocator should be and all other entries (inclusive the entry of the frame allocator)
+fn get_fak_entry() -> &'static Entry {
+    super::get_entries()
         .iter()
         .min_by(|a, b| a.length.cmp(&b.length))
-        .unwrap();
-
-    (fak_entry, entries)
+        .unwrap()
 }

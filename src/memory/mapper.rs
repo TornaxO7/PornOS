@@ -1,77 +1,31 @@
-use x86_64::structures::paging::{
-    mapper::{
-        FlagUpdateError, MapToError, MapperFlush, MapperFlushAll, TranslateError, UnmapError,
-    },
-    FrameAllocator, Mapper, Page, PageTableFlags, PhysFrame, Size4KiB,
+use spin::Once;
+use x86_64::{
+    registers::control::Cr3,
+    structures::paging::{OffsetPageTable, PageTable},
+    VirtAddr,
 };
 
 use crate::{serial_print, serial_println};
 
+/// **S**uper **i**mpressive **m**a**p**per
+pub static SIMP: Once<OffsetPageTable> = Once::new();
+
 pub fn init() {
     serial_print!("SIMP... ");
 
+    SIMP.call_once(|| {
+        let hhdm = super::HHDM_REQUEST.get_response().unwrap().offset();
+        let (page_table_frame, _) = Cr3::read();
+
+        let page_table: &'static mut PageTable = {
+            let ptr = VirtAddr::new(page_table_frame.start_address().as_u64() + hhdm)
+                .as_mut_ptr::<PageTable>();
+
+            unsafe { &mut *ptr }
+        };
+
+        unsafe { OffsetPageTable::new(page_table, VirtAddr::new(hhdm)) }
+    });
+
     serial_println!("OK");
-}
-
-/// **S**uper **i**mpressive **m**a**p**per
-struct SIMP;
-
-impl Mapper<Size4KiB> for SIMP {
-    unsafe fn map_to_with_table_flags<A>(
-        &mut self,
-        page: Page<Size4KiB>,
-        frame: PhysFrame<Size4KiB>,
-        flags: PageTableFlags,
-        parent_table_flags: PageTableFlags,
-        frame_allocator: &mut A,
-    ) -> Result<MapperFlush<Size4KiB>, MapToError<Size4KiB>>
-    where
-        Self: Sized,
-        A: FrameAllocator<Size4KiB> + ?Sized,
-    {
-        todo!()
-    }
-
-    fn unmap(
-        &mut self,
-        page: Page<Size4KiB>,
-    ) -> Result<(PhysFrame<Size4KiB>, MapperFlush<Size4KiB>), UnmapError> {
-        todo!()
-    }
-
-    unsafe fn update_flags(
-        &mut self,
-        page: Page<Size4KiB>,
-        flags: PageTableFlags,
-    ) -> Result<MapperFlush<Size4KiB>, FlagUpdateError> {
-        todo!()
-    }
-
-    unsafe fn set_flags_p4_entry(
-        &mut self,
-        page: Page<Size4KiB>,
-        flags: PageTableFlags,
-    ) -> Result<MapperFlushAll, FlagUpdateError> {
-        todo!()
-    }
-
-    unsafe fn set_flags_p3_entry(
-        &mut self,
-        page: Page<Size4KiB>,
-        flags: PageTableFlags,
-    ) -> Result<MapperFlushAll, FlagUpdateError> {
-        todo!()
-    }
-
-    unsafe fn set_flags_p2_entry(
-        &mut self,
-        page: Page<Size4KiB>,
-        flags: PageTableFlags,
-    ) -> Result<MapperFlushAll, FlagUpdateError> {
-        todo!()
-    }
-
-    fn translate_page(&self, page: Page<Size4KiB>) -> Result<PhysFrame<Size4KiB>, TranslateError> {
-        todo!()
-    }
 }
