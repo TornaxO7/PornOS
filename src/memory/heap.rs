@@ -1,7 +1,17 @@
 use good_memory_allocator::SpinLockedAllocator;
-use x86_64::{structures::paging::Mapper, PhysAddr, VirtAddr};
+use x86_64::{
+    structures::paging::{
+        Mapper, OffsetPageTable, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+    },
+    PhysAddr, VirtAddr,
+};
 
 use crate::{serial_print, serial_println};
+
+struct HeapInfo {
+    start: VirtAddr,
+    length: usize,
+}
 
 #[global_allocator]
 static ALLOCATOR: SpinLockedAllocator = SpinLockedAllocator::empty();
@@ -10,34 +20,19 @@ pub fn init() {
     serial_print!("Init Heap... ");
 
     // prepare the heap cause I'm a sheep... eh what?
-    prepare_heap();
+    let heap_info = prepare_heap::<Size4KiB>();
 
-    // unsafe {
-    //     ALLOCATOR.init();
-    // }
+    unsafe {
+        ALLOCATOR.init(heap_info.start.as_u64() as usize, heap_info.length);
+    }
 
     serial_println!("OK");
 }
 
-fn prepare_heap() {
-    let hhdm = super::get_hhdm();
-
-    let biggest_entry = {
-        let mut free_entries = super::get_free_entries();
-
-        let mut biggest_entry = free_entries.next().unwrap();
-        while let Some(entry) = free_entries.next() {
-            if entry.length > biggest_entry.length {
-                biggest_entry = entry;
-            }
-        }
-
-        free_entries.heap = Some(biggest_entry);
-        biggest_entry
-    };
-
-    let mut phys = PhysAddr::new(biggest_entry.base);
-    let mut virt = VirtAddr::new(phys.as_u64() + hhdm);
-
-    let simp = crate::SIMP.get().expect("SIMP initialised");
+fn prepare_heap<S: PageSize>() -> HeapInfo
+where
+    OffsetPageTable<'static>: Mapper<S>,
+    S: core::fmt::Debug,
+{
+    todo!()
 }

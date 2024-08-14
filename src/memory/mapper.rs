@@ -1,4 +1,4 @@
-use spin::{Mutex, Once};
+use spin::{Mutex, MutexGuard, Once};
 use x86_64::{
     registers::control::Cr3,
     structures::paging::{OffsetPageTable, PageTable},
@@ -8,7 +8,7 @@ use x86_64::{
 use crate::{serial_print, serial_println};
 
 /// **S**uper **i**mpressive **m**a**p**per
-pub static SIMP: Once<Mutex<OffsetPageTable>> = Once::new();
+static SIMP: Once<Mutex<OffsetPageTable>> = Once::new();
 
 pub fn init() {
     serial_print!("SIMP... ");
@@ -28,4 +28,8 @@ pub fn init() {
     });
 
     serial_println!("OK");
+}
+
+pub fn get_simp<'a>() -> MutexGuard<'a, OffsetPageTable<'static>> {
+    SIMP.get().expect("SIMP initialised").lock()
 }
