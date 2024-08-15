@@ -1,11 +1,13 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
 use core::arch::asm;
 
 use limine::BaseRevision;
 use pornos::{
-    memory,
+    idt, memory,
     qemu::{exit_qemu, QemuExitCode},
     serial_println,
 };
@@ -26,6 +28,7 @@ unsafe extern "C" fn kmain() -> ! {
 
     serial_println!("Starting PornOS...");
 
+    idt::init();
     memory::frame_allocator::init();
     memory::mapper::init();
     memory::heap::init();

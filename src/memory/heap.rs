@@ -1,8 +1,6 @@
 use good_memory_allocator::SpinLockedAllocator;
 use x86_64::{
-    structures::paging::{
-        Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, Size4KiB,
-    },
+    structures::paging::{Mapper, OffsetPageTable, Page, PageSize, PageTableFlags, Size4KiB},
     VirtAddr,
 };
 
@@ -65,40 +63,4 @@ where
                 .write("bro why")
         };
     }
-}
-
-fn _traverse(p4_table: &PageTable, page: &Page) {
-    let addr = page.start_address();
-
-    let p3 = &p4_table[addr.p4_index()];
-    if p3.is_unused() {
-        serial_println!("p3 is unused");
-        return;
-    }
-    let p3_table: &mut PageTable =
-        unsafe { &mut *(VirtAddr::new(p3.addr().as_u64() + super::get_hhdm()).as_mut_ptr()) };
-
-    let p2 = &p3_table[addr.p3_index()];
-    if p2.is_unused() {
-        serial_println!("p2 is unused");
-        return;
-    }
-    let p2_table: &mut PageTable =
-        unsafe { &mut *(VirtAddr::new(p2.addr().as_u64() + super::get_hhdm()).as_mut_ptr()) };
-
-    let p1 = &p2_table[addr.p2_index()];
-    if p1.is_unused() {
-        serial_println!("p1 is unused");
-        return;
-    }
-    let p1_table: &mut PageTable =
-        unsafe { &mut *(VirtAddr::new(p1.addr().as_u64() + super::get_hhdm()).as_mut_ptr()) };
-
-    let entry = &p1_table[addr.p1_index()];
-    if entry.is_unused() {
-        serial_println!("Entry is unused");
-        return;
-    }
-
-    serial_println!("It's mapped ^^");
 }
