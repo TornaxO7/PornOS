@@ -24,7 +24,20 @@ debug: image
         -boot d \
         -serial stdio \
         -display none \
-        -device isa-debug-exit,iobase=0xf4,iosize=0x04
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+        -no-reboot
+
+gdb: image
+    qemu-system-x86_64 \
+        -M q35 \
+        -m 4G \
+        -cdrom {{IMAGE_NAME}}.iso \
+        -boot d \
+        -serial stdio \
+        -display none \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+        -s \
+        -S
 
 # "download" limine
 limine:

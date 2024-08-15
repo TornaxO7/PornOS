@@ -3,6 +3,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    pwndbg.url = "github:pwndbg/pwndbg";
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -32,6 +33,7 @@
                 qemu_full
                 libisoburn
                 just
+                inputs.pwndbg.packages.${system}.default
               ] ++ [ rust-toolchain ];
             };
         };
